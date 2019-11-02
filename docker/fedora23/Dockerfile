@@ -50,7 +50,7 @@ WORKDIR /home/mozc_builder/work
 
 ## NaCl SDK
 RUN curl -LO https://raw.githubusercontent.com/nnn1590/mozc/master/nacl_sdk.zip && unzip nacl_sdk.zip && rm nacl_sdk.zip
-RUN cd nacl_sdk && ./naclsdk install pepper_49
+RUN cd nacl_sdk && cp sdk_tools/cacerts.txt /tmp/cacerts.backup.txt && ( ./naclsdk install pepper_49 || ( true && mv /tmp/cacerts.backup.txt sdk_tools/cacerts.txt && ./naclsdk install pepper_49 ))
 ENV NACL_SDK_ROOT /home/mozc_builder/work/nacl_sdk/pepper_49
 
 ## depot_tools for Ninja prebuilt
