@@ -27,15 +27,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.keyboard;
+package org.nnn1590.mozc.keyboard;
 
-import org.mozc.android.inputmethod.japanese.KeyboardSpecificationName;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick.Direction;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.CrossingEdgeBehavior;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.SpaceOnAlphanumeric;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request.SpecialRomanjiTable;
-import org.mozc.android.inputmethod.japanese.resources.R;
+import org.nnn1590.mozc.KeyboardSpecificationName;
+import org.nnn1590.mozc.keyboard.Flick.Direction;
+import org.nnn1590.mozc.protobuf.ProtoCommands.CompositionMode;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Request.CrossingEdgeBehavior;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Request.SpaceOnAlphanumeric;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Request.SpecialRomanjiTable;
+import org.nnn1590.mozc.resources.R;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

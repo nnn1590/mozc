@@ -27,13 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoConfig.Config;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoConfig.Config.FundamentalCharacterForm;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoConfig.Config.HistoryLearningLevel;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoConfig.GeneralConfig;
+import org.nnn1590.mozc.preference.PreferenceUtil;
+import org.nnn1590.mozc.protobuf.ProtoConfig.Config;
+import org.nnn1590.mozc.protobuf.ProtoConfig.Config.FundamentalCharacterForm;
+import org.nnn1590.mozc.protobuf.ProtoConfig.Config.HistoryLearningLevel;
+import org.nnn1590.mozc.protobuf.ProtoConfig.GeneralConfig;
 
 import android.content.SharedPreferences;
 

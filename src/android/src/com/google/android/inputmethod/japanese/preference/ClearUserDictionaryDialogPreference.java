@@ -27,12 +27,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.preference;
+package org.nnn1590.mozc.preference;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand.CommandType;
-import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
-import org.mozc.android.inputmethod.japanese.session.SessionHandlerFactory;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand.CommandType;
+import org.nnn1590.mozc.session.SessionExecutor;
+import org.nnn1590.mozc.session.SessionHandlerFactory;
 
 import android.content.Context;
 import android.content.DialogInterface;

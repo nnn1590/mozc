@@ -27,11 +27,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.testing;
+package org.nnn1590.mozc.testing;
 
 import static org.easymock.EasyMock.reportMatcher;
 
-import org.mozc.android.inputmethod.japanese.KeycodeConverter.KeyEventInterface;
+import org.nnn1590.mozc.KeycodeConverter.KeyEventInterface;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.Message;

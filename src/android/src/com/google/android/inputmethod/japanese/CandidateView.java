@@ -27,24 +27,24 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.MozcView.InputFrameFoldButtonClickListener;
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateList;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.CommandType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.SessionCommand;
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayoutRenderer.DescriptionLayoutPolicy;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayoutRenderer.ValueScalingPolicy;
-import org.mozc.android.inputmethod.japanese.ui.ConversionCandidateLayouter;
-import org.mozc.android.inputmethod.japanese.ui.InputFrameFoldButtonView;
-import org.mozc.android.inputmethod.japanese.ui.ScrollGuideView;
-import org.mozc.android.inputmethod.japanese.ui.SpanFactory;
-import org.mozc.android.inputmethod.japanese.view.Skin;
+import org.nnn1590.mozc.MozcView.InputFrameFoldButtonClickListener;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory.DrawableType;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateList;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateWord;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Command;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.CommandType;
+import org.nnn1590.mozc.protobuf.ProtoCommands.SessionCommand;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.ui.CandidateLayoutRenderer.DescriptionLayoutPolicy;
+import org.nnn1590.mozc.ui.CandidateLayoutRenderer.ValueScalingPolicy;
+import org.nnn1590.mozc.ui.ConversionCandidateLayouter;
+import org.nnn1590.mozc.ui.InputFrameFoldButtonView;
+import org.nnn1590.mozc.ui.ScrollGuideView;
+import org.nnn1590.mozc.ui.SpanFactory;
+import org.nnn1590.mozc.view.Skin;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

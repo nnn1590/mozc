@@ -27,27 +27,27 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.CandidateViewManager.KeyboardCandidateViewHeightListener;
-import org.mozc.android.inputmethod.japanese.FeedbackManager.FeedbackEvent;
-import org.mozc.android.inputmethod.japanese.LayoutParamsAnimator.InterpolationListener;
-import org.mozc.android.inputmethod.japanese.ViewManagerInterface.LayoutAdjustment;
-import org.mozc.android.inputmethod.japanese.emoji.EmojiProviderType;
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyEventHandler;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState.MetaState;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyboardView;
-import org.mozc.android.inputmethod.japanese.model.SymbolCandidateStorage;
-import org.mozc.android.inputmethod.japanese.model.SymbolMajorCategory;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Output;
-import org.mozc.android.inputmethod.japanese.ui.SideFrameStubProxy;
-import org.mozc.android.inputmethod.japanese.util.CursorAnchorInfoWrapper;
-import org.mozc.android.inputmethod.japanese.view.MozcImageView;
-import org.mozc.android.inputmethod.japanese.view.Skin;
+import org.nnn1590.mozc.CandidateViewManager.KeyboardCandidateViewHeightListener;
+import org.nnn1590.mozc.FeedbackManager.FeedbackEvent;
+import org.nnn1590.mozc.LayoutParamsAnimator.InterpolationListener;
+import org.nnn1590.mozc.ViewManagerInterface.LayoutAdjustment;
+import org.nnn1590.mozc.emoji.EmojiProviderType;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory;
+import org.nnn1590.mozc.keyboard.KeyEventHandler;
+import org.nnn1590.mozc.keyboard.KeyState.MetaState;
+import org.nnn1590.mozc.keyboard.Keyboard;
+import org.nnn1590.mozc.keyboard.KeyboardView;
+import org.nnn1590.mozc.model.SymbolCandidateStorage;
+import org.nnn1590.mozc.model.SymbolMajorCategory;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Command;
+import org.nnn1590.mozc.protobuf.ProtoCommands.CompositionMode;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Output;
+import org.nnn1590.mozc.ui.SideFrameStubProxy;
+import org.nnn1590.mozc.util.CursorAnchorInfoWrapper;
+import org.nnn1590.mozc.view.MozcImageView;
+import org.nnn1590.mozc.view.Skin;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

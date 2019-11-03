@@ -27,21 +27,21 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Annotation;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Candidates;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Candidates.Candidate;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Category;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Output;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Preedit;
-import org.mozc.android.inputmethod.japanese.testing.ApiLevel;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
-import org.mozc.android.inputmethod.japanese.ui.FloatingCandidateLayoutRenderer;
-import org.mozc.android.inputmethod.japanese.ui.FloatingModeIndicator;
-import org.mozc.android.inputmethod.japanese.util.CursorAnchorInfoWrapper;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Annotation;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Candidates;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Candidates.Candidate;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Category;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Command;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Output;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Preedit;
+import org.nnn1590.mozc.testing.ApiLevel;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.Parameter;
+import org.nnn1590.mozc.ui.FloatingCandidateLayoutRenderer;
+import org.nnn1590.mozc.ui.FloatingModeIndicator;
+import org.nnn1590.mozc.util.CursorAnchorInfoWrapper;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

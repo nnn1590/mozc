@@ -27,17 +27,17 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 
-import org.mozc.android.inputmethod.japanese.DependencyFactory.Dependency;
-import org.mozc.android.inputmethod.japanese.model.SymbolCandidateStorage.SymbolHistoryStorage;
-import org.mozc.android.inputmethod.japanese.mushroom.MushroomUtil;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.ui.MenuDialog.MenuDialogListener;
-import org.mozc.android.inputmethod.japanese.util.ImeSwitcherFactory.ImeSwitcher;
+import org.nnn1590.mozc.DependencyFactory.Dependency;
+import org.nnn1590.mozc.model.SymbolCandidateStorage.SymbolHistoryStorage;
+import org.nnn1590.mozc.mushroom.MushroomUtil;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.ui.MenuDialog.MenuDialogListener;
+import org.nnn1590.mozc.util.ImeSwitcherFactory.ImeSwitcher;
 import com.google.common.base.Optional;
 
 import android.app.Activity;
@@ -168,7 +168,7 @@ public class MozcMenuDialogListenerImplTest extends InstrumentationTestCaseWithM
     EditorInfo editorInfo = new EditorInfo();
     editorInfo.fieldId = 10;
     expect(inputMethodService.getCurrentInputEditorInfo()).andStubReturn(editorInfo);
-    expect(context.getPackageName()).andStubReturn("org.mozc.android.inputmethod.japanese");
+    expect(context.getPackageName()).andStubReturn("org.nnn1590.mozc");
     eventListener.onShowMushroomSelectionDialog();
     Capture<Intent> intentCapture = new Capture<Intent>();
     context.startActivity(capture(intentCapture));
@@ -186,9 +186,9 @@ public class MozcMenuDialogListenerImplTest extends InstrumentationTestCaseWithM
     Intent intent = intentCapture.getValue();
     ComponentName componentName = intent.getComponent();
     assertEquals(
-        "org.mozc.android.inputmethod.japanese", componentName.getPackageName());
+        "org.nnn1590.mozc", componentName.getPackageName());
     assertEquals(
-        "org.mozc.android.inputmethod.japanese.mushroom.MushroomSelectionActivity",
+        "org.nnn1590.mozc.mushroom.MushroomSelectionActivity",
         componentName.getClassName());
     assertTrue((intent.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
     assertEquals(10, MushroomUtil.getFieldId(intent));

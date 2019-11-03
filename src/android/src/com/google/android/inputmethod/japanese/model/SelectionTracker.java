@@ -27,13 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.model;
+package org.nnn1590.mozc.model;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.DeletionRange;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Preedit;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Preedit.Segment;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.protobuf.ProtoCommands.DeletionRange;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Preedit;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Preedit.Segment;
 import com.google.common.base.MoreObjects;
 
 import android.util.Log;

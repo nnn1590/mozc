@@ -92,9 +92,9 @@
       'target_name': 'sdk_genproto_java_config',
       'type': 'none',
       'copies': [{
-        'destination': '<(sdk_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/',
+        'destination': '<(sdk_gen_dir)/org/nnn1590/mozc/protobuf/',
         'files': [
-          '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoConfig.java',
+          '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoConfig.java',
         ],
       }],
     },
@@ -114,7 +114,7 @@
             '<@(additional_inputs)',
           ],
           'outputs': [
-            '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoConfig.java',
+            '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoConfig.java',
           ],
           'action': [
             '<@(genproto_java_common)',
@@ -128,9 +128,9 @@
       'target_name': 'sdk_genproto_java_user_dictionary_storage',
       'type': 'none',
       'copies': [{
-        'destination': '<(sdk_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/',
+        'destination': '<(sdk_gen_dir)/org/nnn1590/mozc/protobuf/',
         'files': [
-          '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoUserDictionaryStorage.java',
+          '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoUserDictionaryStorage.java',
         ],
       }],
     },
@@ -150,7 +150,7 @@
             '<@(additional_inputs)',
           ],
           'outputs': [
-            '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoUserDictionaryStorage.java',
+            '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoUserDictionaryStorage.java',
           ],
           'action': [
             '<@(genproto_java_common)',
@@ -164,10 +164,10 @@
       'target_name': 'sdk_genproto_java_session',
       'type': 'none',
       'copies': [{
-        'destination': '<(sdk_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/',
+        'destination': '<(sdk_gen_dir)/org/nnn1590/mozc/protobuf/',
         'files': [
-          '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoCandidates.java',
-          '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoCommands.java',
+          '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoCandidates.java',
+          '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoCommands.java',
         ],
       }],
     },
@@ -188,8 +188,8 @@
             '<@(additional_inputs)',
           ],
           'outputs': [
-            '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoCandidates.java',
-            '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoCommands.java',
+            '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoCandidates.java',
+            '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoCommands.java',
           ],
           'action': [
             '<@(genproto_java_common)',
@@ -203,9 +203,9 @@
       'target_name': 'sdk_genproto_java_engine_builder',
       'type': 'none',
       'copies': [{
-        'destination': '<(sdk_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/',
+        'destination': '<(sdk_gen_dir)/org/nnn1590/mozc/protobuf/',
         'files': [
-          '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoEngineBuilder.java',
+          '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoEngineBuilder.java',
         ],
       }],
     },
@@ -225,7 +225,7 @@
             '<@(additional_inputs)',
           ],
           'outputs': [
-            '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/protobuf/ProtoEngineBuilder.java',
+            '<(adt_gen_dir)/org/nnn1590/mozc/protobuf/ProtoEngineBuilder.java',
           ],
           'action': [
             '<@(genproto_java_common)',

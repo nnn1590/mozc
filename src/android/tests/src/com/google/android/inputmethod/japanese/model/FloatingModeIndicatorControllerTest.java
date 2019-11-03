@@ -27,13 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.model;
+package org.nnn1590.mozc.model;
 
 import static org.easymock.EasyMock.isA;
 
-import org.mozc.android.inputmethod.japanese.model.FloatingModeIndicatorController.ControllerListener;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.model.FloatingModeIndicatorController.ControllerListener;
+import org.nnn1590.mozc.protobuf.ProtoCommands.CompositionMode;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
 
 import android.test.suitebuilder.annotation.SmallTest;
 import android.view.inputmethod.EditorInfo;

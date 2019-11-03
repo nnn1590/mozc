@@ -27,7 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.testing.mocking;
+package org.nnn1590.mozc.testing.mocking;
 
 import org.easymock.internal.IProxyFactory;
 import org.easymock.internal.MocksControl;

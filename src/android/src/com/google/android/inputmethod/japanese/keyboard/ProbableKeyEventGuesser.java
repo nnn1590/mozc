@@ -27,16 +27,16 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.keyboard;
+package org.nnn1590.mozc.keyboard;
 
-import org.mozc.android.inputmethod.japanese.KeyboardSpecificationName;
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchAction;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchPosition;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.ProbableKeyEvent;
-import org.mozc.android.inputmethod.japanese.util.LeastRecentlyUsedCacheMap;
+import org.nnn1590.mozc.KeyboardSpecificationName;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchAction;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchEvent;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchPosition;
+import org.nnn1590.mozc.protobuf.ProtoCommands.KeyEvent.ProbableKeyEvent;
+import org.nnn1590.mozc.util.LeastRecentlyUsedCacheMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

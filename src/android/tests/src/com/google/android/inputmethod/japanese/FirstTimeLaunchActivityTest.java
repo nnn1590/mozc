@@ -27,13 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.FirstTimeLaunchActivity.SendUsageStatsChangeListener;
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil;
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.testing.ActivityInstrumentationTestCase2WithMock;
-import org.mozc.android.inputmethod.japanese.testing.MozcPreferenceUtil;
+import org.nnn1590.mozc.FirstTimeLaunchActivity.SendUsageStatsChangeListener;
+import org.nnn1590.mozc.preference.PreferenceUtil;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.testing.ActivityInstrumentationTestCase2WithMock;
+import org.nnn1590.mozc.testing.MozcPreferenceUtil;
 import com.google.common.base.Optional;
 
 import android.content.SharedPreferences;

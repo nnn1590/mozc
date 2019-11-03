@@ -34,33 +34,33 @@
 
 # Keep the method names of the generated protobuf classes,
 # because the protobuf library uses reflections.
--keepclassmembers class org.mozc.android.inputmethod.japanese.protobuf.* {
+-keepclassmembers class org.nnn1590.mozc.protobuf.* {
     <methods>;
 }
 
 
 # This class is created by reflection.
--keep class org.mozc.android.inputmethod.japanese.MozcView$RegionInsetsCalculator
+-keep class org.nnn1590.mozc.MozcView$RegionInsetsCalculator
 
 # Can be accessed via reflection.
 -keep public class * extends android.app.Fragment
--keepclassmembers class * extends org.mozc.android.inputmethod.japanese.util.ImeSwitcherFactory$ImeSwitcher {
+-keepclassmembers class * extends org.nnn1590.mozc.util.ImeSwitcherFactory$ImeSwitcher {
     <methods>;
 }
 
 # libmozc.so depends on those methods.
--keepclassmembers class org.mozc.android.inputmethod.japanese.session.MozcJNI {
+-keepclassmembers class org.nnn1590.mozc.session.MozcJNI {
     native <methods>;
 }
 
 # The classes in nativecallback package must keep original class name and method name
 # in order to be called back from native layer.
--keepclasseswithmembers class org.mozc.android.inputmethod.japanese.nativecallback.* {
+-keepclasseswithmembers class org.nnn1590.mozc.nativecallback.* {
     public static <methods>;
 }
 
 # Skin's fields are accessed by reflection.
--keepclassmembers class org.mozc.android.inputmethod.japanese.view.Skin {
+-keepclassmembers class org.nnn1590.mozc.view.Skin {
     <fields>;
 }
 

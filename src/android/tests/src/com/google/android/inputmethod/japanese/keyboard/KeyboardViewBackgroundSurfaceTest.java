@@ -27,19 +27,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.keyboard;
+package org.nnn1590.mozc.keyboard;
 
 import static org.easymock.EasyMock.expect;
 
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick.Direction;
-import org.mozc.android.inputmethod.japanese.keyboard.Key.Stick;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState.MetaState;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyboardViewBackgroundSurface.SurfaceCanvas;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.MockResourcesWithDisplayMetrics;
-import org.mozc.android.inputmethod.japanese.view.DrawableCache;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory.DrawableType;
+import org.nnn1590.mozc.keyboard.Flick.Direction;
+import org.nnn1590.mozc.keyboard.Key.Stick;
+import org.nnn1590.mozc.keyboard.KeyState.MetaState;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.keyboard.KeyboardViewBackgroundSurface.SurfaceCanvas;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.MockResourcesWithDisplayMetrics;
+import org.nnn1590.mozc.view.DrawableCache;
 import com.google.common.base.Optional;
 
 import android.content.res.Resources;

@@ -27,18 +27,18 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.hardwarekeyboard;
+package org.nnn1590.mozc.hardwarekeyboard;
 
-import org.mozc.android.inputmethod.japanese.KeycodeConverter.KeyEventInterface;
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
-import org.mozc.android.inputmethod.japanese.hardwarekeyboard.KeyEventMapperFactory.KeyEventMapper;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.HardwareKeyMap;
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.ModifierKey;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.SpecialKey;
+import org.nnn1590.mozc.KeycodeConverter.KeyEventInterface;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
+import org.nnn1590.mozc.hardwarekeyboard.KeyEventMapperFactory.KeyEventMapper;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.preference.ClientSidePreference.HardwareKeyMap;
+import org.nnn1590.mozc.preference.PreferenceUtil;
+import org.nnn1590.mozc.protobuf.ProtoCommands;
+import org.nnn1590.mozc.protobuf.ProtoCommands.KeyEvent.ModifierKey;
+import org.nnn1590.mozc.protobuf.ProtoCommands.KeyEvent.SpecialKey;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

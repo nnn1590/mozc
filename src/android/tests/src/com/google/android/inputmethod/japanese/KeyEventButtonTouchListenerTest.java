@@ -27,23 +27,23 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.keyboard.Key;
-import org.mozc.android.inputmethod.japanese.keyboard.Key.Stick;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyEventContext;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyEventHandler;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState.MetaState;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyboardActionListener;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchAction;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory.DrawableType;
+import org.nnn1590.mozc.keyboard.Key;
+import org.nnn1590.mozc.keyboard.Key.Stick;
+import org.nnn1590.mozc.keyboard.KeyEventContext;
+import org.nnn1590.mozc.keyboard.KeyEventHandler;
+import org.nnn1590.mozc.keyboard.KeyState;
+import org.nnn1590.mozc.keyboard.KeyState.MetaState;
+import org.nnn1590.mozc.keyboard.KeyboardActionListener;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchAction;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchEvent;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
 
 import android.content.Context;
 import android.os.Looper;

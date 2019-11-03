@@ -27,9 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.view;
+package org.nnn1590.mozc.view;
 
-import org.mozc.android.inputmethod.japanese.view.SkinParser.SkinParserException;
+import org.nnn1590.mozc.view.SkinParser.SkinParserException;
 
 import android.content.res.Resources;
 import android.test.InstrumentationTestCase;
@@ -44,7 +44,7 @@ public class SkinParserTest extends InstrumentationTestCase {
   public void testParser_correctSkin() throws SkinParserException {
     Resources resources = getInstrumentation().getContext().getResources();
     int[] skinIds = {
-        org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_correct_drawable_test_1};
+        org.nnn1590.mozc.tests.R.xml.skinparser_correct_drawable_test_1};
     for (int id : skinIds) {
       SkinParser parser = new SkinParser(resources, resources.getXml(id));
       Skin skin = parser.parseSkin();
@@ -56,13 +56,13 @@ public class SkinParserTest extends InstrumentationTestCase {
   public void testParser_incorrectSkin() {
     // Note: Use getContext() to get test packge's resources.
     Resources resources = getInstrumentation().getContext().getResources();
-    int[] skinIds = {org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_test_1,
-                      org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_test_2,
-                      org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_test_3,
-                      org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_test_4,
-                      org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_test_5,
-                      org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_test_6,
-                      org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_test_7};
+    int[] skinIds = {org.nnn1590.mozc.tests.R.xml.skinparser_test_1,
+                      org.nnn1590.mozc.tests.R.xml.skinparser_test_2,
+                      org.nnn1590.mozc.tests.R.xml.skinparser_test_3,
+                      org.nnn1590.mozc.tests.R.xml.skinparser_test_4,
+                      org.nnn1590.mozc.tests.R.xml.skinparser_test_5,
+                      org.nnn1590.mozc.tests.R.xml.skinparser_test_6,
+                      org.nnn1590.mozc.tests.R.xml.skinparser_test_7};
     for (int id : skinIds) {
       try {
         SkinParser parser = new SkinParser(resources, resources.getXml(id));
@@ -79,7 +79,7 @@ public class SkinParserTest extends InstrumentationTestCase {
   public void testDrawableParser_incorrectSkin() {
     Resources resources = getInstrumentation().getContext().getResources();
     int[] skinIds = {
-        org.mozc.android.inputmethod.japanese.tests.R.xml.skinparser_incorrect_drawable_test_1};
+        org.nnn1590.mozc.tests.R.xml.skinparser_incorrect_drawable_test_1};
     for (int id : skinIds) {
       try {
         SkinParser parser = new SkinParser(resources, resources.getXml(id));

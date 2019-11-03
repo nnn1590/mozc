@@ -27,17 +27,17 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.preference;
+package org.nnn1590.mozc.preference;
 
-import org.mozc.android.inputmethod.japanese.ApplicationInitializerFactory;
-import org.mozc.android.inputmethod.japanese.ApplicationInitializerFactory.ApplicationInitializer;
-import org.mozc.android.inputmethod.japanese.DependencyFactory;
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.hardwarekeyboard.HardwareKeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.preference.KeyboardPreviewDrawable.BitmapCache;
-import org.mozc.android.inputmethod.japanese.preference.KeyboardPreviewDrawable.CacheReferenceKey;
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.util.LauncherIconManagerFactory;
+import org.nnn1590.mozc.ApplicationInitializerFactory;
+import org.nnn1590.mozc.ApplicationInitializerFactory.ApplicationInitializer;
+import org.nnn1590.mozc.DependencyFactory;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.hardwarekeyboard.HardwareKeyboardSpecification;
+import org.nnn1590.mozc.preference.KeyboardPreviewDrawable.BitmapCache;
+import org.nnn1590.mozc.preference.KeyboardPreviewDrawable.CacheReferenceKey;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.util.LauncherIconManagerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 

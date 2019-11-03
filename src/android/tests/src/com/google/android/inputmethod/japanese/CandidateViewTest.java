@@ -27,24 +27,24 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 
-import org.mozc.android.inputmethod.japanese.CandidateView.ConversionCandidateSelectListener;
-import org.mozc.android.inputmethod.japanese.CandidateView.ConversionCandidateWordView;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateList;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.MozcLayoutUtil;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout.Row;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayouter;
-import org.mozc.android.inputmethod.japanese.ui.InputFrameFoldButtonView;
-import org.mozc.android.inputmethod.japanese.ui.ScrollGuideView;
-import org.mozc.android.inputmethod.japanese.view.Skin;
+import org.nnn1590.mozc.CandidateView.ConversionCandidateSelectListener;
+import org.nnn1590.mozc.CandidateView.ConversionCandidateWordView;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateList;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateWord;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.MozcLayoutUtil;
+import org.nnn1590.mozc.ui.CandidateLayout;
+import org.nnn1590.mozc.ui.CandidateLayout.Row;
+import org.nnn1590.mozc.ui.CandidateLayouter;
+import org.nnn1590.mozc.ui.InputFrameFoldButtonView;
+import org.nnn1590.mozc.ui.ScrollGuideView;
+import org.nnn1590.mozc.view.Skin;
 import com.google.common.base.Optional;
 
 import android.test.suitebuilder.annotation.SmallTest;

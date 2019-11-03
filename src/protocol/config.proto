@@ -33,7 +33,7 @@ syntax = "proto2";
 package mozc.config;
 
 option java_outer_classname = "ProtoConfig";
-option java_package = "org.mozc.android.inputmethod.japanese.protobuf";
+option java_package = "org.nnn1590.mozc.protobuf";
 
 message GeneralConfig {
   //////////////////////////////////////////////////////////////

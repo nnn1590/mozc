@@ -27,11 +27,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.InOutAnimatedFrameLayout.VisibilityChangeListener;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
+import org.nnn1590.mozc.InOutAnimatedFrameLayout.VisibilityChangeListener;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.Parameter;
 
 import android.test.suitebuilder.annotation.SmallTest;
 import android.view.View;

@@ -27,19 +27,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.view;
+package org.nnn1590.mozc.view;
 
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.same;
 
-import org.mozc.android.inputmethod.japanese.emoji.EmojiProviderType;
-import org.mozc.android.inputmethod.japanese.emoji.EmojiUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateList;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.view.CarrierEmojiRenderHelper.BackgroundTextView;
+import org.nnn1590.mozc.emoji.EmojiProviderType;
+import org.nnn1590.mozc.emoji.EmojiUtil;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateList;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateWord;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.view.CarrierEmojiRenderHelper.BackgroundTextView;
 import com.google.common.base.Optional;
 
 import android.os.Handler;

@@ -27,9 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.preference;
+package org.nnn1590.mozc.preference;
 
-import org.mozc.android.inputmethod.japanese.util.LauncherIconManagerFactory;
+import org.nnn1590.mozc.util.LauncherIconManagerFactory;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;

@@ -27,17 +27,17 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.ui;
+package org.nnn1590.mozc.ui;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Output;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Preedit;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Preedit.Segment;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.SessionCommand;
-import org.mozc.android.inputmethod.japanese.testing.ApiLevel;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Command;
+import org.nnn1590.mozc.protobuf.ProtoCommands.CompositionMode;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Output;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Preedit;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Preedit.Segment;
+import org.nnn1590.mozc.protobuf.ProtoCommands.SessionCommand;
+import org.nnn1590.mozc.testing.ApiLevel;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
 
 import android.annotation.TargetApi;
 import android.os.Handler;

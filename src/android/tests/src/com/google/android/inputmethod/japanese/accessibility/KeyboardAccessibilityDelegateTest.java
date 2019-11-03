@@ -27,24 +27,24 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.accessibility;
+package org.nnn1590.mozc.accessibility;
 
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 
-import org.mozc.android.inputmethod.japanese.accessibility.KeyboardAccessibilityDelegate.TouchEventEmulator;
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick.Direction;
-import org.mozc.android.inputmethod.japanese.keyboard.Key;
-import org.mozc.android.inputmethod.japanese.keyboard.Key.Stick;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyEntity;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState.MetaState;
-import org.mozc.android.inputmethod.japanese.keyboard.PopUp;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.accessibility.KeyboardAccessibilityDelegate.TouchEventEmulator;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory.DrawableType;
+import org.nnn1590.mozc.keyboard.Flick;
+import org.nnn1590.mozc.keyboard.Flick.Direction;
+import org.nnn1590.mozc.keyboard.Key;
+import org.nnn1590.mozc.keyboard.Key.Stick;
+import org.nnn1590.mozc.keyboard.KeyEntity;
+import org.nnn1590.mozc.keyboard.KeyState;
+import org.nnn1590.mozc.keyboard.KeyState.MetaState;
+import org.nnn1590.mozc.keyboard.PopUp;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
 import com.google.common.base.Optional;
 
 import android.content.Context;

@@ -27,18 +27,18 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.accessibility;
+package org.nnn1590.mozc.accessibility;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Annotation;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout.Row;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout.Span;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Annotation;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateWord;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.ui.CandidateLayout;
+import org.nnn1590.mozc.ui.CandidateLayout.Row;
+import org.nnn1590.mozc.ui.CandidateLayout.Span;
 import com.google.common.base.Optional;
 
 import android.content.Context;

@@ -27,14 +27,14 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
 import static org.easymock.EasyMock.expect;
 
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Request;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.Parameter;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
@@ -327,11 +327,11 @@ public class MozcUtilTest extends InstrumentationTestCaseWithMock {
   public void testGetDimensionForOrientation() {
     float portraitValue = MozcUtil.getDimensionForOrientation(
         getInstrumentation().getContext().getResources(),
-        org.mozc.android.inputmethod.japanese.tests.R.dimen.value_for_testing_port_1dip_land_2dip,
+        org.nnn1590.mozc.tests.R.dimen.value_for_testing_port_1dip_land_2dip,
         Configuration.ORIENTATION_PORTRAIT);
     float landscapeValue = MozcUtil.getDimensionForOrientation(
         getInstrumentation().getContext().getResources(),
-        org.mozc.android.inputmethod.japanese.tests.R.dimen.value_for_testing_port_1dip_land_2dip,
+        org.nnn1590.mozc.tests.R.dimen.value_for_testing_port_1dip_land_2dip,
         Configuration.ORIENTATION_LANDSCAPE);
 
     assertTrue("portrait:" + portraitValue + ", landscape:" + landscapeValue,

@@ -27,16 +27,16 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.accessibility;
+package org.nnn1590.mozc.accessibility;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick.Direction;
-import org.mozc.android.inputmethod.japanese.keyboard.Key;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState.MetaState;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard;
-import org.mozc.android.inputmethod.japanese.keyboard.Row;
-import org.mozc.android.inputmethod.japanese.resources.R;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.keyboard.Flick.Direction;
+import org.nnn1590.mozc.keyboard.Key;
+import org.nnn1590.mozc.keyboard.KeyState;
+import org.nnn1590.mozc.keyboard.KeyState.MetaState;
+import org.nnn1590.mozc.keyboard.Keyboard;
+import org.nnn1590.mozc.keyboard.Row;
+import org.nnn1590.mozc.resources.R;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

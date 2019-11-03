@@ -58,10 +58,10 @@
     <property name="tested.project.absolute.dir" location="${tested.project.dir}" />
     <if condition="${mozc.stresstest}">
       <then>
-        <property name="test.runner" value="org.mozc.android.inputmethod.japanese.stresstest.MozcStressTestRunner" />
+        <property name="test.runner" value="org.nnn1590.mozc.stresstest.MozcStressTestRunner" />
       </then>
       <else>
-        <property name="test.runner" value="org.mozc.android.inputmethod.japanese.testing.MozcTestRunner" />
+        <property name="test.runner" value="org.nnn1590.mozc.testing.MozcTestRunner" />
       </else>
     </if>
     <!-- Application package of the tested project extracted from its manifest file -->

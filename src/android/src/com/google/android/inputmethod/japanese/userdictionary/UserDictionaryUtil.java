@@ -27,13 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.userdictionary;
+package org.nnn1590.mozc.userdictionary;
 
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary.Entry;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary.PosType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Status;
-import org.mozc.android.inputmethod.japanese.resources.R;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary.Entry;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary.PosType;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Status;
+import org.nnn1590.mozc.resources.R;
 import com.google.common.base.Preconditions;
 
 import android.app.AlertDialog;

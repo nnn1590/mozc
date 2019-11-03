@@ -27,18 +27,18 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.preference;
+package org.nnn1590.mozc.preference;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.KeyboardLayout;
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil.CurrentKeyboardLayoutPreferenceChangeListener;
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil.PreferenceManagerInterface;
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.preference.ClientSidePreference.KeyboardLayout;
+import org.nnn1590.mozc.preference.PreferenceUtil.CurrentKeyboardLayoutPreferenceChangeListener;
+import org.nnn1590.mozc.preference.PreferenceUtil.PreferenceManagerInterface;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.Parameter;
 import com.google.common.base.Optional;
 
 import android.content.Context;

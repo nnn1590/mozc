@@ -27,13 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.model;
+package org.nnn1590.mozc.model;
 
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.model.JapaneseSoftwareKeyboardModel.KeyboardMode;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.InputStyle;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.KeyboardLayout;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.model.JapaneseSoftwareKeyboardModel.KeyboardMode;
+import org.nnn1590.mozc.preference.ClientSidePreference.InputStyle;
+import org.nnn1590.mozc.preference.ClientSidePreference.KeyboardLayout;
+import org.nnn1590.mozc.testing.Parameter;
 
 import android.test.suitebuilder.annotation.SmallTest;
 import android.text.InputType;

@@ -182,7 +182,7 @@ def OutputData(category_map, stream):
   for data_list in category_map.itervalues():
     data_list.sort()
 
-  stream.write('package org.mozc.android.inputmethod.japanese.emoji;\n'
+  stream.write('package org.nnn1590.mozc.emoji;\n'
                'public class EmojiData {\n')
 
   for category in _CATEGORY_LIST:

@@ -27,9 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.emoji;
+package org.nnn1590.mozc.emoji;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
+import org.nnn1590.mozc.MozcLog;
 import com.google.common.base.Preconditions;
 
 import android.graphics.Bitmap;

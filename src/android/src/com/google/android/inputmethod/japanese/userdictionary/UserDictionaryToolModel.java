@@ -27,19 +27,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.userdictionary;
+package org.nnn1590.mozc.userdictionary;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary.Entry;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary.PosType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand.Builder;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand.CommandType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Status;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryStorage;
-import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary.Entry;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary.PosType;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand.Builder;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand.CommandType;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Status;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryStorage;
+import org.nnn1590.mozc.session.SessionExecutor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

@@ -27,19 +27,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.ApplicationInitializerFactory.ApplicationInitializationStatus;
-import org.mozc.android.inputmethod.japanese.ApplicationInitializerFactory.ApplicationInitializer;
-import org.mozc.android.inputmethod.japanese.MozcUtil.TelephonyManagerInterface;
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil;
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil.PreferenceManagerStaticInterface;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.MockContext;
-import org.mozc.android.inputmethod.japanese.testing.MockPackageManager;
-import org.mozc.android.inputmethod.japanese.testing.MozcPreferenceUtil;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
-import org.mozc.android.inputmethod.japanese.util.LauncherIconManagerFactory.LauncherIconManager;
+import org.nnn1590.mozc.ApplicationInitializerFactory.ApplicationInitializationStatus;
+import org.nnn1590.mozc.ApplicationInitializerFactory.ApplicationInitializer;
+import org.nnn1590.mozc.MozcUtil.TelephonyManagerInterface;
+import org.nnn1590.mozc.preference.PreferenceUtil;
+import org.nnn1590.mozc.preference.PreferenceUtil.PreferenceManagerStaticInterface;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.MockContext;
+import org.nnn1590.mozc.testing.MockPackageManager;
+import org.nnn1590.mozc.testing.MozcPreferenceUtil;
+import org.nnn1590.mozc.testing.Parameter;
+import org.nnn1590.mozc.util.LauncherIconManagerFactory.LauncherIconManager;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

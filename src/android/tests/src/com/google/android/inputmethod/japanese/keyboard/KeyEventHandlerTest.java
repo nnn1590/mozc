@@ -27,15 +27,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.keyboard;
+package org.nnn1590.mozc.keyboard;
 
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick.Direction;
-import org.mozc.android.inputmethod.japanese.keyboard.Key.Stick;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState.MetaState;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchAction;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory.DrawableType;
+import org.nnn1590.mozc.keyboard.Flick.Direction;
+import org.nnn1590.mozc.keyboard.Key.Stick;
+import org.nnn1590.mozc.keyboard.KeyState.MetaState;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchAction;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchEvent;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
 import com.google.common.base.Optional;
 
 import android.os.Handler;

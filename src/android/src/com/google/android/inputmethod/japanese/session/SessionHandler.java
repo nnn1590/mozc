@@ -27,9 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.session;
+package org.nnn1590.mozc.session;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Command;
 
 import android.content.Context;
 

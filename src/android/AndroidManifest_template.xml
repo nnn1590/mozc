@@ -57,7 +57,7 @@
     </service>
 
     <!-- Launcher Icon -->
-    <activity android:name="org.mozc.android.inputmethod.japanese.LauncherActivity"
+    <activity android:name="org.nnn1590.mozc.LauncherActivity"
               android:enabled="@bool/show_launcher_icon"
               android:label="@string/app_full_name">
       <intent-filter>
@@ -66,7 +66,7 @@
       </intent-filter>
     </activity>
 
-    <receiver android:name="org.mozc.android.inputmethod.japanese.LauncherIconVisibilityInitializer">
+    <receiver android:name="org.nnn1590.mozc.LauncherIconVisibilityInitializer">
       <intent-filter>
         <action android:name="android.intent.action.BOOT_COMPLETED" />
         <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -75,20 +75,20 @@
     </receiver>
 
     <!-- Preference -->
-    <activity android:name="org.mozc.android.inputmethod.japanese.preference.MozcProxyPreferenceActivity" />
-    <activity android:name="org.mozc.android.inputmethod.japanese.preference.MozcFragmentPreferenceActivity"
+    <activity android:name="org.nnn1590.mozc.preference.MozcProxyPreferenceActivity" />
+    <activity android:name="org.nnn1590.mozc.preference.MozcFragmentPreferenceActivity"
               android:launchMode="singleTask"
               android:theme="@style/AppThemeSelectorSettings"/>
-    <activity android:name="org.mozc.android.inputmethod.japanese.preference.MozcFragmentSoftwareKeyboardAdvancedSettingsPreferenceActivity"
+    <activity android:name="org.nnn1590.mozc.preference.MozcFragmentSoftwareKeyboardAdvancedSettingsPreferenceActivity"
               android:launchMode="singleTop"
               android:theme="@style/AppThemeSelectorSettings"/>
 
-    <activity android:name="org.mozc.android.inputmethod.japanese.FirstTimeLaunchActivity" />
-    <activity android:name="org.mozc.android.inputmethod.japanese.preference.MiniBrowserActivity"
+    <activity android:name="org.nnn1590.mozc.FirstTimeLaunchActivity" />
+    <activity android:name="org.nnn1590.mozc.preference.MiniBrowserActivity"
               android:launchMode="singleTop" />
 
     <!-- User dictionary tool -->
-    <activity android:name="org.mozc.android.inputmethod.japanese.userdictionary.UserDictionaryToolActivity"
+    <activity android:name="org.nnn1590.mozc.userdictionary.UserDictionaryToolActivity"
               android:label="@string/user_dictionary_tool_app_name"
               android:uiOptions="splitActionBarWhenNarrow"
               android:configChanges="orientation|screenSize"
@@ -109,8 +109,8 @@
 
     <!-- TODO(matsuzakit): Use @string/user_dictionary_tool_export_provider_name for name and authorities.
          Currently resource reference is not used as it is not supported on API Level 7 (Eclair). -->
-    <provider android:name="org.mozc.android.inputmethod.japanese.userdictionary.UserDictionaryExportProvider"
-              android:authorities="org.mozc.android.inputmethod.japanese.userdictionary.UserDictionaryExportProvider"
+    <provider android:name="org.nnn1590.mozc.userdictionary.UserDictionaryExportProvider"
+              android:authorities="org.nnn1590.mozc.userdictionary.UserDictionaryExportProvider"
               android:exported="false"
               android:grantUriPermissions="true"/>
 
@@ -127,7 +127,7 @@
          - excludeFromRecents: this pseudo dialog shouldn't be shown on history
            list.
     -->
-    <activity android:name="org.mozc.android.inputmethod.japanese.mushroom.MushroomSelectionActivity"
+    <activity android:name="org.nnn1590.mozc.mushroom.MushroomSelectionActivity"
               android:launchMode="singleTask"
               android:taskAffinity=".mushroom"
               android:theme="@android:style/Theme.DeviceDefault.Light.Dialog"
@@ -136,7 +136,7 @@
 
 
     <!-- Input device manager -->
-    <receiver android:name="org.mozc.android.inputmethod.japanese.InputDeviceReceiver">
+    <receiver android:name="org.nnn1590.mozc.InputDeviceReceiver">
       <intent-filter>
         <action android:name="android.hardware.input.action.QUERY_KEYBOARD_LAYOUTS" />
       </intent-filter>
@@ -147,6 +147,6 @@
     <!-- Following entry is for unit tests. Do not remove. -->
     <!-- The activity is used for testing views. -->
     <activity android:name="android.app.Activity" />
-    <activity android:name="org.mozc.android.inputmethod.japanese.preference.MozcPreferenceDummy" />
+    <activity android:name="org.nnn1590.mozc.preference.MozcPreferenceDummy" />
   </application>
 </manifest>

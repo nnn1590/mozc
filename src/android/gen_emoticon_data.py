@@ -44,7 +44,7 @@ import sys
 import unicodedata
 
 
-PACKAGE_NAME = 'org.mozc.android.inputmethod.japanese'
+PACKAGE_NAME = 'org.nnn1590.mozc'
 
 TEMPLATE_CLASS = """package %s;
 public class %s {

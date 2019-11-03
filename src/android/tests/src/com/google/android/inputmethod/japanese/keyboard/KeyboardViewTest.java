@@ -27,7 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.keyboard;
+package org.nnn1590.mozc.keyboard;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -35,20 +35,20 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.same;
 
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick.Direction;
-import org.mozc.android.inputmethod.japanese.keyboard.Key.Stick;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState.MetaState;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchAction;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.MockResourcesWithDisplayMetrics;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
-import org.mozc.android.inputmethod.japanese.testing.VisibilityProxy;
-import org.mozc.android.inputmethod.japanese.view.DrawableCache;
-import org.mozc.android.inputmethod.japanese.view.SkinType;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory.DrawableType;
+import org.nnn1590.mozc.keyboard.Flick.Direction;
+import org.nnn1590.mozc.keyboard.Key.Stick;
+import org.nnn1590.mozc.keyboard.KeyState.MetaState;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchAction;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchEvent;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.MockResourcesWithDisplayMetrics;
+import org.nnn1590.mozc.testing.Parameter;
+import org.nnn1590.mozc.testing.VisibilityProxy;
+import org.nnn1590.mozc.view.DrawableCache;
+import org.nnn1590.mozc.view.SkinType;
 import com.google.common.base.Optional;
 
 import android.content.res.Resources;
@@ -76,7 +76,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Unit tests for {@code org.mozc.android.inputmethod.japanese.keyboard.KeyboardView}.
+ * Unit tests for {@code org.nnn1590.mozc.keyboard.KeyboardView}.
  */
 public class KeyboardViewTest extends InstrumentationTestCaseWithMock {
 

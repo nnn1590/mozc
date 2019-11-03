@@ -248,9 +248,9 @@
       'target_name': 'sdk_gen_emoji_data',
       'type': 'none',
       'copies': [{
-        'destination': '<(sdk_gen_dir)/org/mozc/android/inputmethod/japanese/emoji',
+        'destination': '<(sdk_gen_dir)/org/nnn1590/mozc/emoji',
         'files': [
-          '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/emoji/EmojiData.java',
+          '<(adt_gen_dir)/org/nnn1590/mozc/emoji/EmojiData.java',
         ],
       }],
     },
@@ -264,7 +264,7 @@
             '../data/emoji/emoji_data.tsv',
           ],
           'outputs': [
-            '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/emoji/EmojiData.java',
+            '<(adt_gen_dir)/org/nnn1590/mozc/emoji/EmojiData.java',
           ],
           'action': [
             'python', 'gen_emoji_data.py',
@@ -278,9 +278,9 @@
       'target_name': 'sdk_gen_emoticon_data',
       'type': 'none',
       'copies': [{
-        'destination': '<(sdk_gen_dir)/org/mozc/android/inputmethod/japanese/',
+        'destination': '<(sdk_gen_dir)/org/nnn1590/mozc/',
         'files': [
-          '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/EmoticonData.java',
+          '<(adt_gen_dir)/org/nnn1590/mozc/EmoticonData.java',
         ],
       }],
     },
@@ -294,7 +294,7 @@
             '../data/emoticon/categorized.tsv',
           ],
           'outputs': [
-            '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/EmoticonData.java',
+            '<(adt_gen_dir)/org/nnn1590/mozc/EmoticonData.java',
           ],
           'action': [
             'python', 'gen_emoticon_data.py',
@@ -311,9 +311,9 @@
       'target_name': 'sdk_gen_symbol_data',
       'type': 'none',
       'copies': [{
-        'destination': '<(sdk_gen_dir)/org/mozc/android/inputmethod/japanese/',
+        'destination': '<(sdk_gen_dir)/org/nnn1590/mozc/',
         'files': [
-          '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/SymbolData.java',
+          '<(adt_gen_dir)/org/nnn1590/mozc/SymbolData.java',
         ],
       }],
     },
@@ -327,7 +327,7 @@
             '../data/symbol/categorized.tsv',
           ],
           'outputs': [
-            '<(adt_gen_dir)/org/mozc/android/inputmethod/japanese/SymbolData.java',
+            '<(adt_gen_dir)/org/nnn1590/mozc/SymbolData.java',
           ],
           'action': [
             'python', 'gen_emoticon_data.py',

@@ -27,9 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.testing;
+package org.nnn1590.mozc.testing;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
+import org.nnn1590.mozc.MozcLog;
 
 import android.util.Xml;
 
@@ -55,12 +55,12 @@ import java.io.Writer;
  * <pre>
  * <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
  * <testsuites name="gtest-report">
- *   <testsuite name="org.mozc.android.inputmethod.japanese.nativecallback.HttpClientTest">
+ *   <testsuite name="org.nnn1590.mozc.nativecallback.HttpClientTest">
  *     <testcase name="testCreateRequest" time="0.019" />
  *     <testcase name="testRequest" time="2.178">
  *       <error type="java.lang.NullPointerException">
  *         java.lang.NullPointerException
- *         at org.mozc.android.inputmethod.japanese.nativecallback.HttpClientTest.testRequest(HttpClientTest.java:91)
+ *         at org.nnn1590.mozc.nativecallback.HttpClientTest.testRequest(HttpClientTest.java:91)
  *         at java.lang.reflect.Method.invokeNative(Native Method)
  *         at java.lang.reflect.Method.invoke(Method.java:521)
  *       </error>

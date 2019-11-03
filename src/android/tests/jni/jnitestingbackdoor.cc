@@ -123,7 +123,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
        reinterpret_cast<void*>(&mozc::jni::httpRequest)},
   };
   jclass clazz = env->FindClass(
-      "org/mozc/android/inputmethod/japanese/session/JNITestingBackdoor");
+      "org/nnn1590/mozc/session/JNITestingBackdoor");
   if (env->RegisterNatives(clazz, methods, arraysize(methods))) {
     // Fatal error. No way to recover.
      return JNI_EVERSION;

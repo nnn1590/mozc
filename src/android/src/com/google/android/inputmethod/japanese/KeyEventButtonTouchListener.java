@@ -27,19 +27,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick;
-import org.mozc.android.inputmethod.japanese.keyboard.Flick.Direction;
-import org.mozc.android.inputmethod.japanese.keyboard.Key;
-import org.mozc.android.inputmethod.japanese.keyboard.Key.Stick;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyEntity;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyEventContext;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyEventHandler;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState;
-import org.mozc.android.inputmethod.japanese.keyboard.PopUp;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchAction;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory.DrawableType;
+import org.nnn1590.mozc.keyboard.Flick;
+import org.nnn1590.mozc.keyboard.Flick.Direction;
+import org.nnn1590.mozc.keyboard.Key;
+import org.nnn1590.mozc.keyboard.Key.Stick;
+import org.nnn1590.mozc.keyboard.KeyEntity;
+import org.nnn1590.mozc.keyboard.KeyEventContext;
+import org.nnn1590.mozc.keyboard.KeyEventHandler;
+import org.nnn1590.mozc.keyboard.KeyState;
+import org.nnn1590.mozc.keyboard.PopUp;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchAction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 

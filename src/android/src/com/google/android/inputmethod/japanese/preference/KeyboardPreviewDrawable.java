@@ -27,19 +27,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.preference;
+package org.nnn1590.mozc.preference;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyState.MetaState;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyboardParser;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyboardViewBackgroundSurface;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.KeyboardLayout;
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.view.DrawableCache;
-import org.mozc.android.inputmethod.japanese.view.Skin;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory;
+import org.nnn1590.mozc.keyboard.KeyState.MetaState;
+import org.nnn1590.mozc.keyboard.Keyboard;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.keyboard.KeyboardParser;
+import org.nnn1590.mozc.keyboard.KeyboardViewBackgroundSurface;
+import org.nnn1590.mozc.preference.ClientSidePreference.KeyboardLayout;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.view.DrawableCache;
+import org.nnn1590.mozc.view.Skin;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

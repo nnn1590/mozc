@@ -41,21 +41,21 @@
   </application>
 
   <!-- This declares that this application uses the instrumentation test
-       runner targeting the package of org.mozc.android.inputmethod.japanese.
+       runner targeting the package of org.nnn1590.mozc.
        To run the tests use the command:
-       "adb shell am instrument -w org.mozc.android.inputmethod.japanese.tests/android.test.InstrumentationTestRunner"
+       "adb shell am instrument -w org.nnn1590.mozc.tests/android.test.InstrumentationTestRunner"
   -->
   <instrumentation android:name="android.test.InstrumentationTestRunner"
                    android:targetPackage="@ANDROID_APPLICATION_ID@"
-                   android:label="Tests for org.mozc.android.inputmethod.japanese"/>
+                   android:label="Tests for org.nnn1590.mozc"/>
 
-  <instrumentation android:name="org.mozc.android.inputmethod.japanese.testing.MozcTestRunner"
+  <instrumentation android:name="org.nnn1590.mozc.testing.MozcTestRunner"
                    android:targetPackage="@ANDROID_APPLICATION_ID@"
-                   android:label="Tests for org.mozc.android.inputmethod.japanese"/>
+                   android:label="Tests for org.nnn1590.mozc"/>
 
-  <instrumentation android:name="org.mozc.android.inputmethod.japanese.stresstest.MozcStressTestRunner"
+  <instrumentation android:name="org.nnn1590.mozc.stresstest.MozcStressTestRunner"
                    android:targetPackage="@ANDROID_APPLICATION_ID@"
-                   android:label="Tests for org.mozc.android.inputmethod.japanese"/>
+                   android:label="Tests for org.nnn1590.mozc"/>
 
   <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="22" />
   <!-- Google Japanese Input (the main code) requires the following permissions. -->

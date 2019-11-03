@@ -27,21 +27,21 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.keyboard;
+package org.nnn1590.mozc.keyboard;
 
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.vectorgraphic.BufferedDrawable;
-import org.mozc.android.inputmethod.japanese.view.CandidateBackgroundDrawable;
-import org.mozc.android.inputmethod.japanese.view.CandidateBackgroundFocusedDrawable;
-import org.mozc.android.inputmethod.japanese.view.CenterCircularHighlightDrawable;
-import org.mozc.android.inputmethod.japanese.view.DummyDrawable;
-import org.mozc.android.inputmethod.japanese.view.QwertySpaceKeyDrawable;
-import org.mozc.android.inputmethod.japanese.view.RectKeyDrawable;
-import org.mozc.android.inputmethod.japanese.view.RoundRectKeyDrawable;
-import org.mozc.android.inputmethod.japanese.view.Skin;
-import org.mozc.android.inputmethod.japanese.view.ThreeDotsIconDrawable;
-import org.mozc.android.inputmethod.japanese.view.TriangularHighlightDrawable;
-import org.mozc.android.inputmethod.japanese.view.TriangularHighlightDrawable.HighlightDirection;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.vectorgraphic.BufferedDrawable;
+import org.nnn1590.mozc.view.CandidateBackgroundDrawable;
+import org.nnn1590.mozc.view.CandidateBackgroundFocusedDrawable;
+import org.nnn1590.mozc.view.CenterCircularHighlightDrawable;
+import org.nnn1590.mozc.view.DummyDrawable;
+import org.nnn1590.mozc.view.QwertySpaceKeyDrawable;
+import org.nnn1590.mozc.view.RectKeyDrawable;
+import org.nnn1590.mozc.view.RoundRectKeyDrawable;
+import org.nnn1590.mozc.view.Skin;
+import org.nnn1590.mozc.view.ThreeDotsIconDrawable;
+import org.nnn1590.mozc.view.TriangularHighlightDrawable;
+import org.nnn1590.mozc.view.TriangularHighlightDrawable.HighlightDirection;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

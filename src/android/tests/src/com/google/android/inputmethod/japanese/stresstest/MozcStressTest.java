@@ -27,19 +27,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.stresstest;
+package org.nnn1590.mozc.stresstest;
 
-import org.mozc.android.inputmethod.japanese.MozcService;
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.ViewManager;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.KeyboardLayout;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Request;
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
-import org.mozc.android.inputmethod.japanese.testing.MemoryLogger;
-import org.mozc.android.inputmethod.japanese.testing.mocking.MozcMockSupport;
+import org.nnn1590.mozc.MozcService;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.ViewManager;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.preference.ClientSidePreference.KeyboardLayout;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchEvent;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Request;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.session.SessionExecutor;
+import org.nnn1590.mozc.testing.MemoryLogger;
+import org.nnn1590.mozc.testing.mocking.MozcMockSupport;
 import com.google.common.base.Preconditions;
 
 import android.app.Activity;
@@ -101,7 +101,7 @@ public class MozcStressTest extends InstrumentationTestCase {
     mockSupport = new MozcMockSupport(instrumentation);
 
     activity = Preconditions.checkNotNull(launchActivity(
-        "org.mozc.android.inputmethod.japanese", Activity.class, null));
+        "org.nnn1590.mozc", Activity.class, null));
     instrumentation.runOnMainSync(new OnCreateRunner());
     context = instrumentation.getTargetContext();
   }

@@ -27,14 +27,14 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.MozcUtil.TelephonyManagerInterface;
-import org.mozc.android.inputmethod.japanese.emoji.EmojiProviderType;
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil;
-import org.mozc.android.inputmethod.japanese.preference.PreferenceUtil.PreferenceManagerStaticInterface;
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.util.LauncherIconManagerFactory.LauncherIconManager;
+import org.nnn1590.mozc.MozcUtil.TelephonyManagerInterface;
+import org.nnn1590.mozc.emoji.EmojiProviderType;
+import org.nnn1590.mozc.preference.PreferenceUtil;
+import org.nnn1590.mozc.preference.PreferenceUtil.PreferenceManagerStaticInterface;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.util.LauncherIconManagerFactory.LauncherIconManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

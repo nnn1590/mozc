@@ -27,20 +27,20 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 
-import org.mozc.android.inputmethod.japanese.FeedbackManager.FeedbackEvent;
-import org.mozc.android.inputmethod.japanese.emoji.EmojiProviderType;
-import org.mozc.android.inputmethod.japanese.model.SymbolCandidateStorage;
-import org.mozc.android.inputmethod.japanese.model.SymbolCandidateStorage.SymbolHistoryStorage;
-import org.mozc.android.inputmethod.japanese.model.SymbolMajorCategory;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
+import org.nnn1590.mozc.FeedbackManager.FeedbackEvent;
+import org.nnn1590.mozc.emoji.EmojiProviderType;
+import org.nnn1590.mozc.model.SymbolCandidateStorage;
+import org.nnn1590.mozc.model.SymbolCandidateStorage.SymbolHistoryStorage;
+import org.nnn1590.mozc.model.SymbolMajorCategory;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateWord;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.Parameter;
 import com.google.common.base.Optional;
 
 import android.app.AlertDialog;

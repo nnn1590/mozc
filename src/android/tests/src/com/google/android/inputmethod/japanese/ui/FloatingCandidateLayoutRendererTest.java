@@ -27,15 +27,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.ui;
+package org.nnn1590.mozc.ui;
 
-import org.mozc.android.inputmethod.japanese.ViewEventListener;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Annotation;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Candidates;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Candidates.Candidate;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Output;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.ViewEventListener;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Annotation;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Candidates;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Candidates.Candidate;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Command;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Output;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

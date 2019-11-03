@@ -27,12 +27,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.model.SymbolCandidateStorage.SymbolHistoryStorage;
-import org.mozc.android.inputmethod.japanese.preference.MozcFragmentPreferenceActivity;
-import org.mozc.android.inputmethod.japanese.ui.MenuDialog.MenuDialogListener;
-import org.mozc.android.inputmethod.japanese.util.ImeSwitcherFactory.ImeSwitcher;
+import org.nnn1590.mozc.model.SymbolCandidateStorage.SymbolHistoryStorage;
+import org.nnn1590.mozc.preference.MozcFragmentPreferenceActivity;
+import org.nnn1590.mozc.ui.MenuDialog.MenuDialogListener;
+import org.nnn1590.mozc.util.ImeSwitcherFactory.ImeSwitcher;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

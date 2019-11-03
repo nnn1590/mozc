@@ -27,9 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.stresstest;
+package org.nnn1590.mozc.stresstest;
 
-import org.mozc.android.inputmethod.japanese.testing.MozcTestRunner;
+import org.nnn1590.mozc.testing.MozcTestRunner;
 
 import android.test.AndroidTestRunner;
 import android.test.InstrumentationTestRunner;

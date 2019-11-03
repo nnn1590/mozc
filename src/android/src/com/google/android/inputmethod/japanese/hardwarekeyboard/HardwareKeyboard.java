@@ -27,14 +27,14 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.hardwarekeyboard;
+package org.nnn1590.mozc.hardwarekeyboard;
 
-import org.mozc.android.inputmethod.japanese.KeycodeConverter.KeyEventInterface;
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.HardwareKeyMap;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
+import org.nnn1590.mozc.KeycodeConverter.KeyEventInterface;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.preference.ClientSidePreference.HardwareKeyMap;
+import org.nnn1590.mozc.protobuf.ProtoCommands;
+import org.nnn1590.mozc.protobuf.ProtoCommands.CompositionMode;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

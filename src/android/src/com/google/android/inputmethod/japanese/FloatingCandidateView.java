@@ -27,16 +27,16 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Category;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Output;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Preedit.Segment;
-import org.mozc.android.inputmethod.japanese.ui.FloatingCandidateLayoutRenderer;
-import org.mozc.android.inputmethod.japanese.ui.FloatingModeIndicator;
-import org.mozc.android.inputmethod.japanese.util.CursorAnchorInfoWrapper;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Category;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Command;
+import org.nnn1590.mozc.protobuf.ProtoCommands.CompositionMode;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Output;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Preedit.Segment;
+import org.nnn1590.mozc.ui.FloatingCandidateLayoutRenderer;
+import org.nnn1590.mozc.ui.FloatingModeIndicator;
+import org.nnn1590.mozc.util.CursorAnchorInfoWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

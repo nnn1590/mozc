@@ -27,21 +27,21 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.keyboard;
+package org.nnn1590.mozc.keyboard;
 
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.keyboard.ProbableKeyEventGuesser.LikelihoodCalculator;
-import org.mozc.android.inputmethod.japanese.keyboard.ProbableKeyEventGuesser.LikelihoodCalculatorImpl;
-import org.mozc.android.inputmethod.japanese.keyboard.ProbableKeyEventGuesser.StatisticsLoader;
-import org.mozc.android.inputmethod.japanese.keyboard.ProbableKeyEventGuesser.StatisticsLoader.UpdateStatsListener;
-import org.mozc.android.inputmethod.japanese.keyboard.ProbableKeyEventGuesser.StatsFileAccessor;
-import org.mozc.android.inputmethod.japanese.keyboard.ProbableKeyEventGuesser.StatsFileAccessorImpl;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchAction;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchPosition;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.ProbableKeyEvent;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.keyboard.ProbableKeyEventGuesser.LikelihoodCalculator;
+import org.nnn1590.mozc.keyboard.ProbableKeyEventGuesser.LikelihoodCalculatorImpl;
+import org.nnn1590.mozc.keyboard.ProbableKeyEventGuesser.StatisticsLoader;
+import org.nnn1590.mozc.keyboard.ProbableKeyEventGuesser.StatisticsLoader.UpdateStatsListener;
+import org.nnn1590.mozc.keyboard.ProbableKeyEventGuesser.StatsFileAccessor;
+import org.nnn1590.mozc.keyboard.ProbableKeyEventGuesser.StatsFileAccessorImpl;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchAction;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchEvent;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchPosition;
+import org.nnn1590.mozc.protobuf.ProtoCommands.KeyEvent.ProbableKeyEvent;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.Parameter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteArrayDataOutput;

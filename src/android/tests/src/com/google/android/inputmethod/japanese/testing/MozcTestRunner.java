@@ -27,11 +27,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.testing;
+package org.nnn1590.mozc.testing;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.stresstest.StressTest;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.stresstest.StressTest;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -133,7 +133,7 @@ public class MozcTestRunner extends InstrumentationTestRunner {
     }
   }
 
-  private static final String ROOT_TARGET_PACKAGE = "org.mozc.android.inputmethod.japanese";
+  private static final String ROOT_TARGET_PACKAGE = "org.nnn1590.mozc";
   private static final String[] SUB_PACKAGE_NAME_LIST = {
     "accessibility", "emoji",
     "hardwarekeyboard",
@@ -197,7 +197,7 @@ public class MozcTestRunner extends InstrumentationTestRunner {
   public void onCreate(Bundle arguments) {
     try {
       // Note that unit test runs on "target context"'s process so we cannot write anything
-      // in /data/data/org.mozc.android.inputmethod.japanese.tests directory.
+      // in /data/data/org.nnn1590.mozc.tests directory.
       File reportingXmlFile = new File(getTargetContext().getApplicationInfo().dataDir,
                                        XML_FILE_NAME);
       MozcLog.i("reporting XML is at " + reportingXmlFile.getAbsolutePath());

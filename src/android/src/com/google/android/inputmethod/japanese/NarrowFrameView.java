@@ -27,15 +27,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.FeedbackManager.FeedbackEvent;
-import org.mozc.android.inputmethod.japanese.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.CompositionMode;
-import org.mozc.android.inputmethod.japanese.view.MozcImageView;
-import org.mozc.android.inputmethod.japanese.view.RoundRectKeyDrawable;
-import org.mozc.android.inputmethod.japanese.view.Skin;
+import org.nnn1590.mozc.FeedbackManager.FeedbackEvent;
+import org.nnn1590.mozc.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory;
+import org.nnn1590.mozc.protobuf.ProtoCommands.CompositionMode;
+import org.nnn1590.mozc.view.MozcImageView;
+import org.nnn1590.mozc.view.RoundRectKeyDrawable;
+import org.nnn1590.mozc.view.Skin;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

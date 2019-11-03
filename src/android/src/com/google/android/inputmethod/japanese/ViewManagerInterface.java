@@ -27,20 +27,20 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.KeycodeConverter.KeyEventInterface;
-import org.mozc.android.inputmethod.japanese.emoji.EmojiProviderType;
-import org.mozc.android.inputmethod.japanese.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard.KeyboardSpecification;
-import org.mozc.android.inputmethod.japanese.keyboard.KeyboardActionListener;
-import org.mozc.android.inputmethod.japanese.model.JapaneseSoftwareKeyboardModel;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.HardwareKeyMap;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.InputStyle;
-import org.mozc.android.inputmethod.japanese.preference.ClientSidePreference.KeyboardLayout;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Command;
-import org.mozc.android.inputmethod.japanese.util.CursorAnchorInfoWrapper;
-import org.mozc.android.inputmethod.japanese.view.Skin;
+import org.nnn1590.mozc.KeycodeConverter.KeyEventInterface;
+import org.nnn1590.mozc.emoji.EmojiProviderType;
+import org.nnn1590.mozc.hardwarekeyboard.HardwareKeyboard.CompositionSwitchMode;
+import org.nnn1590.mozc.keyboard.Keyboard.KeyboardSpecification;
+import org.nnn1590.mozc.keyboard.KeyboardActionListener;
+import org.nnn1590.mozc.model.JapaneseSoftwareKeyboardModel;
+import org.nnn1590.mozc.preference.ClientSidePreference.HardwareKeyMap;
+import org.nnn1590.mozc.preference.ClientSidePreference.InputStyle;
+import org.nnn1590.mozc.preference.ClientSidePreference.KeyboardLayout;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Command;
+import org.nnn1590.mozc.util.CursorAnchorInfoWrapper;
+import org.nnn1590.mozc.view.Skin;
 import com.google.common.annotations.VisibleForTesting;
 
 import android.content.Context;

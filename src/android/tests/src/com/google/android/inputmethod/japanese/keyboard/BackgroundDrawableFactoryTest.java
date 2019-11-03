@@ -27,19 +27,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.keyboard;
+package org.nnn1590.mozc.keyboard;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.geq;
 import static org.easymock.EasyMock.gt;
 import static org.easymock.EasyMock.isA;
 
-import org.mozc.android.inputmethod.japanese.keyboard.BackgroundDrawableFactory.DrawableType;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.MozcMatcher.DeepCopyPaintCapture;
-import org.mozc.android.inputmethod.japanese.testing.VisibilityProxy;
-import org.mozc.android.inputmethod.japanese.vectorgraphic.BufferedDrawable;
-import org.mozc.android.inputmethod.japanese.view.SkinType;
+import org.nnn1590.mozc.keyboard.BackgroundDrawableFactory.DrawableType;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.MozcMatcher.DeepCopyPaintCapture;
+import org.nnn1590.mozc.testing.VisibilityProxy;
+import org.nnn1590.mozc.vectorgraphic.BufferedDrawable;
+import org.nnn1590.mozc.view.SkinType;
 
 import android.content.res.Resources;
 import android.graphics.Canvas;

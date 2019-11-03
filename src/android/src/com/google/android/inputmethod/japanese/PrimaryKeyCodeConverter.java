@@ -27,15 +27,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
-import org.mozc.android.inputmethod.japanese.KeycodeConverter.KeyEventInterface;
-import org.mozc.android.inputmethod.japanese.keyboard.Keyboard;
-import org.mozc.android.inputmethod.japanese.keyboard.ProbableKeyEventGuesser;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.Input.TouchEvent;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCommands.KeyEvent.ProbableKeyEvent;
-import org.mozc.android.inputmethod.japanese.resources.R;
+import org.nnn1590.mozc.KeycodeConverter.KeyEventInterface;
+import org.nnn1590.mozc.keyboard.Keyboard;
+import org.nnn1590.mozc.keyboard.ProbableKeyEventGuesser;
+import org.nnn1590.mozc.protobuf.ProtoCommands;
+import org.nnn1590.mozc.protobuf.ProtoCommands.Input.TouchEvent;
+import org.nnn1590.mozc.protobuf.ProtoCommands.KeyEvent.ProbableKeyEvent;
+import org.nnn1590.mozc.resources.R;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

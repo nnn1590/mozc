@@ -27,12 +27,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.session;
+package org.nnn1590.mozc.session;
 
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.stresstest.StressTest;
-import org.mozc.android.inputmethod.japanese.testing.HttpTestServer;
-import org.mozc.android.inputmethod.japanese.testing.MemoryLogger;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.stresstest.StressTest;
+import org.nnn1590.mozc.testing.HttpTestServer;
+import org.nnn1590.mozc.testing.MemoryLogger;
 import com.google.common.base.Strings;
 
 import android.test.InstrumentationTestCase;
@@ -76,7 +76,7 @@ public class JNITest extends InstrumentationTestCase {
 
       // Test data preparation must be after the initialization of the server
       // because port number is needed to generate URL.
-      class Parameter extends org.mozc.android.inputmethod.japanese.testing.Parameter {
+      class Parameter extends org.nnn1590.mozc.testing.Parameter {
         final String method;
         final String url;
         final String content;

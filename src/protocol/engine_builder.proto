@@ -32,7 +32,7 @@ syntax = "proto2";
 package mozc;
 
 option java_outer_classname = "ProtoEngineBuilder";
-option java_package = "org.mozc.android.inputmethod.japanese.protobuf";
+option java_package = "org.nnn1590.mozc.protobuf";
 
 message EngineReloadRequest {
   // Specify the type of engine to build.

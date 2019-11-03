@@ -27,7 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.ui;
+package org.nnn1590.mozc.ui;
 
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -37,15 +37,15 @@ import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.leq;
 import static org.easymock.EasyMock.same;
 
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.Annotation;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateList;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout.Row;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout.Span;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayoutRenderer.DescriptionLayoutPolicy;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayoutRenderer.ValueScalingPolicy;
-import org.mozc.android.inputmethod.japanese.view.CarrierEmojiRenderHelper;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.Annotation;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateList;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateWord;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.ui.CandidateLayout.Row;
+import org.nnn1590.mozc.ui.CandidateLayout.Span;
+import org.nnn1590.mozc.ui.CandidateLayoutRenderer.DescriptionLayoutPolicy;
+import org.nnn1590.mozc.ui.CandidateLayoutRenderer.ValueScalingPolicy;
+import org.nnn1590.mozc.view.CarrierEmojiRenderHelper;
 import com.google.common.base.Optional;
 
 import android.graphics.Canvas;

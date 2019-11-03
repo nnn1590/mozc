@@ -27,25 +27,25 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.userdictionary;
+package org.nnn1590.mozc.userdictionary;
 
 import static android.test.MoreAsserts.assertContentsInOrder;
 import static android.test.MoreAsserts.assertEmpty;
 import static org.easymock.EasyMock.expect;
 
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary.Entry;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary.PosType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand.CommandType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Builder;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Status;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryStorage;
-import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary.Entry;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary.PosType;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommand.CommandType;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Builder;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Status;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryStorage;
+import org.nnn1590.mozc.session.SessionExecutor;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.Parameter;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

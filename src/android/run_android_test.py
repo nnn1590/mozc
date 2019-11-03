@@ -85,7 +85,7 @@ def ParseArgs():
                     help='[JAVA] Build configuration. Used to build correct '
                     'testee binary.')
   parser.add_option('--app_package_name', dest='app_package_name',
-                    default='org.mozc.android.inputmethod.japanese',
+                    default='org.nnn1590.mozc',
                     help='[JAVA] Testee project\'s package name. '
                     'This is used to find test reporting XML file.')
   parser.add_option('--remote_dir', dest='remote_dir',

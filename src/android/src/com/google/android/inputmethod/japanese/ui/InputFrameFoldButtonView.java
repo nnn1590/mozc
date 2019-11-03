@@ -27,11 +27,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.ui;
+package org.nnn1590.mozc.ui;
 
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.view.DummyDrawable;
-import org.mozc.android.inputmethod.japanese.view.Skin;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.view.DummyDrawable;
+import org.nnn1590.mozc.view.Skin;
 import com.google.common.base.Preconditions;
 
 import android.content.Context;

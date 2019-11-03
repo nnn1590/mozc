@@ -179,7 +179,7 @@ class JavaHttpClientDescriptor {
     ScopedJavaLocalFrame local_frame(env, kDefaultLocalFrameSize);
 
     const char kHttpClientClassPath[] =
-        "org/mozc/android/inputmethod/japanese/nativecallback/HttpClient";
+        "org/nnn1590/mozc/nativecallback/HttpClient";
     jclass http_Client_class = env->FindClass(kHttpClientClassPath);
     CHECK(http_Client_class != NULL)
         << kHttpClientClassPath << " is not found.";

@@ -145,7 +145,7 @@ def _ParseVersionTemplateFile(template_path, target_platform,
   template_dict['QT_VERSION'] = qt_version
   template_dict['ANDROID_APPLICATION_ID'] = android_application_id
   template_dict['ANDROID_SERVICE_NAME'] = (
-      'org.mozc.android.inputmethod.japanese.MozcService')
+      'org.nnn1590.mozc.MozcService')
   template_dict['ANDROID_ARCH'] = android_arch
   return template_dict
 

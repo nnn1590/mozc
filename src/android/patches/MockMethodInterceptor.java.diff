@@ -1,11 +1,11 @@
---- a/./android/tests/gen_for_adt/org/mozc/android/inputmethod/japanese/testing/mocking/MockMethodInterceptor.java
-+++ b/./android/tests/gen_for_adt/org/mozc/android/inputmethod/japanese/testing/mocking/MockMethodInterceptor.java
+--- a/./android/tests/gen_for_adt/org/nnn1590/mozc/testing/mocking/MockMethodInterceptor.java
++++ b/./android/tests/gen_for_adt/org/nnn1590/mozc/testing/mocking/MockMethodInterceptor.java
 @@ -13,7 +13,9 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
 -package org.easymock.internal;
-+package org.mozc.android.inputmethod.japanese.testing.mocking;
++package org.nnn1590.mozc.testing.mocking;
 +
 +import com.google.dexmaker.stock.ProxyBuilder;
  

@@ -27,21 +27,21 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.userdictionary;
+package org.nnn1590.mozc.userdictionary;
 
-import org.mozc.android.inputmethod.japanese.MozcLog;
-import org.mozc.android.inputmethod.japanese.MozcUtil;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary.Entry;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionary.PosType;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Status;
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.session.SessionExecutor;
-import org.mozc.android.inputmethod.japanese.session.SessionHandlerFactory;
-import org.mozc.android.inputmethod.japanese.userdictionary.UserDictionaryUtil.DictionaryNameDialog;
-import org.mozc.android.inputmethod.japanese.userdictionary.UserDictionaryUtil.DictionaryNameDialogListener;
-import org.mozc.android.inputmethod.japanese.userdictionary.UserDictionaryUtil.WordRegisterDialog;
-import org.mozc.android.inputmethod.japanese.userdictionary.UserDictionaryUtil.WordRegisterDialogListener;
-import org.mozc.android.inputmethod.japanese.util.ZipFileUtil;
+import org.nnn1590.mozc.MozcLog;
+import org.nnn1590.mozc.MozcUtil;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary.Entry;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionary.PosType;
+import org.nnn1590.mozc.protobuf.ProtoUserDictionaryStorage.UserDictionaryCommandStatus.Status;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.session.SessionExecutor;
+import org.nnn1590.mozc.session.SessionHandlerFactory;
+import org.nnn1590.mozc.userdictionary.UserDictionaryUtil.DictionaryNameDialog;
+import org.nnn1590.mozc.userdictionary.UserDictionaryUtil.DictionaryNameDialogListener;
+import org.nnn1590.mozc.userdictionary.UserDictionaryUtil.WordRegisterDialog;
+import org.nnn1590.mozc.userdictionary.UserDictionaryUtil.WordRegisterDialogListener;
+import org.nnn1590.mozc.util.ZipFileUtil;
 import com.google.common.base.Optional;
 
 import android.app.Activity;

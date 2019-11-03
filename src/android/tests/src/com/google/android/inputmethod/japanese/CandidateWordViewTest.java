@@ -27,7 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese;
+package org.nnn1590.mozc;
 
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.eq;
@@ -35,21 +35,21 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.same;
 
-import org.mozc.android.inputmethod.japanese.CandidateWordView.Orientation;
-import org.mozc.android.inputmethod.japanese.CandidateWordView.OrientationTrait;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateList;
-import org.mozc.android.inputmethod.japanese.protobuf.ProtoCandidates.CandidateWord;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.testing.MozcLayoutUtil;
-import org.mozc.android.inputmethod.japanese.testing.Parameter;
-import org.mozc.android.inputmethod.japanese.testing.VisibilityProxy;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout.Row;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayout.Span;
-import org.mozc.android.inputmethod.japanese.ui.CandidateLayouter;
-import org.mozc.android.inputmethod.japanese.ui.SnapScroller;
-import org.mozc.android.inputmethod.japanese.view.DummyDrawable;
-import org.mozc.android.inputmethod.japanese.view.Skin;
+import org.nnn1590.mozc.CandidateWordView.Orientation;
+import org.nnn1590.mozc.CandidateWordView.OrientationTrait;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateList;
+import org.nnn1590.mozc.protobuf.ProtoCandidates.CandidateWord;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.testing.MozcLayoutUtil;
+import org.nnn1590.mozc.testing.Parameter;
+import org.nnn1590.mozc.testing.VisibilityProxy;
+import org.nnn1590.mozc.ui.CandidateLayout;
+import org.nnn1590.mozc.ui.CandidateLayout.Row;
+import org.nnn1590.mozc.ui.CandidateLayout.Span;
+import org.nnn1590.mozc.ui.CandidateLayouter;
+import org.nnn1590.mozc.ui.SnapScroller;
+import org.nnn1590.mozc.view.DummyDrawable;
+import org.nnn1590.mozc.view.Skin;
 import com.google.common.base.Optional;
 
 import android.annotation.SuppressLint;

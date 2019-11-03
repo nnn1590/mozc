@@ -82,7 +82,7 @@ void MockJNIEnv::ClearArrayMap() {
 
 jclass MockJNIEnv::FindClass(const char *class_path) {
   static const char kHttpClientPath[] =
-      "org/mozc/android/inputmethod/japanese/nativecallback/HttpClient";
+      "org/nnn1590/mozc/nativecallback/HttpClient";
   if (strcmp(class_path, kHttpClientPath) == 0) {
     return &mock_http_client_class_;
   }

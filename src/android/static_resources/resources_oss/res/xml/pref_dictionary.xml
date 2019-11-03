@@ -46,26 +46,26 @@
         android:title="@string/pref_dictionary_user_dictionary_tool_title">
       <intent
           android:action="android.intent.action.MAIN"
-          android:targetPackage="org.mozc.android.inputmethod.japanese"
-          android:targetClass="org.mozc.android.inputmethod.japanese.userdictionary.UserDictionaryToolActivity" />
+          android:targetPackage="org.nnn1590.mozc"
+          android:targetClass="org.nnn1590.mozc.userdictionary.UserDictionaryToolActivity" />
     </Preference>
 
     <PreferenceScreen
         android:summary="@string/pref_clear_category_description"
         android:title="@string/pref_clear_category_title" >
-      <org.mozc.android.inputmethod.japanese.preference.ClearConversionHistoryDialogPreference
+      <org.nnn1590.mozc.preference.ClearConversionHistoryDialogPreference
           android:dialogMessage="@string/pref_clear_conversion_history_description"
           android:persistent="false"
           android:summary="@string/pref_clear_conversion_history_description"
           android:title="@string/pref_clear_conversion_history_title" />
 
-      <org.mozc.android.inputmethod.japanese.preference.ClearSymbolHistoryDialogPreference
+      <org.nnn1590.mozc.preference.ClearSymbolHistoryDialogPreference
           android:dialogMessage="@string/pref_clear_symbol_history_description"
           android:persistent="false"
           android:summary="@string/pref_clear_symbol_history_description"
           android:title="@string/pref_clear_symbol_history_title" />
 
-      <org.mozc.android.inputmethod.japanese.preference.ClearUserDictionaryDialogPreference
+      <org.nnn1590.mozc.preference.ClearUserDictionaryDialogPreference
           android:dialogMessage="@string/pref_clear_user_dictionary_description"
           android:persistent="false"
           android:summary="@string/pref_clear_user_dictionary_description"

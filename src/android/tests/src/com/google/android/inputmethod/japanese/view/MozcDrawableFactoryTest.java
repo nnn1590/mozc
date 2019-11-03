@@ -27,13 +27,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package org.mozc.android.inputmethod.japanese.view;
+package org.nnn1590.mozc.view;
 
 import static org.easymock.EasyMock.expect;
 
-import org.mozc.android.inputmethod.japanese.resources.R;
-import org.mozc.android.inputmethod.japanese.testing.InstrumentationTestCaseWithMock;
-import org.mozc.android.inputmethod.japanese.vectorgraphic.BufferedDrawable;
+import org.nnn1590.mozc.resources.R;
+import org.nnn1590.mozc.testing.InstrumentationTestCaseWithMock;
+import org.nnn1590.mozc.vectorgraphic.BufferedDrawable;
 
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -105,7 +105,7 @@ public class MozcDrawableFactoryTest extends InstrumentationTestCaseWithMock {
       for (int codePoint = 0xFE000; codePoint <= 0xFEEA0; ++codePoint) {
         int resourceId = resources.getIdentifier(
             prefix + Integer.toHexString(codePoint),
-            "raw", "org.mozc.android.inputmethod.japanese");
+            "raw", "org.nnn1590.mozc");
         if (resourceId != 0) {
           assertNotNull(factory.getDrawable(resourceId));
         }

@@ -94,7 +94,7 @@
           ],
           'outputs': [
             'bin/classes.jar',
-            'gen/org/mozc/android/inputmethod/japanese/resources/R.java',
+            'gen/org/nnn1590/mozc/resources/R.java',
           ],
           'includes': ['../ant.gypi'],
         },

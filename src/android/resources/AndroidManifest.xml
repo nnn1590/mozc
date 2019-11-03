@@ -31,6 +31,6 @@
 -->
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.mozc.android.inputmethod.japanese.resources">
+    package="org.nnn1590.mozc.resources">
   <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="22" />
 </manifest>
