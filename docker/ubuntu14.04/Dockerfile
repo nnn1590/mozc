@@ -65,8 +65,8 @@ RUN mkdir -p ${ANDROID_HOME}/extras/android
 RUN curl -LO https://dl.google.com/dl/android/repository/support_r23.1.1.zip && unzip -d ${ANDROID_HOME}/extras/android support_r23.1.1.zip support/v13/android-support-v13.jar && rm support_r23.1.1.zip
 
 ## NaCl SDK
-RUN curl -LO https://raw.githubusercontent.com/nnn1590/mozc/master/nacl_sdk.zip && unzip nacl_sdk.zip && rm nacl_sdk.zip
-RUN cd nacl_sdk && cp sdk_tools/cacerts.txt /tmp/cacerts.backup.txt && ( ./naclsdk install pepper_49 || ( true && mv /tmp/cacerts.backup.txt sdk_tools/cacerts.txt && ./naclsdk install pepper_49 ))
+RUN curl -LO http://storage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/nacl_sdk.zip && unzip nacl_sdk.zip && rm nacl_sdk.zip
+RUN cd nacl_sdk && sed -i -ze's/req.*uest)\n/return urllib2.urlopen(url)/' sdk_tools/download.py && ( ./naclsdk install pepper_49 || ( sed -i -ze's/req.*uest)\n/return urllib2.urlopen(url)/' sdk_tools/download.py && ./naclsdk install pepper_49 ))
 ENV NACL_SDK_ROOT /home/mozc_builder/work/nacl_sdk/pepper_49
 
 ## depot_tools for Ninja prebuilt

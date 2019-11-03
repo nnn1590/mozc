@@ -63,7 +63,7 @@ install:
   - if [ $TARGET_PLATFORM == Mac ]; then git -C src/third_party clone https://chromium.googlesource.com/chromium/tools/depot_tools.git; fi
   - if [ $TARGET_PLATFORM == Mac ]; then export PATH="$PATH":`pwd`/src/third_party/depot_tools; fi
   - if [ $TARGET_PLATFORM == Mac ]; then brew update && brew install qt5; fi
-  - if [ $TARGET_PLATFORM == NaCl ]; then cd src/third_party && curl -LO https://raw.githubusercontent.com/nnn1590/mozc/master/nacl_sdk.zip && unzip nacl_sdk.zip && rm nacl_sdk.zip && cd nacl_sdk && ./naclsdk install pepper_49 && cd ../../../; fi
+  - if [ $TARGET_PLATFORM == NaCl ]; then cd src/third_party && curl -LO http://storage.googleapis.com/nativeclient-mirror/nacl/nacl_sdk/nacl_sdk.zip && unzip nacl_sdk.zip && rm nacl_sdk.zip && cd nacl_sdk && ( ./naclsdk install pepper_49 || ( sed -i -ze's/req.*uest)\n/return urllib2.urlopen(url)/' sdk_tools/download.py && ./naclsdk install pepper_49 )) && cd ../../../; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then jdk_switcher use openjdk7; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then cd src/third_party && curl -LO http://dl.google.com/android/repository/android-ndk-r16b-linux-x86_64.zip && unzip -q android-ndk-r16b-linux-x86_64.zip && rm android-ndk-r16b-linux-x86_64.zip && curl -L http://dl.google.com/android/android-sdk_r24.1.2-linux.tgz | tar -zx && cd ../../; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then export ANDROID_NDK_HOME=`pwd`/src/third_party/android-ndk-r16b ; fi
