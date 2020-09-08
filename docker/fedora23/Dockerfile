@@ -40,6 +40,7 @@ RUN dnf install -y glibc.i686
 ## Packages for UT Dictionary
 RUN dnf group install -y "C Development Tools and Libraries"
 RUN dnf install -y wget ruby-devel
+RUN gem install bzip2-ffi
 ## For emacsian
 RUN dnf install -y emacs
 
