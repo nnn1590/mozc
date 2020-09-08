@@ -70,7 +70,9 @@ class OssDataManagerTest : public DataManagerTestBase {
                  "dictionary06.txt",
                  "dictionary07.txt",
                  "dictionary08.txt",
-                 "dictionary09.txt"}),
+                 "dictionary09.txt",
+                 "dictionary10.txt",
+                 "dictionary11.txt"}),
             mozc::testing::GetSourceFilesInDirOrDie(
                 {"data", "dictionary_oss"}, {"suggestion_filter.txt"}),
             {

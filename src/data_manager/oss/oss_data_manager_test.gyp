@@ -69,6 +69,8 @@
           '../../<(test_data_subdir)/dictionary07.txt',
           '../../<(test_data_subdir)/dictionary08.txt',
           '../../<(test_data_subdir)/dictionary09.txt',
+          '../../<(test_data_subdir)/dictionary10.txt',
+          '../../<(test_data_subdir)/dictionary11.txt',
           '../../<(test_data_subdir)/suggestion_filter.txt'
         ],
         'test_data_subdir': 'data/dictionary_oss',
