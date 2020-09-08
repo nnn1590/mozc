@@ -34,7 +34,7 @@ ENV DEBIAN_FRONTEND noninteractive
 # Package installation
 RUN apt-get update
 ## Common packages for linux build environment
-RUN apt install -y clang python pkg-config git curl bzip2 unzip make
+RUN apt install -y clang python pkg-config git curl bzip2 unzip make wget
 ## Packages for linux desktop version
 RUN apt install -y libibus-1.0-dev libglib2.0-dev qtbase5-dev libgtk2.0-dev libxcb-xfixes0-dev
 ## Packages for Android

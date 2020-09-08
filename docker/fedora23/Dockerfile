@@ -32,7 +32,7 @@ FROM fedora:23
 # Package installation
 RUN dnf -y update
 ## Common packages for linux build environment
-RUN dnf install -y clang libstdc++-static python git curl bzip2 unzip which
+RUN dnf install -y clang libstdc++-static python git curl bzip2 unzip which wget
 ## Packages for linux desktop version
 RUN dnf install -y ibus-devel glib2-devel qt5-qtbase-devel gtk2-devel libxcb-devel
 ## Packages for NaCl
