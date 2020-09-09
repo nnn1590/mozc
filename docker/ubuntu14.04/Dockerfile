@@ -42,7 +42,7 @@ RUN apt install -y --no-install-recommends openjdk-7-jdk openjdk-7-jre-headless 
 ## Packages for NaCl
 RUN apt install -y libc6-i386 lib32stdc++6
 ## Packages for UT Dictionary
-RUN apt install -y wget ruby rubygems
+RUN apt install -y wget ruby rubygems ruby-dev
 RUN gem install bzip2-ffi
 ## For emacsian
 RUN apt install -y emacs
