@@ -15,10 +15,11 @@ android {
     buildToolsVersion "28.0.3"
     sourceSets {
         main {
-            java.srcDirs = ['src', 'gen']
             if (gradle.startParameter.taskNames.toString().contains("Debug")) {
+                java.srcDirs = ['src', 'gen', '../out_android/Debug/gen/third_party/protobuf/java/src/main/java']
                 res.srcDirs = ['../out_android/Debug/gen/android/resources/res']
             } else {
+                java.srcDirs = ['src', 'gen', '../out_android/Release/gen/third_party/protobuf/java/src/main/java']
                 res.srcDirs = ['../out_android/Release/gen/android/resources/res']
             }
             manifest.srcFile 'resources/AndroidManifest.xml'
