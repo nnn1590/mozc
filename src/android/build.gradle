@@ -16,7 +16,11 @@ android {
     sourceSets {
         main {
             java.srcDirs = ['src']
-            res.srcDirs = ['res', 'static_resources/resources_oss/res']
+            if (gradle.startParameter.taskNames.toString().contains("Debug")) {
+                res.srcDirs = ['../out_android/Debug/gen/android/resources/res', 'res', 'static_resources/resources_oss/res']
+            } else {
+                res.srcDirs = ['../out_android/Release/gen/android/resources/res', 'res', 'static_resources/resources_oss/res']
+            }
             manifest.srcFile 'resources/AndroidManifest.xml'
         }
     }
