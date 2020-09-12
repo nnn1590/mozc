@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e +f
-declare _BASE_DIR="$(dirname "${0}")"
+declare _BASE_DIR="$(cd "$(dirname "${0}")"; pwd)"
 cd "${_BASE_DIR}"
 
 function main() {
@@ -8,12 +8,12 @@ function main() {
 	declare -r _MOZC_UT2_DIR_NAME="mozcdic-ut-${_MOZC_UT2_VERSION}"
 	declare -r _MOZC_UT2_ARCHIVE_FILE_NAME="${_MOZC_UT2_DIR_NAME}.tar.bz2"
 	declare -r _MOZC_UT2_URL="https://osdn.dl.osdn.jp/users/26/26575/${_MOZC_UT2_ARCHIVE_FILE_NAME}"
-	rm -rf "${_MOZC_UT2_DIR_NAME}" "${_MOZC_UT2_ARCHIVE_FILE_NAME}"
-	wget "${_MOZC_UT2_URL}"
+	rm -r "${_MOZC_UT2_DIR_NAME}"
+	wget -nc "${_MOZC_UT2_URL}"
 	tar xf "${_MOZC_UT2_ARCHIVE_FILE_NAME}"
 	cd "${_MOZC_UT2_DIR_NAME}"
-	patch -Np1 "${_BASE_DIR}/patch/patch-1.patch"
-	ln -s "$(dirname "${BASE_DIR}/..")" mozc/mozc
+	patch -Np1 < "${_BASE_DIR}/patch/patch-1.patch"
+	ln -s ../../.. mozc/mozc
 	cd src
 	chmod +x make-dictionaries.sh
 	./make-dictionaries.sh
