@@ -38,11 +38,16 @@ RUN apt install -y clang python pkg-config git curl bzip2 unzip make wget
 ## Packages for linux desktop version
 RUN apt install -y libibus-1.0-dev libglib2.0-dev qtbase5-dev libgtk2.0-dev libxcb-xfixes0-dev
 ## Packages for Android
-RUN apt install -y --no-install-recommends openjdk-8-jdk openjdk-8-jre-headless libjsr305-java ant zip libc6-i386 lib32stdc++6 lib32ncurses6 libncurses5 lib32z1
+RUN curl -LO https://cdn.azul.com/zulu/bin/zulu7.40.0.15-ca-jdk7.0.272-linux_amd64.deb
+RUN apt install -y --no-install-recommends ./zulu7.40.0.15-ca-jdk7.0.272-linux_amd64.deb libjsr305-java zip libc6-i386 lib32stdc++6 lib32ncurses6 libncurses5 lib32z1
+RUN curl -L https://downloads.apache.org/ant/binaries/apache-ant-1.9.15-bin.tar.gz | tar -zx
+ENV ANT_HOME /usr/share/ant
+ENV PATH $PATH:${ANT_HOME}/bin
+RUN mv apache-ant-1.9.15 ${ANT_HOME}
 ## Packages for NaCl
 RUN apt install -y libc6-i386 lib32stdc++6
 ## Packages for UT Dictionary
-RUN apt install -y wget ruby rubygems ruby-dev
+RUN apt install -y ruby rubygems ruby-dev
 RUN gem install bzip2-ffi
 ## For emacsian, vimmer and nano users
 RUN apt install -y emacs vim nano
