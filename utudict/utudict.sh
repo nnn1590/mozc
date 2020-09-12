@@ -12,7 +12,7 @@ function main() {
 	wget -nc "${_MOZC_UTU_URL}"
 	tar xf "${_MOZC_UTU_ARCHIVE_FILE_NAME}"
 	cd "${_MOZC_UTU_DIR_NAME}"
-	patch -Np1 < "${_BASE_DIR}/patch/patch-1.patch"
+	patch -Np1 < "${_BASE_DIR}/patched/patch-1.diff"
 	ln -s ../../.. mozc/mozc
 	cd src
 	chmod +x make-dictionaries.sh
