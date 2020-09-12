@@ -107,9 +107,8 @@
           'action_name': 'apk',
           'inputs': [
             'AndroidManifest.xml',
-            'build.xml',
+            'build.gradle',
             'project.properties',
-            'ant.properties',
             'proguard-project.txt',
           ],
           # The actual output is one of
@@ -118,7 +117,7 @@
           #   'bin/GoogleJapaneseInput-unsigned.apk'
           # depending on CONFIGURATION_NAME and/or key.store.
           'outputs': ['dummy_apk'],
-          'includes': ['ant.gypi'],
+          'includes': ['gradle.gypi'],
         },
       ],
     },
