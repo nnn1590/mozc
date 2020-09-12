@@ -41,8 +41,8 @@ RUN dnf install -y glibc.i686
 RUN dnf group install -y "C Development Tools and Libraries"
 RUN dnf install -y wget ruby-devel
 RUN gem install bzip2-ffi
-## For emacsian
-RUN dnf install -y emacs
+## For emacsian, vimmer and nano users
+RUN dnf install -y emacs vim nano
 
 ENV HOME /home/mozc_builder
 RUN useradd --create-home --shell /bin/bash --base-dir /home mozc_builder

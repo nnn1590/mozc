@@ -44,8 +44,8 @@ RUN apt install -y libc6-i386 lib32stdc++6
 ## Packages for UT Dictionary
 RUN apt install -y wget ruby rubygems ruby-dev
 RUN gem install bzip2-ffi
-## For emacsian
-RUN apt install -y emacs
+## For emacsian, vimmer and nano users
+RUN apt install -y emacs vim nano
 
 ENV HOME /home/mozc_builder
 RUN useradd --create-home --shell /bin/bash --base-dir /home mozc_builder
