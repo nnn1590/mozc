@@ -1,0 +1,51 @@
+diff -ur origin/mozc/get-official-mozc.sh mod/mozc/get-official-mozc.sh
+--- origin/mozc/get-official-mozc.sh	2020-11-10 16:02:37.000000000 +0900
++++ mod/mozc/get-official-mozc.sh	2021-02-27 19:03:03.330504264 +0900
+@@ -1,9 +1,5 @@
+ #!/bin/bash
+ 
+-rm -rf mozc-master/
+-wget -N https://github.com/google/mozc/archive/master.zip
+-unzip master.zip
+-cp mozc-master/src/data/dictionary_oss/id.def .
+-cat mozc-master/src/data/dictionary_oss/dictionary*.txt > mozcdic.txt
+-rm -rf mozc-master/
++cp  mozc/src/data/dictionary_oss/id.def .
++cat mozc/src/data/dictionary_oss/dictionary{0*,10}.txt > mozcdic.txt
+ 
+diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
+--- origin/src/make-dictionaries.sh	2021-01-23 11:43:39.000000000 +0900
++++ mod/src/make-dictionaries.sh	2021-02-27 21:10:52.989741399 +0900
+@@ -3,13 +3,13 @@
+ UTDICDATE="20210123"
+ REVISION="1"
+ 
+-#altcannadic="true"
+-#edict="true"
++altcannadic="true"
++edict="true"
+ jawikiarticles="true"
+ jinmeiut="true"
+ neologd="true"
+ #nicoime="true"
+-#skk="true"
++skk="true"
+ 
+ 
+ # ==============================================================================
+@@ -91,15 +91,3 @@
+ #cat ../zipcode/mozcdic-zipcode-jigyosyo.txt ../zipcode/mozcdic-zipcode-ken_all.txt \
+ #> ../mozcdic-zipcode-ut-$UTDICDATE.$REVISION.txt
+ 
+-
+-# ==============================================================================
+-# Make a mozcdic-ut package
+-# ==============================================================================
+-
+-cd ../../
+-rm -rf mozcdic-ut-$UTDICDATE.$REVISION
+-rsync -av mozcdic-ut-dev/* mozcdic-ut-$UTDICDATE.$REVISION --exclude=id.def \
+---exclude=jawiki-latest* --exclude=jawiki-ut.txt --exclude=KEN_ALL.* --exclude=*.csv \
+---exclude=*.xml --exclude=*.gz --exclude=*.bz2 --exclude=*.xz --exclude=*.zip
+-rm -f mozcdic-ut-$UTDICDATE.$REVISION/*/mozcdic*.txt*
+-
