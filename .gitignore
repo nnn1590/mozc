@@ -31,3 +31,6 @@
 /src/android/resources/res
 /src/android/tests/AndroidManifest.xml
 /src/android/tests/libs/
+
+# UT unified generated
+/src/data/dictionary_oss/dictionary11.txt
