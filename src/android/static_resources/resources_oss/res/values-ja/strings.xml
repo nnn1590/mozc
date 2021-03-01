@@ -150,6 +150,7 @@
     <string name="pref_skin_type_blue_darkgray">ブルー/ダークグレー</string>
     <string name="pref_skin_type_material_design_light">マテリアル デザイン(ライト)</string>
     <string name="pref_skin_type_material_design_dark">マテリアル デザイン(ダーク)</string>
+    <string name="pref_skin_type_material_design_black">マテリアル デザイン(ブラック)</string>
 
     <string name="pref_hardware_keymap_default">システム配列</string>
     <string name="pref_hardware_keymap_japanese109A">日本語109A配列</string>

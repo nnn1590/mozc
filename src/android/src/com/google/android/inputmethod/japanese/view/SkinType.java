@@ -47,6 +47,7 @@ public enum SkinType {
   BLUE_DARKGRAY(R.xml.skin_blue_darkgray),
   MATERIAL_DESIGN_LIGHT(R.xml.skin_material_design_light),
   MATERIAL_DESIGN_DARK(R.xml.skin_material_design_dark),
+  MATERIAL_DESIGN_BLACK(R.xml.skin_material_design_black),
   // This is an instance for testing of skin support in some classes.
   // TODO(matsuzakit): No more required. Remove.
   TEST(R.xml.skin_orange_lightgray)

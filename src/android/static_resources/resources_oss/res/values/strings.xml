@@ -153,6 +153,7 @@
     <string name="pref_skin_type_blue_darkgray">Blue/Dark-gray</string>
     <string name="pref_skin_type_material_design_light">Material Design (Light)</string>
     <string name="pref_skin_type_material_design_dark">Material Design (Dark)</string>
+    <string name="pref_skin_type_material_design_black">Material Design (Black)</string>
 
     <string name="pref_hardware_keymap_default">System Default</string>
     <string name="pref_hardware_keymap_japanese109A">Japanese 109A</string>

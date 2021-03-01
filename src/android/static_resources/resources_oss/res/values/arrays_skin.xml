@@ -39,6 +39,7 @@
         <item>@string/pref_skin_type_blue_darkgray</item>
         <item>@string/pref_skin_type_material_design_light</item>
         <item>@string/pref_skin_type_material_design_dark</item>
+        <item>@string/pref_skin_type_material_design_black</item>
     </string-array>
     <string-array name="pref_skin_type_values">
         <item>BLUE_LIGHTGRAY</item>
@@ -46,6 +47,7 @@
         <item>BLUE_DARKGRAY</item>
         <item>MATERIAL_DESIGN_LIGHT</item>
         <item>MATERIAL_DESIGN_DARK</item>
+        <item>MATERIAL_DESIGN_BLACK</item>
     </string-array>
 
 </resources>
