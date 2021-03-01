@@ -1,6 +1,6 @@
 #!/bin/bash
 # Generate dictionary11.txt from UT Dictionary (http://linuxplayers.g1.xrea.com/mozc-ut.html)
-# utudict = UT unified dictionary
+# utudict = UT Unified Dictionary
 
 set -e +f
 declare _BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")"; pwd)"
