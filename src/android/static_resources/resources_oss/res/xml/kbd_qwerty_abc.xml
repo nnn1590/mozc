@@ -606,6 +606,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_a" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="151"
+                     mozc:keyCode="@integer/uchar_commercial_at"
+                     mozc:keyIcon="@raw/qwerty__keyicon__commercial_at">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__commercial_at" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="89"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_a"
@@ -621,6 +628,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_a"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_a">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_a" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="152"
+                     mozc:keyCode="@integer/uchar_commercial_at"
+                     mozc:keyIcon="@raw/qwerty__keyicon__commercial_at">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__commercial_at" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -641,6 +655,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_s" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="153"
+                     mozc:keyCode="@integer/uchar_asterisk"
+                     mozc:keyIcon="@raw/qwerty__keyicon__asterisk">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__asterisk" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="91"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_s"
@@ -656,6 +677,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_s"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_s">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_s" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="154"
+                     mozc:keyCode="@integer/uchar_asterisk"
+                     mozc:keyIcon="@raw/qwerty__keyicon__asterisk">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__asterisk" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -676,6 +704,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_d" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="155"
+                     mozc:keyCode="@integer/uchar_plus_sign"
+                     mozc:keyIcon="@raw/qwerty__keyicon__plus_sign">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__plus_sign" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="93"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_d"
@@ -691,6 +726,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_d"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_d">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_d" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="156"
+                     mozc:keyCode="@integer/uchar_plus_sign"
+                     mozc:keyIcon="@raw/qwerty__keyicon__plus_sign">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__plus_sign" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -711,6 +753,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_f" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="157"
+                     mozc:keyCode="@integer/uchar_hyphen_minus"
+                     mozc:keyIcon="@raw/qwerty__keyicon__hyphen_minus">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__hyphen_minus" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="95"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_f"
@@ -726,6 +775,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_f"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_f">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_f" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="158"
+                     mozc:keyCode="@integer/uchar_hyphen_minus"
+                     mozc:keyIcon="@raw/qwerty__keyicon__hyphen_minus">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__hyphen_minus" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -746,6 +802,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_g" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="159"
+                     mozc:keyCode="@integer/uchar_equals_sign"
+                     mozc:keyIcon="@raw/qwerty__keyicon__equals_sign">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__equals_sign" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="97"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_g"
@@ -761,6 +824,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_g"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_g">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_g" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="160"
+                     mozc:keyCode="@integer/uchar_equals_sign"
+                     mozc:keyIcon="@raw/qwerty__keyicon__equals_sign">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__equals_sign" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -781,6 +851,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_h" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="161"
+                     mozc:keyCode="@integer/uchar_solidus"
+                     mozc:keyIcon="@raw/qwerty__keyicon__solidus">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__solidus" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="99"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_h"
@@ -796,6 +873,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_h"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_h">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_h" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="162"
+                     mozc:keyCode="@integer/uchar_solidus"
+                     mozc:keyIcon="@raw/qwerty__keyicon__solidus">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__solidus" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -816,6 +900,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_j" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="163"
+                     mozc:keyCode="@integer/uchar_number_sign"
+                     mozc:keyIcon="@raw/qwerty__keyicon__number_sign">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__number_sign" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="101"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_j"
@@ -831,6 +922,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_j"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_j">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_j" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="164"
+                     mozc:keyCode="@integer/uchar_number_sign"
+                     mozc:keyIcon="@raw/qwerty__keyicon__number_sign">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__number_sign" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -851,6 +949,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_k" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="165"
+                     mozc:keyCode="@integer/uchar_left_parenthesis"
+                     mozc:keyIcon="@raw/qwerty__keyicon__left_parenthesis">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__left_parenthesis" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="103"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_k"
@@ -866,6 +971,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_k"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_k">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_k" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="166"
+                     mozc:keyCode="@integer/uchar_left_parenthesis"
+                     mozc:keyIcon="@raw/qwerty__keyicon__left_parenthesis">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__left_parenthesis" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -886,6 +998,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_l" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="167"
+                     mozc:keyCode="@integer/uchar_right_parenthesis"
+                     mozc:keyIcon="@raw/qwerty__keyicon__right_parenthesis">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__right_parenthesis" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="105"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_l"
@@ -901,6 +1020,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_l"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_l">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_l" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="168"
+                     mozc:keyCode="@integer/uchar_right_parenthesis"
+                     mozc:keyIcon="@raw/qwerty__keyicon__right_parenthesis">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__right_parenthesis" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -955,6 +1081,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_z" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="169"
+                     mozc:keyCode="@integer/uchar_apostrophe"
+                     mozc:keyIcon="@raw/qwerty__keyicon__apostrophe">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__apostrophe" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="107"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_z"
@@ -970,6 +1103,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_z"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_z">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_z" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="170"
+                     mozc:keyCode="@integer/uchar_apostrophe"
+                     mozc:keyIcon="@raw/qwerty__keyicon__apostrophe">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__apostrophe" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -990,6 +1130,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_x" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="171"
+                     mozc:keyCode="@integer/uchar_colon"
+                     mozc:keyIcon="@raw/qwerty__keyicon__colon">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__colon" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="109"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_x"
@@ -1005,6 +1152,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_x"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_x">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_x" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="172"
+                     mozc:keyCode="@integer/uchar_colon"
+                     mozc:keyIcon="@raw/qwerty__keyicon__colon">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__colon" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -1025,6 +1179,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_c" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="173"
+                     mozc:keyCode="@integer/uchar_quotation_mark"
+                     mozc:keyIcon="@raw/qwerty__keyicon__quotation_mark">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__quotation_mark" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="111"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_c"
@@ -1040,6 +1201,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_c"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_c">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_c" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="174"
+                     mozc:keyCode="@integer/uchar_quotation_mark"
+                     mozc:keyIcon="@raw/qwerty__keyicon__quotation_mark">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__quotation_mark" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -1060,6 +1228,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_v" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="175"
+                     mozc:keyCode="@integer/uchar_question_mark"
+                     mozc:keyIcon="@raw/qwerty__keyicon__question_mark">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__question_mark" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="113"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_v"
@@ -1075,6 +1250,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_v"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_v">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_v" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="176"
+                     mozc:keyCode="@integer/uchar_question_mark"
+                     mozc:keyIcon="@raw/qwerty__keyicon__question_mark">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__question_mark" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -1095,6 +1277,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_b" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="177"
+                     mozc:keyCode="@integer/uchar_exclamation_mark"
+                     mozc:keyIcon="@raw/qwerty__keyicon__exclamation_mark">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__exclamation_mark" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="115"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_b"
@@ -1110,6 +1299,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_b"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_b">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_b" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="178"
+                     mozc:keyCode="@integer/uchar_exclamation_mark"
+                     mozc:keyIcon="@raw/qwerty__keyicon__exclamation_mark">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__exclamation_mark" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -1130,6 +1326,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_n" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="179"
+                     mozc:keyCode="@integer/uchar_tilde"
+                     mozc:keyIcon="@raw/qwerty__keyicon__tilde">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__tilde" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="117"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_n"
@@ -1145,6 +1348,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_n"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_n">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_n" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="180"
+                     mozc:keyCode="@integer/uchar_tilde"
+                     mozc:keyIcon="@raw/qwerty__keyicon__tilde">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__tilde" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -1165,6 +1375,13 @@
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_small_letter_m" />
           </KeyEntity>
         </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="181"
+                     mozc:keyCode="@integer/uchar_low_line"
+                     mozc:keyIcon="@raw/qwerty__keyicon__low_line">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__low_line" />
+          </KeyEntity>
+        </Flick>
         <Flick mozc:direction="down">
           <KeyEntity mozc:sourceId="119"
                      mozc:keyCode="@integer/uchar_latin_capital_letter_m"
@@ -1180,6 +1397,13 @@
                      mozc:keyCode="@integer/uchar_latin_capital_letter_m"
                      mozc:keyIcon="@raw/qwerty__keyicon__latin_capital_letter_m">
             <PopUp mozc:popUpIcon="@raw/optional__qwerty__keyicon__latin_capital_letter_m" />
+          </KeyEntity>
+        </Flick>
+        <Flick mozc:direction="up">
+          <KeyEntity mozc:sourceId="182"
+                     mozc:keyCode="@integer/key_menu_dialog"
+                     mozc:keyIcon="@raw/qwerty__keyicon__digit_three">
+            <PopUp mozc:popUpIcon="@raw/qwerty__keyicon__digit_three" />
           </KeyEntity>
         </Flick>
         <Flick mozc:direction="down">
@@ -1434,5 +1658,5 @@
       </KeyState>
     </Key>
   </Row>
-  <!-- Next sourceId: 151 -->
+  <!-- Next sourceId: 183 -->
 </Keyboard>
