@@ -38,6 +38,7 @@ install:
 - choco install ninja --version 1.7.2 --yes
 - cmd /c "choco uninstall python python3 & exit /b 0"
 - choco install python --version 3.8.8
+- refreshenv
 - python --version
 - where python
 - echo %PATH%
