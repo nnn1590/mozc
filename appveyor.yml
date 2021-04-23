@@ -39,7 +39,7 @@ install:
 - cmd /c "choco uninstall python python3 & exit /b 0"
 - choco install python --version 3.8.8
 - python --version
-- whereis python
+- where python
 - echo %PATH%
 - git submodule update --init --recursive
 build_script:
