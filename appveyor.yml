@@ -37,7 +37,7 @@ init:
 install:
 - git submodule update --init --recursive
 - choco install ninja --version 1.7.2 --yes
-- choco uninstall python python3 --force || echo failed
+- cmd /c "choco uninstall python python3 & exit /b 0"
 - choco install python --version 3.8.8
 build_script:
 - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsamd64_x86.bat"
