@@ -32,12 +32,14 @@ version: '{branch} build {build}'
 skip_tags: true
 clone_depth: 50
 clone_folder: c:\projects\mozc
+environment:
+  PYTHONPATH: C:\Python38
 init:
 - git config --global core.autocrlf input
 install:
 - choco install ninja --version 1.7.2 --yes
 - cmd /c "choco uninstall python python3 & exit /b 0"
-- choco install python --version 3.8.8
+- choco install python --version 3.8.8 --install-args "/quiet InstallAllUsers=1 PrependPath=1 TargetDir=%PYTHONPATH%"
 - refreshenv
 - python --version
 - where python
