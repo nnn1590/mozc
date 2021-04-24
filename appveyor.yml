@@ -33,7 +33,7 @@ skip_tags: true
 clone_depth: 50
 clone_folder: c:\projects\mozc
 environment:
-  PYTHONPATH: C:\Python38
+  PYTHONPATH: C:\Python38-x64
 init:
 - git config --global core.autocrlf input
 install:
