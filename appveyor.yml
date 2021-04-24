@@ -47,11 +47,11 @@ install:
 - echo %PATH%
 - git submodule update --init --recursive
 build_script:
-- set "PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%"
 - echo %PATH%
+- dir %PYTHONPATH%
 - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsamd64_x86.bat"
 - cd src
-- pip install six
+- pip3 install six
 - python build_mozc.py gyp --qtdir=C:\Qt\5.6\msvc2015
 - python build_mozc.py build -c Release package
 test: off
