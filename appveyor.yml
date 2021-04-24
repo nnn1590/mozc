@@ -41,14 +41,14 @@ install:
 - cmd /c "choco uninstall python python3 & exit /b 0"
 - choco install python --version 3.8.8 --install-args "/quiet InstallAllUsers=1 PrependPath=1 TargetDir=%PYTHONPATH%"
 - refreshenv
-- setx /m PATH "%PYTHONPATH%;%PATH%"
-- set "PATH=%PYTHONPATH%;%PATH%"
+- set "PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%"
 - python --version
 - where python
 - echo %PATH%
 - git submodule update --init --recursive
 build_script:
-- set "PATH=%PYTHONPATH%;%PATH%"
+- set "PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%"
+- echo %PATH%
 - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsamd64_x86.bat"
 - cd src
 - pip install six
