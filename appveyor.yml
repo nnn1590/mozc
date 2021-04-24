@@ -42,7 +42,7 @@ install:
 - choco install python --version 3.8.8 --install-args "/quiet InstallAllUsers=1 PrependPath=1 TargetDir=%PYTHONPATH%"
 - refreshenv
 - set "PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%"
-- bitsadmin /transfer download_get-pip https://bootstrap.pypa.io/get-pip.py %TMP%\get-pip.py
+- powershell -Command "Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile %TMP%\get-pip.py"
 - python %TMP%\get-pip.py
 - python --version
 - where python
