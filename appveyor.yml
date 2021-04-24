@@ -41,6 +41,7 @@ install:
 - cmd /c "choco uninstall python python3 & exit /b 0"
 - choco install python --version 3.8.8 --install-args "/quiet InstallAllUsers=1 PrependPath=1 TargetDir=%PYTHONPATH%"
 - refreshenv
+- setx /m PATH "%PYTHONPATH%;%PATH%"
 - python --version
 - where python
 - echo %PATH%
