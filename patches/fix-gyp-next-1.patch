@@ -6,10 +6,9 @@ index f744e38d..7b1bd3fa 100644
      """Add |prefix| to |element| or each subelement if element is iterable."""
      if element is None:
          return element
--    # Note, not Iterable because we don't want to handle strings like that.
+    # Note, not Iterable because we don't want to handle strings like that.
 -    if isinstance(element, list) or isinstance(element, tuple):
-+    if (isinstance(element, collections.Iterable) and
-+            not isinstance(element, basestring)):
++    if isinstance(element, list) or isinstance(element, tuple) or isinstance(element, filter):
          return [prefix + e for e in element]
      else:
          return prefix + element
