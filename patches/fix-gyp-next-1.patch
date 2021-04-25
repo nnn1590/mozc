@@ -1,12 +1,11 @@
 diff --git a/pylib/gyp/msvs_emulation.py b/pylib/gyp/msvs_emulation.py
-index f744e38d..7b1bd3fa 100644
+index f744e38d..ce8fd112 100644
 --- a/pylib/gyp/msvs_emulation.py
 +++ b/pylib/gyp/msvs_emulation.py
-@@ -84,8 +84,8 @@ def _AddPrefix(element, prefix):
-     """Add |prefix| to |element| or each subelement if element is iterable."""
+@@ -85,7 +85,7 @@ def _AddPrefix(element, prefix):
      if element is None:
          return element
-    # Note, not Iterable because we don't want to handle strings like that.
+     # Note, not Iterable because we don't want to handle strings like that.
 -    if isinstance(element, list) or isinstance(element, tuple):
 +    if isinstance(element, list) or isinstance(element, tuple) or isinstance(element, filter):
          return [prefix + e for e in element]
