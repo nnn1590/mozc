@@ -30,14 +30,13 @@
 image: Visual Studio 2017
 version: '{branch} build {build}'
 skip_tags: true
-clone_depth: 50
+clone_depth: 10
 clone_folder: c:\projects\mozc
 environment:
   PYTHONPATH: C:\Python38-x64
 init:
 - git config --global core.autocrlf input
 install:
-- dir C:\Qt\5.6\msvc2015
 - choco install ninja --version 1.7.2 --yes
 - cmd /c "choco uninstall python python3 & exit /b 0"
 - choco install python --version 3.8.8 --install-args "/quiet InstallAllUsers=1 PrependPath=1 TargetDir=%PYTHONPATH%"
@@ -55,6 +54,9 @@ build_script:
 - echo %PATH%
 - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsamd64_x86.bat"
 - cd src
+- cd third_party/gyp
+- git apply ../../../patches/fix-gyp-next-1.patch
+- cd ../..
 - python build_mozc.py gyp --qtdir=C:\Qt\5.6\msvc2015
 - python build_mozc.py build -c Release package
 test: off
