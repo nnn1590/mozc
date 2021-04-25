@@ -1,3 +1,16 @@
+diff --git a/pylib/gyp/generator/ninja.py b/pylib/gyp/generator/ninja.py
+index ca032aef..7ee395f2 100644
+--- a/pylib/gyp/generator/ninja.py
++++ b/pylib/gyp/generator/ninja.py
+@@ -812,7 +812,7 @@ class NinjaWriter:
+                 if self.flavor == "win":
+                     # WriteNewNinjaRule uses unique_name to create a rsp file on win.
+                     extra_bindings.append(
+-                        ("unique_name", hashlib.md5(outputs[0]).hexdigest())
++                        ("unique_name", hashlib.md5(outputs[0].encode("utf-8")).hexdigest())
+                     )
+ 
+                 self.ninja.build(
 diff --git a/pylib/gyp/msvs_emulation.py b/pylib/gyp/msvs_emulation.py
 index f744e38d..ce8fd112 100644
 --- a/pylib/gyp/msvs_emulation.py
