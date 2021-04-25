@@ -35,6 +35,7 @@ from __future__ import print_function
 
 import optparse
 import struct
+from sys import argv
 
 from build_tools import serialized_string_array_builder
 from dictionary import pos_util
@@ -88,6 +89,7 @@ def ParseOptions():
 
 
 def main():
+  print(":: sys.argv: \"{}\"".format(argv));
   options = ParseOptions()
   pos_database = pos_util.PosDataBase()
   pos_database.Parse(options.id_file, options.special_pos_file)
