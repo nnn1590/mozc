@@ -33,6 +33,7 @@
 import codecs
 import collections
 import optparse
+from sys import argv
 
 from prediction import gen_zero_query_util as util
 
@@ -71,6 +72,7 @@ def ParseOption():
 
 
 def main():
+  print(":: sys.argv: \"{}\"".format(argv));
   options = ParseOption()
   with codecs.open(options.input, 'r', encoding='utf-8') as input_stream:
     zero_query_dict = ReadZeroQueryNumberData(input_stream)
