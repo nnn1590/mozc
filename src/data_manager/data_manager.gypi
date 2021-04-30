@@ -983,9 +983,9 @@
             '<(python)', '<(generator)',
             '--iamdebugoption1=HOGE'
             '--iamdebugoption2'
-            '--iamdebugoption3=<(id_def)'
-            '--iamdebugoption4_<(id_def)'
-            '--iamdebugoption5 <(id_def)'
+            '--iamdebugoption3=<(python)'
+            '--iamdebugoption4_<(python)'
+            '--iamdebugoption5 <(python)'
             '--input=<(mozc_dir)/data/zero_query/zero_query_number.def',
             '--output_token_array=<(gen_out_dir)/zero_query_number_token.data',
             '--output_string_array=<(gen_out_dir)/zero_query_number_string.data',
