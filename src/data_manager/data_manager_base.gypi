@@ -126,11 +126,15 @@
           ],
           'action': [
             '<(python)', '<(mozc_dir)/dictionary/gen_user_pos_data.py',
-            '--iamdebugoption1=HOGE'
-            '--iamdebugoption2'
-            '--iamdebugoption3=<(id_def)'
-            '--iamdebugoption4_<(id_def)'
-            '--iamdebugoption5 <(id_def)'
+            '/dev/null',
+            'hoge',
+            '--fuga',
+            'piyo=true',
+            '--iamdebugoption1=HOGE',
+            '--iamdebugoption2',
+            '--iamdebugoption3=<(id_def)',
+            '--iamdebugoption4_<(id_def)',
+            '--iamdebugoption5 <(id_def)',
             '--id_file=<(id_def)',
             '--special_pos_file=<(special_pos)',
             '--user_pos_file=<(user_pos)',
