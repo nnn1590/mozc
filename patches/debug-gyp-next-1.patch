@@ -1,0 +1,13 @@
+diff --git a/pylib/gyp/input.py b/pylib/gyp/input.py
+index ca7ce44e..45be3446 100644
+--- a/pylib/gyp/input.py
++++ b/pylib/gyp/input.py
+@@ -814,6 +814,8 @@ def ExpandVariables(input, phase, variables, build_file):
+         # Find the ending paren, and re-evaluate the contained string.
+         (c_start, c_end) = FindEnclosingBracketGroup(input_str[replace_start:])
+ 
++        print(":: hoge replace_start: {}, end: {}, end2: {}\n c_start: {}, end: {}\ninput_str: {}\nmatch: {}".format(replace_start, replace_end, replace_start + c_end, c_start, c_end, input_str, match))
++
+         # Adjust the replacement range to match the entire command
+         # found by FindEnclosingBracketGroup (since the variable_re
+         # probably doesn't match the entire command if it contained
