@@ -424,6 +424,8 @@ def GypMain(options, unused_args):
   else:
     gyp_options.extend(['--include=%s/gyp/common.gypi' % SRC_DIR])
 
+  gyp_options.extend(['--debug=variables'])
+  
   gyp_options.extend(['-D', 'abs_depth=%s' % MOZC_ROOT])
   gyp_options.extend(['-D', 'ext_third_party_dir=%s' % EXT_THIRD_PARTY_DIR])
 
