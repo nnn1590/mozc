@@ -1,5 +1,5 @@
 diff --git a/pylib/gyp/input.py b/pylib/gyp/input.py
-index ca7ce44e..dec5f04e 100644
+index ca7ce44e..b179714c 100644
 --- a/pylib/gyp/input.py
 +++ b/pylib/gyp/input.py
 @@ -814,6 +814,8 @@ def ExpandVariables(input, phase, variables, build_file):
@@ -24,7 +24,7 @@ index ca7ce44e..dec5f04e 100644
              output = (
                  output[:replace_start] + str(encoded_replacement) + output[replace_end:]
              )
-+        print("| input_str: {}\n L output: ".format(input_str, output))
++        print("| input_str: {}\nL output: {}".format(input_str, output))
          # Prepare for the next match iteration.
          input_str = output
  
