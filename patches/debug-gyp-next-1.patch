@@ -1,5 +1,5 @@
 diff --git a/pylib/gyp/input.py b/pylib/gyp/input.py
-index ca7ce44e..f8fa3ac3 100644
+index ca7ce44e..1daa4cc8 100644
 --- a/pylib/gyp/input.py
 +++ b/pylib/gyp/input.py
 @@ -814,6 +814,8 @@ def ExpandVariables(input, phase, variables, build_file):
@@ -28,12 +28,13 @@ index ca7ce44e..f8fa3ac3 100644
          # Prepare for the next match iteration.
          input_str = output
  
-@@ -1114,6 +1119,8 @@ def ExpandVariables(input, phase, variables, build_file):
+@@ -1114,6 +1119,9 @@ def ExpandVariables(input, phase, variables, build_file):
      elif IsStrCanonicalInt(output):
          output = int(output)
  
 +    print("L output(final?): {}".format(output))
-+    traceback.print_stack()
++    if "iamdebugoption" in input_str:
++        traceback.print_stack()
      return output
  
  
