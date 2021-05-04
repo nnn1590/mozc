@@ -1,5 +1,5 @@
 diff --git a/pylib/gyp/input.py b/pylib/gyp/input.py
-index ca7ce44e..255631df 100644
+index ca7ce44e..17db7861 100644
 --- a/pylib/gyp/input.py
 +++ b/pylib/gyp/input.py
 @@ -814,6 +814,8 @@ def ExpandVariables(input, phase, variables, build_file):
@@ -42,15 +42,17 @@ index ca7ce44e..255631df 100644
      index = 0
      while index < len(the_list):
          item = the_list[index]
-+        print(":: [fuga] index: {}\n| item: {}\n| the_list: {}".format(index, item, the_list))
++        #print(":: [fuga] index: {}\n| item: {}\n| the_list: {}".format(index, item, the_list))
          if type(item) is dict:
              # Make a copy of the variables dict so that it won't influence anything
              # outside of its own scope.
-@@ -1426,6 +1435,7 @@ def ProcessVariablesAndConditionsInList(the_list, phase, variables, build_file):
+@@ -1426,6 +1435,9 @@ def ProcessVariablesAndConditionsInList(the_list, phase, variables, build_file):
              ProcessVariablesAndConditionsInList(item, phase, variables, build_file)
          elif type(item) is str:
              expanded = ExpandVariables(item, phase, variables, build_file)
-+            print("L expanded: {}".format(expanded))
++            if "iamdebugoption" in item:
++                print(":: [fuga] index: {}\n| item: {}\n| the_list: {}".format(index, item, the_list))
++                print("L expanded: {}".format(expanded))
              if type(expanded) in (str, int):
                  the_list[index] = expanded
              elif type(expanded) is list:
