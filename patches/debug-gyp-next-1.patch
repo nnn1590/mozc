@@ -1,5 +1,5 @@
 diff --git a/pylib/gyp/input.py b/pylib/gyp/input.py
-index ca7ce44e..17db7861 100644
+index ca7ce44e..e7baa206 100644
 --- a/pylib/gyp/input.py
 +++ b/pylib/gyp/input.py
 @@ -814,6 +814,8 @@ def ExpandVariables(input, phase, variables, build_file):
@@ -50,7 +50,7 @@ index ca7ce44e..17db7861 100644
              ProcessVariablesAndConditionsInList(item, phase, variables, build_file)
          elif type(item) is str:
              expanded = ExpandVariables(item, phase, variables, build_file)
-+            if "iamdebugoption" in item:
++            if ("iamdebugoption" in item) or ("HOGE" in item) or ("FUGA" in item):
 +                print(":: [fuga] index: {}\n| item: {}\n| the_list: {}".format(index, item, the_list))
 +                print("L expanded: {}".format(expanded))
              if type(expanded) in (str, int):
