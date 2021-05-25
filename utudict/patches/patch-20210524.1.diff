@@ -50,3 +50,15 @@ diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
 ---exclude=*.xml --exclude=*.gz --exclude=*.bz2 --exclude=*.xz --exclude=*.zip
 -rm -f mozcdic-ut-$UTDICDATE.$REVISION/*/mozcdic*.txt*
 -
+diff -ur origin/edict/modify-edict2.rb mod/edict/modify-edict2.rb
+--- origin/edict/modify-edict2.rb	2021-02-19 22:13:15.000000000 +0900
++++ mod/edict/modify-edict2.rb	2021-05-26 02:51:41.472317031 +0900
+@@ -109,7 +109,7 @@
+ # ==============================================================================
+ 
+ `rm -f edict2`
+-`wget -nc http://ftp.monash.edu/pub/nihongo/edict2.gz`
++`wget -nc http://ftp.edrdg.org/pub/Nihongo/edict2.gz`
+ `gzip -dk edict2.gz`
+ $filename = "edict2"
+ $dicname = "mozcdic-edict2.txt"
