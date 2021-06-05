@@ -27,18 +27,59 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef MOZC_BASE_MOZC_HASH_MAP_H_
-#define MOZC_BASE_MOZC_HASH_MAP_H_
+#include "renderer/qt/qt_renderer.h"
 
-#include "absl/container/flat_hash_map.h"
+#include "base/logging.h"
+#include "protocol/renderer_command.pb.h"
 
 namespace mozc {
+namespace renderer {
 
-template <typename K, typename V, typename Hash = std::hash<K>,
-          typename Eq = std::equal_to<K>,
-          typename Allocator = std::allocator<std::pair<const K, V>>>
-using mozc_hash_map = absl::flat_hash_map<K, V, Hash, Eq, Allocator>;
+QtRenderer::QtRenderer(QtWindowManagerInterface *window_manager)
+    : window_manager_(window_manager) {}
 
+int QtRenderer::StartRendererLoop(int argc, char **argv) {
+  return window_manager_->StartRendererLoop(argc, argv);
+}
+
+bool QtRenderer::Activate() {
+  return window_manager_->Activate();
+}
+
+bool QtRenderer::IsAvailable() const {
+  return window_manager_->IsAvailable();
+}
+
+bool QtRenderer::ExecCommand(const commands::RendererCommand &command) {
+  switch (command.type()) {
+    case commands::RendererCommand::NOOP:
+      break;
+    case commands::RendererCommand::SHUTDOWN:
+      // TODO(nona): Implement shutdown command.
+      DLOG(ERROR) << "Shutdown command is not implemented.";
+      return false;
+      break;
+    case commands::RendererCommand::UPDATE:
+      if (!command.visible()) {
+        window_manager_->HideAllWindows();
+      } else {
+        window_manager_->UpdateLayout(command);
+      }
+      return true;
+      break;
+    default:
+      LOG(WARNING) << "Unknown command: " << command.type();
+      break;
+  }
+  return true;
+}
+
+void QtRenderer::Initialize() { window_manager_->Initialize(); }
+
+void QtRenderer::SetSendCommandInterface(
+    client::SendCommandInterface *send_command_interface) {
+  window_manager_->SetSendCommandInterface(send_command_interface);
+}
+
+}  // namespace renderer
 }  // namespace mozc
-
-#endif  // MOZC_BASE_MOZC_HASH_MAP_H_

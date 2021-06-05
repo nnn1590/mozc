@@ -27,52 +27,38 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef MOZC_RENDERER_RENDERER_INTERFACE_H_
-#define MOZC_RENDERER_RENDERER_INTERFACE_H_
+#include "rewriter/rewriter_util.h"
 
 namespace mozc {
 
-namespace commands {
-class RendererCommand;  // protocol buffer
-}
-
-namespace client {
-class SendCommandInterface;
-}
-
-namespace renderer {
-
-// An abstract interface class for renderer
-class RendererInterface {
- public:
-  RendererInterface() {}
-  virtual ~RendererInterface() {}
-
-  // Start the main loop of GUI took kit.
-  virtual int StartRendererLoop(int argc, char **argv) {
-    return 0;
+// Candidates from user history: "h"
+// Other existing candidates : "o"
+// Inserting candidates from the rewriter: "R"
+// The number of inserting "R": 2
+// offset: 2
+//
+// The output candidates would be:
+// [o, o, R, R, o, o, o, o, ...]
+// [h, o, R, R, o, o, o, o, ...]
+// [h, h, R, R, o, o, o, o, ...]
+// [h, h, h, R, R, o, o, o, ...]
+// [h, h, h, h, R, R, o, o, ...]
+// For the number of history candidates.
+size_t RewriterUtil::CalculateInsertPosition(const Segment &segment,
+                                             size_t offset) {
+  size_t existing_history_candidates_num = 0;
+  for (int i = 0; i < segment.candidates_size(); ++i) {
+    // Assume that the user history prediction candidates are inserted
+    // sequentially from top.
+    if (segment.candidate(i).attributes &
+        Segment::Candidate::USER_HISTORY_PREDICTION) {
+      ++existing_history_candidates_num;
+    } else if (existing_history_candidates_num > 0) {
+      break;
+    }
   }
+  return std::min(std::max(offset, existing_history_candidates_num),
+                  segment.candidates_size());
+}
 
-  // Activate candidate window.
-  // For instance, if the renderer is out-proc renderer,
-  // Activate can launch renderer process.
-  // Activate must not have any visible change.
-  // If the renderer is already activated, this method does nothing
-  // and return false.
-  virtual bool Activate() = 0;
-
-  // return true if the renderer is available
-  virtual bool IsAvailable() const = 0;
-
-  // exec stateless rendering command
-  // TODO(taku): RendererCommand should be stateless.
-  virtual bool ExecCommand(const commands::RendererCommand &command) = 0;
-
-  // set mouse callback handler.
-  // default implementation is empty
-  virtual void SetSendCommandInterface(
-      client::SendCommandInterface *send_command_interface) {}
-};
-}  // namespace renderer
 }  // namespace mozc
-#endif  // MOZC_RENDERER_RENDERER_INTERFACE_H_

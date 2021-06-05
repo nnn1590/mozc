@@ -27,19 +27,37 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef MOZC_BASE_MOZC_HASH_SET_H_
-#define MOZC_BASE_MOZC_HASH_SET_H_
+#ifndef MOZC_RENDERER_QT_QT_RENDERER_H_
+#define MOZC_RENDERER_QT_QT_RENDERER_H_
 
-#include "absl/container/flat_hash_set.h"
+#include <memory>
+
+#include "base/port.h"
+#include "client/client_interface.h"
+#include "renderer/qt/qt_window_manager_interface.h"
+#include "renderer/renderer_interface.h"
 
 namespace mozc {
+namespace renderer {
 
-template <typename T,
-          typename Hash = typename absl::flat_hash_set<T>::hasher,
-          typename Eq = typename absl::flat_hash_set<T, Hash>::key_equal,
-          typename Allocator = std::allocator<T>>
-using mozc_hash_set = absl::flat_hash_set<T, Hash, Eq, Allocator>;
+class QtRenderer : public RendererInterface {
+ public:
+  explicit QtRenderer(QtWindowManagerInterface *window_manager);
+  ~QtRenderer() override = default;
+  int StartRendererLoop(int argc, char **argv) override;
+  bool Activate() override;
+  bool IsAvailable() const override;
+  bool ExecCommand(const commands::RendererCommand &command) override;
+  void SetSendCommandInterface(
+      client::SendCommandInterface *send_command_interface) override;
+  void Initialize();
 
+ private:
+  std::unique_ptr<QtWindowManagerInterface> window_manager_;
+
+  DISALLOW_COPY_AND_ASSIGN(QtRenderer);
+};
+
+}  // namespace renderer
 }  // namespace mozc
-
-#endif  // MOZC_BASE_MOZC_HASH_SET_H_
+#endif  // MOZC_RENDERER_QT_QT_RENDERER_H_

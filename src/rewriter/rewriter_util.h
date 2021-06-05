@@ -27,52 +27,27 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef MOZC_RENDERER_RENDERER_INTERFACE_H_
-#define MOZC_RENDERER_RENDERER_INTERFACE_H_
+#ifndef MOZC_REWRITER_REWRITER_UTIL_H_
+#define MOZC_REWRITER_REWRITER_UTIL_H_
+
+#include "converter/segments.h"
 
 namespace mozc {
 
-namespace commands {
-class RendererCommand;  // protocol buffer
-}
-
-namespace client {
-class SendCommandInterface;
-}
-
-namespace renderer {
-
-// An abstract interface class for renderer
-class RendererInterface {
+class RewriterUtil {
  public:
-  RendererInterface() {}
-  virtual ~RendererInterface() {}
+  // Calculates the inserting position so that we can keep the candidates from
+  // user history predictor.
+  // Note:
+  // Rewriters can be called not only after converter, but also after
+  // predictors.
+  static size_t CalculateInsertPosition(const Segment &segment, size_t offset);
 
-  // Start the main loop of GUI took kit.
-  virtual int StartRendererLoop(int argc, char **argv) {
-    return 0;
-  }
-
-  // Activate candidate window.
-  // For instance, if the renderer is out-proc renderer,
-  // Activate can launch renderer process.
-  // Activate must not have any visible change.
-  // If the renderer is already activated, this method does nothing
-  // and return false.
-  virtual bool Activate() = 0;
-
-  // return true if the renderer is available
-  virtual bool IsAvailable() const = 0;
-
-  // exec stateless rendering command
-  // TODO(taku): RendererCommand should be stateless.
-  virtual bool ExecCommand(const commands::RendererCommand &command) = 0;
-
-  // set mouse callback handler.
-  // default implementation is empty
-  virtual void SetSendCommandInterface(
-      client::SendCommandInterface *send_command_interface) {}
+ private:
+  RewriterUtil() = delete;
+  virtual ~RewriterUtil() = delete;
 };
-}  // namespace renderer
+
 }  // namespace mozc
-#endif  // MOZC_RENDERER_RENDERER_INTERFACE_H_
+
+#endif  // MOZC_REWRITER_REWRITER_UTIL_H_
