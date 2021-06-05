@@ -6,7 +6,7 @@
 	url = https://github.com/google/googletest.git
 [submodule "src/third_party/gyp"]
 	path = src/third_party/gyp
-	url = https://github.com/nodejs/gyp-next.git
+	url = https://chromium.googlesource.com/external/gyp
 [submodule "src/third_party/japanese_usage_dictionary"]
 	path = src/third_party/japanese_usage_dictionary
 	url = https://github.com/hiroyuki-komatsu/japanese-usage-dictionary.git
