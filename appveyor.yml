@@ -35,7 +35,7 @@ clone_folder: c:\projects\mozc
 environment:
   PYTHONPATH: C:\Python38-x64
 init:
-- git config --global core.autocrlf false
+- git config --global core.autocrlf input
 install:
 - choco install ninja --version 1.7.2 --yes
 - cmd /c "choco uninstall python python3 & exit /b 0"
@@ -60,4 +60,9 @@ build_script:
 - type mozc_gyp.log
 - appveyor PushArtifact mozc_gyp.log
 - python build_mozc.py build -c Release package
+after_build:
+- cd
+- cmd /c cd
+- cmd /c "7z a out_win.7z out_win src/out_win & exit /b 0"
+- appveyor PushArtifact out_win.7z
 test: off
