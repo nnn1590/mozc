@@ -27,17 +27,41 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+image: Visual Studio 2017
 version: '{branch} build {build}'
 skip_tags: true
-clone_depth: 50
+clone_depth: 10
 clone_folder: c:\projects\mozc
+environment:
+  PYTHONPATH: C:\Python38-x64
 init:
 - git config --global core.autocrlf input
 install:
-- git submodule update --init --recursive
 - choco install ninja --version 1.7.2 --yes
+- cmd /c "choco uninstall python python3 & exit /b 0"
+- choco install python --version 3.8.8 --install-args "/quiet InstallAllUsers=1 PrependPath=1 TargetDir=%PYTHONPATH%"
+- set "PATH=%PYTHONPATH%;%PYTHONPATH%\Scripts;%PATH%"
+- powershell -Command "Invoke-WebRequest -Uri https://bootstrap.pypa.io/get-pip.py -OutFile %TMP%\get-pip.py"
+- python %TMP%\get-pip.py
+- python --version
+- where python
+- where pip
+- echo %PATH%
+- python -m pip install six
+- git submodule update --init --recursive
 build_script:
+- echo %PATH%
+- call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsamd64_x86.bat"
 - cd src
-- python build_mozc.py gyp --qtdir=C:\Qt\5.6\msvc2015
+- cd third_party/gyp
+- git apply ../../gyp/gyp.patch
+- cd ../..
+- python build_mozc.py gyp --qtdir=C:\Qt\5.6\msvc2015 1> mozc_gyp.log 2>&1
+- type mozc_gyp.log
+- appveyor PushArtifact mozc_gyp.log
 - python build_mozc.py build -c Release package
+after_build:
+- cd out_win
+- 7z a -r out_win.7z *.exe *.dll mozc_ja.ime
+- appveyor PushArtifact out_win.7z
 test: off
