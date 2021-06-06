@@ -61,8 +61,7 @@ build_script:
 - appveyor PushArtifact mozc_gyp.log
 - python build_mozc.py build -c Release package
 after_build:
-- cd
-- cmd /c cd
-- cmd /c "7z a out_win.7z out_win src/out_win & exit /b 0"
+- cd out_win
+- 7z a -r out_win.7z *.exe *.dll mozc_ja.ime
 - appveyor PushArtifact out_win.7z
 test: off
