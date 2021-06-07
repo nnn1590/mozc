@@ -75,7 +75,7 @@ index 63d40e63..935af325 100644
      cl_paths[arch] = _ExtractCLPath(output)
    return cl_paths
 diff --git a/pylib/gyp/win_tool.py b/pylib/gyp/win_tool.py
-index 89734846..6fea9a42 100755
+index 89734846..7dc95f49 100755
 --- a/pylib/gyp/win_tool.py
 +++ b/pylib/gyp/win_tool.py
 @@ -133,6 +133,7 @@ class WinTool(object):
@@ -86,12 +86,16 @@ index 89734846..6fea9a42 100755
        if (not line.startswith('   Creating library ') and
            not line.startswith('Generating code') and
            not line.startswith('Finished generating code')):
-@@ -197,8 +198,10 @@ class WinTool(object):
+@@ -195,10 +196,12 @@ class WinTool(object):
+       our_manifest = '%(out)s.manifest' % variables
+       # Load and normalize the manifests. mt.exe sometimes removes whitespace,
        # and sometimes doesn't unfortunately.
-       with open(our_manifest, 'r') as our_f:
-         with open(assert_manifest, 'r') as assert_f:
+-      with open(our_manifest, 'r') as our_f:
+-        with open(assert_manifest, 'r') as assert_f:
 -          our_data = our_f.read().translate(None, string.whitespace)
 -          assert_data = assert_f.read().translate(None, string.whitespace)
++      with open(our_manifest, 'r', encoding='utf-8') as our_f:
++        with open(assert_manifest, 'r', encoding='utf-8') as assert_f:
 +          our_data = re.sub(r'\s+', '', our_f.read())
 +          assert_data = re.sub(r'\s+', '', assert_f.read())
 +          #our_data = our_f.read().translate(None, string.whitespace)
