@@ -28,7 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 sudo: required
-dist: trusty
+dist: focal
 osx_image: xcode12
 
 os:
@@ -60,7 +60,6 @@ install:
   - if [ $TRAVIS_OS_NAME == linux ]; then export PATH="$PATH":`pwd`/src/third_party/depot_tools; fi
   - if [ $TRAVIS_OS_NAME == linux ]; then unset CC; fi
   - if [ $TRAVIS_OS_NAME == linux ]; then unset CXX; fi
-  - if [ $TARGET_PLATFORM == Mac ]; then echo "¯\_(ツ)_/¯"; travis_terminate 0; fi
   - if [ $TARGET_PLATFORM == Mac ]; then git -C src/third_party clone https://chromium.googlesource.com/chromium/tools/depot_tools.git; fi
   - if [ $TARGET_PLATFORM == Mac ]; then export PATH="$PATH":`pwd`/src/third_party/depot_tools; fi
   - if [ $TARGET_PLATFORM == Mac ]; then brew update && travis_wait brew install qt5 gnu-sed; fi
