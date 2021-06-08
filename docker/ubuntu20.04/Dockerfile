@@ -38,8 +38,8 @@ RUN apt install -y clang python pkg-config git curl bzip2 unzip make wget
 ## Packages for linux desktop version
 RUN apt install -y libibus-1.0-dev libglib2.0-dev qtbase5-dev libgtk2.0-dev libxcb-xfixes0-dev
 ## Packages for Android
-RUN curl -LO https://cdn.azul.com/zulu/bin/zulu7.40.0.15-ca-jdk7.0.272-linux_amd64.deb
-RUN apt install -y --no-install-recommends ./zulu7.40.0.15-ca-jdk7.0.272-linux_amd64.deb libjsr305-java zip libc6-i386 lib32stdc++6 lib32ncurses6 libncurses5 lib32z1
+RUN curl -L https://cdn.azul.com/zulu/bin/zulu7.46.0.11-ca-jdk7.0.302-linux_amd64.deb -o openjdk7.deb
+RUN apt install -y --no-install-recommends ./openjdk7.deb libjsr305-java ca-certificates-java zip libc6-i386 lib32stdc++6 lib32ncurses6 libncurses5 lib32z1
 RUN curl -L https://downloads.apache.org/ant/binaries/apache-ant-1.9.15-bin.tar.gz | tar -zx
 ENV ANT_HOME /usr/share/ant
 ENV PATH $PATH:${ANT_HOME}/bin
