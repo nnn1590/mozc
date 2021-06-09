@@ -56,6 +56,7 @@ before_install:
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then curl -L https://cdn.azul.com/zulu/bin/zulu7.46.0.11-ca-jdk7.0.302-linux_amd64.deb -o openjdk7.deb; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then sudo apt-mark manual ca-certificates-java; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then sudo apt purge -y ant openjdk-11-\*; fi
+  - if [ ${TARGET_PLATFORM:0:7} == Android ]; then sudo rm -rf /usr/local/lib/jvm/openjdk11; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then sudo apt install -y --no-install-recommends ./openjdk7.deb libjsr305-java zip libc6-i386 lib32stdc++6 lib32ncurses6 libncurses5 lib32z1; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then curl -L https://downloads.apache.org/ant/binaries/apache-ant-1.9.15-bin.tar.gz | sudo tar -zx; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then export ANT_HOME="/usr/share/ant"; fi
