@@ -58,15 +58,10 @@ before_install:
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then sudo rm -rf /usr/local/lib/jvm/openjdk11; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then sudo apt install -y --no-install-recommends ./openjdk7.deb libjsr305-java ca-certificates zip libc6-i386 lib32stdc++6 lib32ncurses6 libncurses5 lib32z1; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then curl -L https://downloads.apache.org/ant/binaries/apache-ant-1.9.15-bin.tar.gz | sudo tar -zx; fi
-  - if [ ${TARGET_PLATFORM:0:7} == Android ]; then echo "${JAVA_HOME}"; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then unset JAVA_HOME; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then export ANT_HOME="/usr/share/ant"; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then export PATH="$PATH:$ANT_HOME/bin"; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then sudo mv apache-ant-1.9.15 "$ANT_HOME"; fi
-  - if [ ${TARGET_PLATFORM:0:7} == Android ]; then whereis ant; fi
-  - if [ ${TARGET_PLATFORM:0:7} == Android ]; then whereis java; fi
-  - if [ ${TARGET_PLATFORM:0:7} == Android ]; then ls -alF /etc/alternatives/java || true; fi
-  - if [ ${TARGET_PLATFORM:0:7} == Android ]; then whereis mvn; fi
 
 install:
   - if [ $TRAVIS_OS_NAME == linux ]; then git -C src/third_party clone https://chromium.googlesource.com/chromium/tools/depot_tools.git; fi
