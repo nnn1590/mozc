@@ -50,7 +50,7 @@ env:
 
 before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt update; fi
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt install -y clang libc++-dev libc++abi-dev python python-six python3-six pkg-config git curl bzip2 unzip make
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt install -y clang libc++-dev libc++abi-dev python python-six python3-six pkg-config git curl bzip2 unzip make; fi
   - if [ $TARGET_PLATFORM == Linux ]; then sudo apt install -y libibus-1.0-dev libglib2.0-dev qtbase5-dev libgtk2.0-dev libxcb-xfixes0-dev; fi
   - if [ $TARGET_PLATFORM == NaCl ]; then sudo apt install -y libc6-i386 lib32stdc++6; fi
   - if [ ${TARGET_PLATFORM:0:7} == Android ]; then curl -L https://cdn.azul.com/zulu/bin/zulu7.46.0.11-ca-jdk7.0.302-linux_amd64.deb -o openjdk7.deb; fi
