@@ -11,9 +11,9 @@ OpenSource project originates from
 Build Status
 ------------
 
-|Android + OS X + GNU/Linux + NaCl |Windows(branch `nnn1590-newer-keepdroid`) |
+|Android + OS X + GNU/Linux + NaCl |Windows(branch `nnn1590-newer-keepandroid`) |
 |:-------------------------:|:----------------:|
-[![Build Status](https://travis-ci.org/nnn1590/mozc.svg?branch=nnn1590)](https://travis-ci.org/nnn1590/mozc) |[![Build status](https://ci.appveyor.com/api/projects/status/c825eb1n2tnpsh3e/branch/nnn1590-newer-keepdroid?svg=true)](https://ci.appveyor.com/project/nnn1590/mozc/branch/nnn1590-newer-keepdroid) |
+[![Build Status](https://travis-ci.org/nnn1590/mozc.svg?branch=nnn1590)](https://travis-ci.org/nnn1590/mozc) |[![Build status](https://ci.appveyor.com/api/projects/status/c825eb1n2tnpsh3e/branch/nnn1590-newer-keepandroid?svg=true)](https://ci.appveyor.com/project/nnn1590/mozc/branch/nnn1590-newer-keepandroid) |
 
 What's Mozc?
 ------------

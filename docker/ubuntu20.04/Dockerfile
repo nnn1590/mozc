@@ -92,7 +92,7 @@ ENV NACL_SDK_ROOT /home/mozc_builder/work/nacl_sdk/pepper_49
 # check out Mozc source with submodules
 RUN mkdir /home/mozc_builder/work/mozc
 # COPY --chown=mozc_builder:mozc_builder src/ /home/mozc_builder/work/mozc/src/
-RUN git clone https://github.com/nnn1590/mozc.git -b nnn1590-newer-keepdroid --single-branch --recursive
+RUN git clone https://github.com/nnn1590/mozc.git -b nnn1590-newer-keepandroid --single-branch --recursive
 
 WORKDIR /home/mozc_builder/work/mozc/src
 ENTRYPOINT bash

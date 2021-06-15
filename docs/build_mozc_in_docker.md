@@ -9,7 +9,7 @@ Currently, only Ubuntu 20.04 is tested to host the Docker container to build Moz
 ## Set up Ubuntu 20.04 Docker container
 
 ```
-curl -O https://raw.githubusercontent.com/nnn1590/mozc/nnn1590-newer-keepdroid/docker/ubuntu20.04/Dockerfile
+curl -O https://raw.githubusercontent.com/nnn1590/mozc/nnn1590-newer-keepandroid/docker/ubuntu20.04/Dockerfile
 sudo docker build --rm -t $USER/mozc_ubuntu20.04 .
 sudo docker run --interactive --tty --rm $USER/mozc_ubuntu20.04
 ```
