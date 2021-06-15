@@ -1,4 +1,4 @@
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,7 @@
         'number_rewriter.cc',
         'remove_redundant_candidate_rewriter.cc',
         'rewriter.cc',
+        'rewriter_util.cc',
         'single_kanji_rewriter.cc',
         'symbol_rewriter.cc',
         'transliteration_rewriter.cc',
@@ -76,6 +77,8 @@
         'zipcode_rewriter.cc',
       ],
       'dependencies': [
+        '../base/absl.gyp:absl_strings',
+        '../base/absl.gyp:absl_time',
         '../base/base.gyp:base',
         '../base/base.gyp:config_file_stream',
         '../base/base.gyp:serialized_string_array',
@@ -94,13 +97,6 @@
         'calculator/calculator.gyp:calculator',
         'rewriter_base.gyp:gen_rewriter_files#host',
       ],
-      'conditions':[
-        ['target_platform=="Android"', {
-          'sources!': [
-            'usage_rewriter.cc',
-          ],
-        }],
-      ]
     },
   ],
 }

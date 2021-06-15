@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@
 #include "rewriter/rewriter_interface.h"
 // for FRIEND_TEST()
 #include "testing/base/public/gunit_prod.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 
@@ -46,16 +47,16 @@ class DataManagerInterface;
 class Segment;
 class Segments;
 
-class SymbolRewriter : public RewriterInterface  {
+class SymbolRewriter : public RewriterInterface {
  public:
   explicit SymbolRewriter(const ConverterInterface *parent_converter,
                           const DataManagerInterface *data_manager);
-  virtual ~SymbolRewriter();
+  ~SymbolRewriter() override;
 
-  virtual int capability(const ConversionRequest &request) const;
+  int capability(const ConversionRequest &request) const override;
 
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
 
  private:
   FRIEND_TEST(SymbolRewriterTest, TriggerRewriteEntireTest);
@@ -65,38 +66,39 @@ class SymbolRewriter : public RewriterInterface  {
 
   // Some characters may have different description for full/half width forms.
   // Here we just change the description in this function.
-  static const string GetDescription(const string &value,
-                                     StringPiece description,
-                                     StringPiece additional_description);
+  static const std::string GetDescription(
+      const std::string &value, absl::string_view description,
+      absl::string_view additional_description);
 
   // return true key has no-hiragana
-  static bool IsSymbol(const string &key);
+  static bool IsSymbol(const std::string &key);
 
   // Insert alternative form of space.
   static void ExpandSpace(Segment *segment);
-
-  // Returns true if the symbol is platform dependent
-  static bool IsPlatformDependent(SerializedDictionary::const_iterator iter);
 
   // Return true if two symbols are in same group.
   static bool InSameSymbolGroup(SerializedDictionary::const_iterator lhs,
                                 SerializedDictionary::const_iterator rhs);
 
   // Insert Symbol into segment.
-  static void InsertCandidates(const SerializedDictionary::IterRange &range,
-                               bool context_sensitive,
-                               Segment *segment);
+  static void InsertCandidates(size_t default_offset,
+                               const SerializedDictionary::IterRange &range,
+                               bool context_sensitive, Segment *segment);
 
   // Add symbol desc to exsisting candidates
   static void AddDescForCurrentCandidates(
       const SerializedDictionary::IterRange &range, Segment *segment);
+
+  static size_t GetOffset(const ConversionRequest &request,
+                          absl::string_view key);
 
   // Insert symbols using connected all segments.
   bool RewriteEntireCandidate(const ConversionRequest &request,
                               Segments *segments) const;
 
   // Insert symbols using single segment.
-  bool RewriteEachCandidate(Segments *segments) const;
+  bool RewriteEachCandidate(const ConversionRequest &request,
+                            Segments *segments) const;
 
   const ConverterInterface *parent_converter_;
   std::unique_ptr<SerializedDictionary> dictionary_;

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 
 #ifndef MOZC_SESSION_SESSION_INTERFACE_H_
 #define MOZC_SESSION_SESSION_INTERFACE_H_
+
+#include <cstdint>
 
 #include "base/port.h"
 #include "protocol/config.pb.h"
@@ -74,17 +76,17 @@ class SessionInterface {
       const commands::Capability &capability) = 0;
 
   // Set application information for this session.
-  virtual void set_application_info(const commands::ApplicationInfo
-                                    &application_info) = 0;
+  virtual void set_application_info(
+      const commands::ApplicationInfo &application_info) = 0;
 
   // Get application information
   virtual const commands::ApplicationInfo &application_info() const = 0;
 
   // Return the time when this instance was created.
-  virtual uint64 create_session_time() const = 0;
+  virtual uint64_t create_session_time() const = 0;
 
   // return 0 (default value) if no command is executed in this session.
-  virtual uint64 last_command_time() const = 0;
+  virtual uint64_t last_command_time() const = 0;
 };
 
 }  // namespace session

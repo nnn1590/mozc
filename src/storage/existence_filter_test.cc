@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "storage/existence_filter.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -43,11 +44,11 @@ namespace mozc {
 namespace storage {
 namespace {
 
-void CheckValues(ExistenceFilter* filter, int m, int n) {
+void CheckValues(ExistenceFilter *filter, int m, int n) {
   int false_positives = 0;
   for (int i = 0; i < 2 * n; ++i) {
-    uint64 hash = Hash::Fingerprint(i);
-    bool should_exist = ((i%2) == 0);
+    uint64_t hash = Hash::Fingerprint(i);
+    bool should_exist = ((i % 2) == 0);
     bool actual = filter->Exists(hash);
     if (should_exist) {
       CHECK(actual) << " Value = " << i;
@@ -67,13 +68,13 @@ void RunTest(int m, int n) {
 
   for (int i = 0; i < n; ++i) {
     int val = i * 2;
-    uint64 hash = Hash::Fingerprint(val);
+    uint64_t hash = Hash::Fingerprint(val);
     filter->Insert(hash);
   }
 
   CheckValues(filter, m, n);
 
-  char *buf = NULL;
+  char *buf = nullptr;
   size_t size = 0;
   filter->Write(&buf, &size);
   LOG(INFO) << "write size: " << size;
@@ -94,26 +95,21 @@ TEST(ExistenceFilterTest, RunTest) {
 }
 
 TEST(ExistenceFilterTest, MinFilterSizeEstimateTest) {
-  EXPECT_EQ(61,
-            ExistenceFilter::MinFilterSizeInBytesForErrorRate(0.1, 100));
-  EXPECT_EQ(120,
-            ExistenceFilter::MinFilterSizeInBytesForErrorRate(0.01, 100));
-  EXPECT_EQ(79,
-            ExistenceFilter::MinFilterSizeInBytesForErrorRate(0.05, 100));
-  EXPECT_EQ(781,
-            ExistenceFilter::MinFilterSizeInBytesForErrorRate(0.05, 1000));
+  EXPECT_EQ(61, ExistenceFilter::MinFilterSizeInBytesForErrorRate(0.1, 100));
+  EXPECT_EQ(120, ExistenceFilter::MinFilterSizeInBytesForErrorRate(0.01, 100));
+  EXPECT_EQ(79, ExistenceFilter::MinFilterSizeInBytesForErrorRate(0.05, 100));
+  EXPECT_EQ(781, ExistenceFilter::MinFilterSizeInBytesForErrorRate(0.05, 1000));
 }
 
 TEST(ExistenceFilterTest, ReadWriteTest) {
-  std::vector<string> words;
+  std::vector<std::string> words;
   words.push_back("a");
   words.push_back("b");
   words.push_back("c");
 
   static const float kErrorRate = 0.0001;
-  int num_bytes =
-      ExistenceFilter::MinFilterSizeInBytesForErrorRate(kErrorRate,
-                                                        words.size());
+  int num_bytes = ExistenceFilter::MinFilterSizeInBytesForErrorRate(
+      kErrorRate, words.size());
 
   std::unique_ptr<ExistenceFilter> filter(
       ExistenceFilter::CreateOptimal(num_bytes, words.size()));
@@ -122,7 +118,7 @@ TEST(ExistenceFilterTest, ReadWriteTest) {
     filter->Insert(Hash::Fingerprint(words[i]));
   }
 
-  char *buf = NULL;
+  char *buf = nullptr;
   size_t size = 0;
   filter->Write(&buf, &size);
   std::unique_ptr<ExistenceFilter> filter_read(
@@ -132,11 +128,11 @@ TEST(ExistenceFilterTest, ReadWriteTest) {
     EXPECT_TRUE(filter_read->Exists(Hash::Fingerprint(words[i])));
   }
 
-  delete [] buf;
+  delete[] buf;
 }
 
 TEST(ExistenceFilterTest, InsertAndExistsTest) {
-  std::vector<string> words;
+  std::vector<std::string> words;
   words.push_back("a");
   words.push_back("b");
   words.push_back("c");
@@ -148,9 +144,8 @@ TEST(ExistenceFilterTest, InsertAndExistsTest) {
   words.push_back("i");
 
   static const float kErrorRate = 0.0001;
-  int num_bytes =
-      ExistenceFilter::MinFilterSizeInBytesForErrorRate(kErrorRate,
-                                                        words.size());
+  int num_bytes = ExistenceFilter::MinFilterSizeInBytesForErrorRate(
+      kErrorRate, words.size());
 
   std::unique_ptr<ExistenceFilter> filter(
       ExistenceFilter::CreateOptimal(num_bytes, words.size()));

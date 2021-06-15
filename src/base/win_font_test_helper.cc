@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ HANDLE LoadPrivateFont(const wchar_t *font_name) {
     LOG(ERROR) << "PathAppend failed.";
     return nullptr;
   }
-  string path;
+  std::string path;
   Util::WideToUTF8(w_path, &path);
 
   Mmap mmap;
@@ -115,15 +115,17 @@ void WinFontTestHelper::Uninitialize() {
 }
 
 // static
-string WinFontTestHelper::GetIPAexGothicFontName() {
+std::string WinFontTestHelper::GetIPAexGothicFontName() {
   // "IPAexゴシック"
-  return "IPAex" "\343\202\264\343\202\267\343\203\203\343\202\257";
+  return "IPAex"
+         "\343\202\264\343\202\267\343\203\203\343\202\257";
 }
 
 // static
-string WinFontTestHelper::GetIPAexMinchoFontName() {
+std::string WinFontTestHelper::GetIPAexMinchoFontName() {
   // "IPAex明朝"
-  return "IPAex" "\346\230\216\346\234\235";
+  return "IPAex"
+         "\346\230\216\346\234\235";
 }
 
 }  // namespace mozc

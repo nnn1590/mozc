@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_DATA_MANAGER_DATA_MANAGER_TEST_BASE_H_
 #define MOZC_DATA_MANAGER_DATA_MANAGER_TEST_BASE_H_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -45,19 +46,21 @@ class DataManagerInterface;
 // Provides common unit tests for DataManager.
 class DataManagerTestBase : public ::testing::Test {
  protected:
-  typedef bool (*IsBoundaryFunc)(uint16, uint16);
+  typedef bool (*IsBoundaryFunc)(uint16_t, uint16_t);
 
-  DataManagerTestBase(
-      DataManagerInterface *data_manager,
-      // The following three are used in segmenter test.
-      const size_t lsize, const size_t rsize, IsBoundaryFunc is_boundary,
-      // The following two are used in connector test.
-      const string &connection_txt_file, const int expected_resolution,
-      // The following two are used in suggestion filter test.
-      const std::vector<string> &dictionary_files,
-      const std::vector<string> &suggestion_filter_files,
-      // The following is used in typing model test.
-      const std::vector<std::pair<string, string>> &typing_model_files);
+  DataManagerTestBase(DataManagerInterface *data_manager,
+                      // The following three are used in segmenter test.
+                      const size_t lsize, const size_t rsize,
+                      IsBoundaryFunc is_boundary,
+                      // The following two are used in connector test.
+                      const std::string &connection_txt_file,
+                      const int expected_resolution,
+                      // The following two are used in suggestion filter test.
+                      const std::vector<std::string> &dictionary_files,
+                      const std::vector<std::string> &suggestion_filter_files,
+                      // The following is used in typing model test.
+                      const std::vector<std::pair<std::string, std::string>>
+                          &typing_model_files);
   ~DataManagerTestBase() override;
 
   void RunAllTests();
@@ -74,14 +77,14 @@ class DataManagerTestBase : public ::testing::Test {
   void TypingModelTest();
 
   std::unique_ptr<DataManagerInterface> data_manager_;
-  const uint16 lsize_;
-  const uint16 rsize_;
+  const uint16_t lsize_;
+  const uint16_t rsize_;
   IsBoundaryFunc is_boundary_;
-  const string connection_txt_file_;
+  const std::string connection_txt_file_;
   const int expected_resolution_;
-  const std::vector<string> dictionary_files_;
-  const std::vector<string> suggestion_filter_files_;
-  const std::vector<std::pair<string, string>> typing_model_files_;
+  const std::vector<std::string> dictionary_files_;
+  const std::vector<std::string> suggestion_filter_files_;
+  const std::vector<std::pair<std::string, std::string>> typing_model_files_;
 
   DISALLOW_COPY_AND_ASSIGN(DataManagerTestBase);
 };

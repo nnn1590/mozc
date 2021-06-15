@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,9 +37,9 @@
 #include "protocol/commands.pb.h"
 #include "protocol/config.pb.h"
 #include "request/conversion_request.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace mozc {
 namespace {
@@ -55,7 +55,7 @@ size_t CommandCandidatesSize(const Segment &segment) {
   return result;
 }
 
-string GetCommandCandidateValue(const Segment &segment) {
+std::string GetCommandCandidateValue(const Segment &segment) {
   for (int i = 0; i < segment.candidates_size(); ++i) {
     if (segment.candidate(i).attributes &
         Segment::Candidate::COMMAND_CANDIDATE) {
@@ -72,13 +72,13 @@ class CommandRewriterTest : public ::testing::Test {
     convreq_.set_config(&config_);
   }
 
-  virtual void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
     config::ConfigHandler::GetDefaultConfig(&config_);
     request_.Clear();
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     config::ConfigHandler::GetDefaultConfig(&config_);
     request_.Clear();
   }

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ namespace storage {
 // We will replace it with faster and more robust implementation.
 class TinyStorage {
  public:
-  // Returns an implementatoin of StorageInterface.
+  // Returns an implementation of StorageInterface.
   // Caller must take ownership of the returned object.
   // Returns NULL if fails.
   static StorageInterface *New();

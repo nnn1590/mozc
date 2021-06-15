@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ message EngineReloadResponse {
 
     // The following are errors.
 
-    // Failed to start reload becuase another reload job is currently running.
+    // Failed to start reload because another reload job is currently running.
     ALREADY_RUNNING = 3;
 
     // Erros in data file.

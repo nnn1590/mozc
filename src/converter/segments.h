@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_CONVERTER_SEGMENTS_H_
 #define MOZC_CONVERTER_SEGMENTS_H_
 
+#include <cstdint>
 #include <deque>
 #include <memory>
 #include <string>
@@ -38,8 +39,8 @@
 #include "base/freelist.h"
 #include "base/number_util.h"
 #include "base/port.h"
-#include "base/string_piece.h"
 #include "converter/lattice.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 
@@ -104,6 +105,8 @@ class Segment {
       AUTO_PARTIAL_SUGGESTION = 1 << 13,
       // Predicted from user prediction history.
       USER_HISTORY_PREDICTION = 1 << 14,
+      // Contains suffix dictionary.
+      SUFFIX_DICTIONARY = 1 << 15,
     };
 
     enum Command {
@@ -134,48 +137,48 @@ class Segment {
       USER_HISTORY_PREDICTOR = 1 << 6,
     };
 
-    string key;         // reading
-    string value;       // surface form
-    string content_key;
-    string content_value;
+    std::string key;    // reading
+    std::string value;  // surface form
+    std::string content_key;
+    std::string content_value;
 
     size_t consumed_key_size;
 
     // Meta information
-    string prefix;
-    string suffix;
+    std::string prefix;
+    std::string suffix;
     // Description including description type and message
-    string description;
+    std::string description;
 
     // Usage ID
-    int32 usage_id;
+    int32_t usage_id;
     // Title of the usage containing basic form of this candidate.
-    string usage_title;
+    std::string usage_title;
     // Content of the usage.
-    string usage_description;
+    std::string usage_description;
 
     // Context "sensitive" candidate cost.
     // Taking adjacent words/nodes into consideration.
-    // Basically, canidate is sorted by this cost.
-    int32  cost;
+    // Basically, candidate is sorted by this cost.
+    int32_t cost;
     // Context "free" candidate cost
     // NOT taking adjacent words/nodes into consideration.
-    int32  wcost;
+    int32_t wcost;
     // (cost without transition cost between left/right boundaries)
     // Cost of only transitions (cost without word cost adjacent context)
-    int32  structure_cost;
+    int32_t structure_cost;
 
     // lid of left-most node
-    uint16 lid;
+    uint16_t lid;
     // rid of right-most node
-    uint16 rid;
+    uint16_t rid;
 
     // Attributes of this candidate. Can set multiple attributes
     // defined in enum |Attribute|.
-    uint32 attributes;
+    uint32_t attributes;
 
     // Candidate's source info which will be used for usage stats.
-    uint32 source_info;
+    uint32_t source_info;
 
     // Candidate style. This is not a bit-field.
     // The style is defined in enum |Style|.
@@ -188,18 +191,21 @@ class Segment {
     // Boundary information for realtime conversion.  This will be set only for
     // realtime conversion result candidates.  Each element is the encoded
     // lengths of key, value, content key and content value.
-    std::vector<uint32> inner_segment_boundary;
+    std::vector<uint32_t> inner_segment_boundary;
+
+#ifndef NDEBUG
+    std::string log;
+#endif  // NDEBUG
 
     static bool EncodeLengths(size_t key_len, size_t value_len,
-                              size_t content_key_len,
-                              size_t content_value_len,
-                              uint32 *result);
+                              size_t content_key_len, size_t content_value_len,
+                              uint32_t *result);
 
     // This function ignores error, so be careful when using this.
-    static uint32 EncodeLengths(size_t key_len, size_t value_len,
-                                size_t content_key_len,
-                                size_t content_value_len) {
-      uint32 result;
+    static uint32_t EncodeLengths(size_t key_len, size_t value_len,
+                                  size_t content_key_len,
+                                  size_t content_value_len) {
+      uint32_t result;
       EncodeLengths(key_len, value_len, content_key_len, content_value_len,
                     &result);
       return result;
@@ -213,13 +219,14 @@ class Segment {
 
     // Iterates inner segments.  Usage example:
     // for (InnerSegmentIterator iter(&cand); !iter.Done(); iter.Next()) {
-    //   StringPiece s = iter.GetContentKey();
+    //   absl::string_view s = iter.GetContentKey();
     //   ...
     // }
     class InnerSegmentIterator {
      public:
       explicit InnerSegmentIterator(const Candidate *candidate)
-          : candidate_(candidate), key_offset_(candidate->key.data()),
+          : candidate_(candidate),
+            key_offset_(candidate->key.data()),
             value_offset_(candidate->value.data()),
             index_(0) {}
 
@@ -228,10 +235,10 @@ class Segment {
       }
 
       void Next();
-      StringPiece GetKey() const;
-      StringPiece GetValue() const;
-      StringPiece GetContentKey() const;
-      StringPiece GetContentValue() const;
+      absl::string_view GetKey() const;
+      absl::string_view GetValue() const;
+      absl::string_view GetContentKey() const;
+      absl::string_view GetContentValue() const;
 
      private:
       const Candidate *candidate_;
@@ -262,27 +269,35 @@ class Segment {
       style = NumberUtil::NumberString::DEFAULT_STYLE;
       command = DEFAULT_COMMAND;
       inner_segment_boundary.clear();
+#ifndef NDEBUG
+      log.clear();
+#endif  // NDEBUG
     }
 
-    Candidate() : cost(0), wcost(0), structure_cost(0),
-                  lid(0), rid(0), attributes(0),
-                  source_info(SOURCE_INFO_NONE),
-                  style(NumberUtil::NumberString::DEFAULT_STYLE),
-                  command(DEFAULT_COMMAND) {}
+    Candidate()
+        : cost(0),
+          wcost(0),
+          structure_cost(0),
+          lid(0),
+          rid(0),
+          attributes(0),
+          source_info(SOURCE_INFO_NONE),
+          style(NumberUtil::NumberString::DEFAULT_STYLE),
+          command(DEFAULT_COMMAND) {}
 
     // Returns functional key.
     // functional_key =
     // key.substr(content_key.size(), key.size() - content_key.size());
-    StringPiece functional_key() const;
+    absl::string_view functional_key() const;
 
     // Returns functional value.
     // functional_value =
     // value.substr(content_value.size(), value.size() - content_value.size());
-    StringPiece functional_value() const;
+    absl::string_view functional_value() const;
 
     void CopyFrom(const Candidate &src);
     bool IsValid() const;
-    string DebugString() const;
+    std::string DebugString() const;
   };
 
   Segment();
@@ -291,8 +306,11 @@ class Segment {
   SegmentType segment_type() const;
   void set_segment_type(const SegmentType &segment_type);
 
-  const string& key() const;
-  void set_key(const string &key);
+  const std::string &key() const;
+  void set_key(absl::string_view key);
+
+  // check if the specified index is valid or not.
+  bool is_valid_index(int i) const;
 
   // Candidate manupluations
   // getter
@@ -308,7 +326,7 @@ class Segment {
   // push and insert candidates
   Candidate *push_front_candidate();
   Candidate *push_back_candidate();
-  Candidate *add_candidate();   // alias of push_back_candidate()
+  Candidate *add_candidate();  // alias of push_back_candidate()
   Candidate *insert_candidate(int i);
 
   // get size of candidates
@@ -343,7 +361,10 @@ class Segment {
   // Keep clear() method as other modules are still using the old method
   void clear() { Clear(); }
 
-  string DebugString() const;
+  std::string DebugString() const;
+
+  // For debug. Candidate words removed through conversion process.
+  std::vector<Candidate> removed_candidates_for_debug_;
 
  private:
   SegmentType segment_type_;
@@ -354,9 +375,9 @@ class Segment {
   // There is no way to detect by using only a segment whether this segment is
   // for partial suggestion or not.
   // You should detect that by using both Composer and Segments.
-  string key_;
+  std::string key_;
   std::deque<Candidate *> candidates_;
-  std::vector<Candidate>  meta_candidates_;
+  std::vector<Candidate> meta_candidates_;
   std::unique_ptr<ObjectPool<Candidate>> pool_;
   DISALLOW_COPY_AND_ASSIGN(Segment);
 };
@@ -383,10 +404,10 @@ class Segment {
 class Segments {
  public:
   enum RequestType {
-    CONVERSION,  // normal conversion
+    CONVERSION,          // normal conversion
     REVERSE_CONVERSION,  // reverse conversion
-    PREDICTION,  // show prediction with user tab key
-    SUGGESTION,  // show prediction automatically
+    PREDICTION,          // show prediction with user tab key
+    SUGGESTION,          // show prediction automatically
     PARTIAL_PREDICTION,  // show prediction using the text before cursor
     PARTIAL_SUGGESTION,  // show suggestion using the text before cursor
   };
@@ -399,12 +420,12 @@ class Segments {
       CREATE_ENTRY,
       UPDATE_ENTRY,
     };
-    uint16 revert_entry_type;
+    uint16_t revert_entry_type;
     // UserHitoryPredictor uses '1' for now.
     // Do not use duplicate keys.
-    uint16 id;
-    uint32 timestamp;
-    string key;
+    uint16_t id;
+    uint32_t timestamp;
+    std::string key;
     RevertEntry() : revert_entry_type(0), id(0), timestamp(0) {}
 
     void CopyFrom(const RevertEntry &src);
@@ -430,7 +451,7 @@ class Segments {
   // push and insert segments
   Segment *push_front_segment();
   Segment *push_back_segment();
-  Segment *add_segment();   // alias of push_back_segment()
+  Segment *add_segment();  // alias of push_back_segment()
   Segment *insert_segment(size_t i);
 
   // get size of segments
@@ -460,7 +481,7 @@ class Segments {
   // Let converter know the maximum size of
   // candidates converter can generate.
   // NOTE: This field is used as an "optional" field.
-  // Rewriter might insert more than |size| candiates.
+  // Rewriter might insert more than |size| candidates.
   // Default setting is 200.
   void set_max_conversion_candidates_size(size_t size);
   size_t max_conversion_candidates_size() const;
@@ -475,7 +496,7 @@ class Segments {
   void CopyFrom(const Segments &src);
 
   // Dump Segments structure
-  string DebugString() const;
+  std::string DebugString() const;
 
   // Revert entries
   void clear_revert_entries();

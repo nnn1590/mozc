@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 #ifndef MOZC_REWRITER_LANGUAGE_AWARE_REWRITER_H_
 #define MOZC_REWRITER_LANGUAGE_AWARE_REWRITER_H_
 
+#include <cstdint>
+
 #include "base/port.h"
 #include "converter/segments.h"
 #include "dictionary/dictionary_interface.h"
@@ -41,22 +43,21 @@ namespace mozc {
 class LanguageAwareRewriter : public RewriterInterface {
  public:
   LanguageAwareRewriter(const dictionary::POSMatcher &pos_matcher,
-                          const dictionary::DictionaryInterface *dictionary);
-  virtual ~LanguageAwareRewriter();
+                        const dictionary::DictionaryInterface *dictionary);
+  ~LanguageAwareRewriter() override;
 
-  virtual int capability(const ConversionRequest &request) const;
+  int capability(const ConversionRequest &request) const override;
 
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
 
-  virtual void Finish(const ConversionRequest &request, Segments *segments);
+  void Finish(const ConversionRequest &request, Segments *segments) override;
 
  private:
   // Fills the raw text if the query does not look like Japanese.
-  bool FillRawText(const ConversionRequest &request,
-                   Segments *segments) const;
+  bool FillRawText(const ConversionRequest &request, Segments *segments) const;
 
-  const uint16 unknown_id_;
+  const uint16_t unknown_id_;
   const dictionary::DictionaryInterface *dictionary_;
 
   DISALLOW_COPY_AND_ASSIGN(LanguageAwareRewriter);

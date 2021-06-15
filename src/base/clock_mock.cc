@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,72 +29,56 @@
 
 #include "base/clock_mock.h"
 
+#include <cstdint>
 #include <ctime>
 
 namespace mozc {
 
-ClockMock::ClockMock(uint64 sec, uint32 usec)
-    : seconds_(sec), micro_seconds_(usec),
-      frequency_(1000000000), ticks_(0),
-#ifdef OS_NACL
+ClockMock::ClockMock(uint64_t sec, uint32_t usec)
+    : seconds_(sec),
+      micro_seconds_(usec),
+      frequency_(1000000000),
+      ticks_(0),
+      timezone_(absl::UTCTimeZone()),
       timezone_offset_sec_(0),
-#endif  // OS_NACL
-      delta_seconds_(0), delta_micro_seconds_(0) {
-}
+      delta_seconds_(0),
+      delta_micro_seconds_(0) {}
 
 ClockMock::~ClockMock() {}
 
-void ClockMock::GetTimeOfDay(uint64 *sec, uint32 *usec) {
+void ClockMock::GetTimeOfDay(uint64_t *sec, uint32_t *usec) {
   *sec = seconds_;
   *usec = micro_seconds_;
   PutClockForward(delta_seconds_, delta_micro_seconds_);
 }
 
-uint64 ClockMock::GetTime() {
-  const uint64 ret_sec = seconds_;
+uint64_t ClockMock::GetTime() {
+  const uint64_t ret_sec = seconds_;
   PutClockForward(delta_seconds_, delta_micro_seconds_);
   return ret_sec;
 }
 
-bool ClockMock::GetTmWithOffsetSecond(time_t offset_sec, tm *output) {
-  const time_t current_sec = static_cast<time_t>(seconds_);
-  const time_t modified_sec = current_sec + offset_sec;
-
-#ifdef OS_WIN
-  if (_gmtime64_s(output, &modified_sec) != 0) {
-    return false;
-  }
-#elif defined(OS_NACL)
-  const time_t localtime_sec = modified_sec + timezone_offset_sec_;
-  if (gmtime_r(&localtime_sec, output) == NULL) {
-    return false;
-  }
-#else  // !OS_WIN && !OS_NACL
-  if (gmtime_r(&modified_sec, output) == NULL) {
-    return false;
-  }
-#endif
+absl::Time ClockMock::GetAbslTime() {
+  absl::Time at = absl::FromUnixSeconds(seconds_);
   PutClockForward(delta_seconds_, delta_micro_seconds_);
-
-  return true;
+  return at;
 }
 
-uint64 ClockMock::GetFrequency() {
-  return frequency_;
+uint64_t ClockMock::GetFrequency() { return frequency_; }
+
+uint64_t ClockMock::GetTicks() { return ticks_; }
+
+const absl::TimeZone& ClockMock::GetTimeZone() {
+  return timezone_;
 }
 
-uint64 ClockMock::GetTicks() {
-  return ticks_;
-}
-
-#ifdef OS_NACL
-void ClockMock::SetTimezoneOffset(int32 timezone_offset_sec) {
+void ClockMock::SetTimeZoneOffset(int32_t timezone_offset_sec) {
   timezone_offset_sec_ = timezone_offset_sec;
+  timezone_ = absl::FixedTimeZone(timezone_offset_sec);
 }
-#endif  // OS_NACL
 
-void ClockMock::PutClockForward(uint64 delta_sec, uint32 delta_usec) {
-  const uint32 one_second = 1000000u;
+void ClockMock::PutClockForward(uint64_t delta_sec, uint32_t delta_usec) {
+  const uint32_t one_second = 1000000u;
 
   if (micro_seconds_ + delta_usec < one_second) {
     seconds_ += delta_sec;
@@ -105,27 +89,21 @@ void ClockMock::PutClockForward(uint64 delta_sec, uint32 delta_usec) {
   }
 }
 
-void ClockMock::PutClockForwardByTicks(uint64 ticks) {
-  ticks_ += ticks;
-}
+void ClockMock::PutClockForwardByTicks(uint64_t ticks) { ticks_ += ticks; }
 
-void ClockMock::SetAutoPutClockForward(uint64 delta_sec,
-                                       uint32 delta_usec) {
+void ClockMock::SetAutoPutClockForward(uint64_t delta_sec,
+                                       uint32_t delta_usec) {
   delta_seconds_ = delta_sec;
   delta_micro_seconds_ = delta_usec;
 }
 
-void ClockMock::SetTime(uint64 sec, uint32 usec) {
+void ClockMock::SetTime(uint64_t sec, uint32_t usec) {
   seconds_ = sec;
   micro_seconds_ = usec;
 }
 
-void ClockMock::SetFrequency(uint64 frequency) {
-  frequency_ = frequency;
-}
+void ClockMock::SetFrequency(uint64_t frequency) { frequency_ = frequency; }
 
-void ClockMock::SetTicks(uint64 ticks) {
-  ticks_ = ticks;
-}
+void ClockMock::SetTicks(uint64_t ticks) { ticks_ = ticks; }
 
 }  // namespace mozc

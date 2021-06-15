@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 
 #include "base/clock.h"
 
+#include <cstdint>
+
 #include "base/clock_mock.h"
 #include "testing/base/public/gunit.h"
 
@@ -37,60 +39,61 @@ namespace {
 
 // 2020-12-23 13:24:35 (Wed) UTC
 // 123456 [usec]
-const uint64 kTestSeconds = 1608729875uLL;
-const uint32 kTestMicroSeconds = 123456u;
+const uint64_t kTestSeconds = 1608729875uLL;
+const uint32_t kTestMicroSeconds = 123456u;
 
 TEST(ClockTest, TimeTestWithMock) {
   ClockMock clock_mock(kTestSeconds, kTestMicroSeconds);
   Clock::SetClockForUnitTest(&clock_mock);
 
   // GetTime
-  {
-    EXPECT_EQ(kTestSeconds, Clock::GetTime());
-  }
+  { EXPECT_EQ(kTestSeconds, Clock::GetTime()); }
 
   // GetTimeOfDay
   {
-    uint64 current_sec;
-    uint32 current_usec;
+    uint64_t current_sec;
+    uint32_t current_usec;
     Clock::GetTimeOfDay(&current_sec, &current_usec);
     EXPECT_EQ(kTestSeconds, current_sec);
     EXPECT_EQ(kTestMicroSeconds, current_usec);
   }
 
-  // GetCurrentTm
+  // GetAbslTime
   // 2020-12-23 13:24:35 (Wed)
   {
-    tm current_tm;
-    Clock::GetCurrentTm(&current_tm);
-    EXPECT_EQ(120, current_tm.tm_year);
-    EXPECT_EQ(11,  current_tm.tm_mon);
-    EXPECT_EQ(23,  current_tm.tm_mday);
-    EXPECT_EQ(13,  current_tm.tm_hour);
-    EXPECT_EQ(24,  current_tm.tm_min);
-    EXPECT_EQ(35,  current_tm.tm_sec);
-    EXPECT_EQ(3,   current_tm.tm_wday);
+    const absl::Time at = Clock::GetAbslTime();
+    const absl::TimeZone &tz = Clock::GetTimeZone();
+    const absl::CivilSecond cs = absl::ToCivilSecond(at, tz);
+
+    EXPECT_EQ(2020, cs.year());
+    EXPECT_EQ(12, cs.month());
+    EXPECT_EQ(23, cs.day());
+    EXPECT_EQ(13, cs.hour());
+    EXPECT_EQ(24, cs.minute());
+    EXPECT_EQ(35, cs.second());
+    EXPECT_EQ(absl::Weekday::wednesday, absl::GetWeekday(cs));
   }
 
-  // GetTmWithoutOffsetSecond
+  // GetAbslTime + offset
   // 2024/02/23 23:11:15 (Fri)
   {
     const int offset_seconds = 100000000;
-    tm offset_tm;
-    Clock::GetTmWithOffsetSecond(&offset_tm, offset_seconds);
-    EXPECT_EQ(124, offset_tm.tm_year);
-    EXPECT_EQ(1,   offset_tm.tm_mon);
-    EXPECT_EQ(23,  offset_tm.tm_mday);
-    EXPECT_EQ(23,  offset_tm.tm_hour);
-    EXPECT_EQ(11,  offset_tm.tm_min);
-    EXPECT_EQ(15,  offset_tm.tm_sec);
-    EXPECT_EQ(5,   offset_tm.tm_wday);
+    const absl::Time at = Clock::GetAbslTime();
+    const absl::TimeZone &tz = Clock::GetTimeZone();
+    const absl::CivilSecond cs = absl::ToCivilSecond(at, tz) + offset_seconds;
+    EXPECT_EQ(2024, cs.year());
+    EXPECT_EQ(2, cs.month());
+    EXPECT_EQ(23, cs.day());
+    EXPECT_EQ(23, cs.hour());
+    EXPECT_EQ(11, cs.minute());
+    EXPECT_EQ(15, cs.second());
+    EXPECT_EQ(absl::Weekday::friday, absl::GetWeekday(cs));
   }
 
   // GetFrequency / GetTicks
   {
-    const uint64 kFrequency = 12345;
-    const uint64 kTicks = 54321;
+    const uint64_t kFrequency = 12345;
+    const uint64_t kTicks = 54321;
     clock_mock.SetFrequency(kFrequency);
     EXPECT_EQ(kFrequency, Clock::GetFrequency());
     clock_mock.SetTicks(kTicks);
@@ -108,8 +111,8 @@ TEST(ClockTest, TimeTestWithMock) {
 }
 
 TEST(ClockTest, TimeTestWithoutMock) {
-  uint64 get_time_of_day_sec, get_time_sec;
-  uint32 get_time_of_day_usec;
+  uint64_t get_time_of_day_sec, get_time_sec;
+  uint32_t get_time_of_day_usec;
 
   Clock::GetTimeOfDay(&get_time_of_day_sec, &get_time_of_day_usec);
   get_time_sec = Clock::GetTime();
@@ -119,6 +122,21 @@ TEST(ClockTest, TimeTestWithoutMock) {
   EXPECT_NEAR(get_time_of_day_sec, get_time_sec, margin)
       << ": This test have possibilities to fail "
       << "when system is busy and slow.";
+}
+
+TEST(ClockTest, TimeZone) {
+  const absl::TimeZone tz = Clock::GetTimeZone();
+  const absl::TimeZone::CivilInfo ci = tz.At(absl::UnixEpoch());
+  const int absl_offset = ci.offset;
+
+  const time_t epoch(24 * 60 * 60);  // 1970-01-02 00:00:00 UTC
+  const std::tm *offset = std::localtime(&epoch);
+  const int tm_offset =
+      (offset->tm_mday - 2) * 24 * 60 * 60  // date offset from Jan 2.
+      + offset->tm_hour * 60 * 60  // hour offset from 00 am.
+      + offset->tm_min * 60;  // minute offset.
+
+  EXPECT_EQ(absl_offset, tm_offset);
 }
 
 }  // namespace

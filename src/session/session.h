@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #ifndef MOZC_SESSION_SESSION_H_
 #define MOZC_SESSION_SESSION_H_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -63,15 +64,15 @@ class ImeContext;
 class Session : public SessionInterface {
  public:
   explicit Session(EngineInterface *engine);
-  virtual ~Session();
+  ~Session() override;
 
-  virtual bool SendKey(mozc::commands::Command *command);
+  bool SendKey(mozc::commands::Command *command) override;
 
   // Check if the input key event will be consumed by the session.
-  virtual bool TestSendKey(mozc::commands::Command *command);
+  bool TestSendKey(mozc::commands::Command *command) override;
 
   // Perform the SEND_COMMAND command defined commands.proto.
-  virtual bool SendCommand(mozc::commands::Command *command);
+  bool SendCommand(mozc::commands::Command *command) override;
 
   // Turn on IME. Do nothing (but the keyevent is consumed) when IME is already
   // turned on.
@@ -91,13 +92,15 @@ class Session : public SessionInterface {
   bool EchoBackAndClearUndoContext(mozc::commands::Command *command);
   bool DoNothing(mozc::commands::Command *command);
 
-  // Tries deleting the focused candidate from the user prediction history. If
+  // Tries deleting the specified candidate from the user prediction history.
+  // The candidate is determined by command.input.command.id, or the current
+  // focused candidate if that ....command.id is not specified. If
   // that candidate, as a key value pair, doesn't exist in the user history,
   // nothing happens. Regardless of the result of internal history deletion,
   // invoking this method has the same effect as ConvertCancel() from the
   // viewpoint of session, meaning that the session state gets back to
   // composition.
-  bool DeleteSelectedCandidateFromHistory(mozc::commands::Command *command);
+  bool DeleteCandidateFromHistory(mozc::commands::Command *command);
 
   // Resets the composer and clear conversion segments.
   // History segments will not be cleared.
@@ -230,6 +233,10 @@ class Session : public SessionInterface {
 
   // Undo if pre-composition is empty. Rewind KANA cycle othrewise.
   bool UndoOrRewind(mozc::commands::Command *command);
+
+  // Stops key toggling in the composer.
+  bool StopKeyToggling(mozc::commands::Command *command);
+
   // Send a command to the composer to append a special string.
   bool SendComposerCommand(
       const mozc::composer::Composer::InternalCommand composer_command,
@@ -237,30 +244,30 @@ class Session : public SessionInterface {
 
   bool ReportBug(mozc::commands::Command *command);
 
-  virtual void SetConfig(mozc::config::Config *config);
+  void SetConfig(mozc::config::Config *config) override;
 
-  virtual void SetRequest(const mozc::commands::Request *request);
+  void SetRequest(const mozc::commands::Request *request) override;
 
-  virtual void SetTable(const mozc::composer::Table *table);
+  void SetTable(const mozc::composer::Table *table) override;
 
   // Set client capability for this session.  Used by unittest.
-  virtual void set_client_capability(
-      const mozc::commands::Capability &capability);
+  void set_client_capability(
+      const mozc::commands::Capability &capability) override;
 
   // Set application information for this session.
-  virtual void set_application_info(
-      const mozc::commands::ApplicationInfo &application_info);
+  void set_application_info(
+      const mozc::commands::ApplicationInfo &application_info) override;
 
   // Get application information
-  virtual const mozc::commands::ApplicationInfo &application_info() const;
+  const mozc::commands::ApplicationInfo &application_info() const override;
 
   // Return the time when this instance was created.
-  virtual uint64 create_session_time() const;
+  uint64_t create_session_time() const override;
 
   // return 0 (default value) if no command is executed in this session.
-  virtual uint64 last_command_time() const;
+  uint64_t last_command_time() const override;
 
-  // TODO(komatsu): delete this funciton.
+  // TODO(komatsu): delete this function.
   // For unittest only
   mozc::composer::Composer *get_internal_composer_only_for_unittest();
 
@@ -314,7 +321,7 @@ class Session : public SessionInterface {
   void CommitCompositionDirectly(commands::Command *command);
   void CommitSourceTextDirectly(commands::Command *command);
   void CommitRawTextDirectly(commands::Command *command);
-  void CommitStringDirectly(const string &key, const string &preedit,
+  void CommitStringDirectly(const std::string &key, const std::string &preedit,
                             commands::Command *command);
   bool CommitInternal(commands::Command *command,
                       bool trigger_zero_query_suggest);

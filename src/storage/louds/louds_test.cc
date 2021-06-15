@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,21 @@
 
 #include "storage/louds/louds.h"
 
+#include <cstdint>
 #include <utility>
 #include <vector>
 
 #include "base/port.h"
-#include "base/string_piece.h"
 #include "testing/base/public/gunit.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace storage {
 namespace louds {
 namespace {
 
-std::vector<uint8> MakeSequence(StringPiece s) {
-  std::vector<uint8> seq;
+std::vector<uint8_t> MakeSequence(absl::string_view s) {
+  std::vector<uint8_t> seq;
   int bit_len = 0;
   for (size_t i = 0; i < s.size(); ++i) {
     if (bit_len % 8 == 0) {
@@ -105,12 +106,10 @@ TEST_P(LoudsTest, Basic) {
   const CacheSizeParam &param = GetParam();
 
   // Test with the trie illustrated in louds.h.
-  const std::vector<uint8> kSeq = MakeSequence("10 110 0 110 0 0");
+  const std::vector<uint8_t> kSeq = MakeSequence("10 110 0 110 0 0");
   Louds louds;
-  louds.Init(kSeq.data(), kSeq.size(),
-             param.bitvec_lb0_cache_size,
-             param.bitvec_lb1_cache_size,
-             param.select0_cache_size,
+  louds.Init(kSeq.data(), kSeq.size(), param.bitvec_lb0_cache_size,
+             param.bitvec_lb1_cache_size, param.select0_cache_size,
              param.select1_cache_size);
 
   // root -> 2 -> 3 -> 4 -> 5
@@ -154,26 +153,17 @@ TEST_P(LoudsTest, Basic) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     GenLoudsTest, LoudsTest,
-    ::testing::Values(CacheSizeParam(0, 0, 0, 0),
-                      CacheSizeParam(0, 0, 0, 1),
-                      CacheSizeParam(0, 0, 1, 0),
-                      CacheSizeParam(0, 0, 1, 1),
-                      CacheSizeParam(0, 1, 0, 0),
-                      CacheSizeParam(0, 1, 0, 1),
-                      CacheSizeParam(0, 1, 1, 0),
-                      CacheSizeParam(0, 1, 1, 1),
-                      CacheSizeParam(1, 0, 0, 0),
-                      CacheSizeParam(1, 0, 0, 1),
-                      CacheSizeParam(1, 0, 1, 0),
-                      CacheSizeParam(1, 0, 1, 1),
-                      CacheSizeParam(1, 1, 0, 0),
-                      CacheSizeParam(1, 1, 0, 1),
-                      CacheSizeParam(1, 1, 1, 0),
-                      CacheSizeParam(1, 1, 1, 1),
-                      CacheSizeParam(2, 2, 2, 2),
-                      CacheSizeParam(8, 8, 8, 8),
+    ::testing::Values(CacheSizeParam(0, 0, 0, 0), CacheSizeParam(0, 0, 0, 1),
+                      CacheSizeParam(0, 0, 1, 0), CacheSizeParam(0, 0, 1, 1),
+                      CacheSizeParam(0, 1, 0, 0), CacheSizeParam(0, 1, 0, 1),
+                      CacheSizeParam(0, 1, 1, 0), CacheSizeParam(0, 1, 1, 1),
+                      CacheSizeParam(1, 0, 0, 0), CacheSizeParam(1, 0, 0, 1),
+                      CacheSizeParam(1, 0, 1, 0), CacheSizeParam(1, 0, 1, 1),
+                      CacheSizeParam(1, 1, 0, 0), CacheSizeParam(1, 1, 0, 1),
+                      CacheSizeParam(1, 1, 1, 0), CacheSizeParam(1, 1, 1, 1),
+                      CacheSizeParam(2, 2, 2, 2), CacheSizeParam(8, 8, 8, 8),
                       CacheSizeParam(1024, 1024, 1024, 1024)));
 
 }  // namespace

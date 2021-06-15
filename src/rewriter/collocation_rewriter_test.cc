@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #include "rewriter/collocation_rewriter.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -39,9 +40,10 @@
 #include "data_manager/testing/mock_data_manager.h"
 #include "dictionary/pos_matcher.h"
 #include "request/conversion_request.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace {
@@ -57,9 +59,9 @@ class CollocationRewriterTest : public ::testing::Test {
     const char *content_key;
     const char *value;
     const char *content_value;
-    const int32 cost;
-    const uint16 lid;
-    const uint16 rid;
+    const int32_t cost;
+    const uint16_t lid;
+    const uint16_t rid;
   };
 
   // Used to generate Segment.
@@ -79,11 +81,12 @@ class CollocationRewriterTest : public ::testing::Test {
   ~CollocationRewriterTest() override = default;
 
   void SetUp() override {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
 
     const mozc::testing::MockDataManager data_manager;
     pos_matcher_.Set(data_manager.GetPOSMatcherData());
-    collocation_rewriter_.reset(new CollocationRewriter(&data_manager));
+    collocation_rewriter_ =
+        absl::make_unique<CollocationRewriter>(&data_manager);
   }
 
   // Makes a segment from SegmentData.
@@ -117,8 +120,8 @@ class CollocationRewriterTest : public ::testing::Test {
   }
 
   // Returns the concatenated string of top candidates.
-  static string GetTopValue(const Segments &segments) {
-    string result;
+  static std::string GetTopValue(const Segments &segments) {
+    std::string result;
     for (size_t i = 0; i < segments.conversion_segments_size(); ++i) {
       const Segment::Candidate &candidate =
           segments.conversion_segment(i).candidate(0);
@@ -143,7 +146,7 @@ TEST_F(CollocationRewriterTest, NekowoKaitai) {
   //         | "飼いたい"
   const char *kNekowo = "ねこを";
   const char *kNeko = "ねこ";
-  const uint16 id = pos_matcher_.GetUnknownId();
+  const uint16_t id = pos_matcher_.GetUnknownId();
   const CandidateData kNekowoCands[] = {
       {kNekowo, kNeko, "ネコを", "ネコを", 0, id, id},
       {kNekowo, kNeko, "猫を", "猫を", 0, id, id},
@@ -180,7 +183,7 @@ TEST_F(CollocationRewriterTest, MagurowoKaitai) {
   //          | "飼いたい"
   const char *kMagurowo = "まぐろを";
   const char *kMaguro = "まぐろ";
-  const uint16 id = pos_matcher_.GetUnknownId();
+  const uint16_t id = pos_matcher_.GetUnknownId();
   const CandidateData kMagurowoCands[] = {
       {kMagurowo, kMaguro, "マグロを", "マグロ", 0, id, id},
       {kMagurowo, kMaguro, "鮪を", "鮪", 0, id, id},
@@ -214,14 +217,14 @@ TEST_F(CollocationRewriterTest, CrossOverAdverbSegment) {
   // "かいたい"  | "買いたい" "解体" "飼いたい"
   const char *kNekowo = "ねこを";
   const char *kNeko = "ねこ";
-  const uint16 id = pos_matcher_.GetUnknownId();
+  const uint16_t id = pos_matcher_.GetUnknownId();
   const CandidateData kNekowoCands[] = {
       {kNekowo, kNeko, "ネコを", "ネコを", 0, id, id},
       {kNekowo, kNeko, "猫を", "猫を", 0, id, id},
   };
 
   const char *kSugoku = "すごく";
-  const uint16 adverb_id = pos_matcher_.GetAdverbId();
+  const uint16_t adverb_id = pos_matcher_.GetAdverbId();
   const CandidateData kSugokuCands[] = {
       {kSugoku, kSugoku, kSugoku, kSugoku, 0, adverb_id, adverb_id},
   };
@@ -257,7 +260,7 @@ TEST_F(CollocationRewriterTest, DoNotCrossOverNonAdverbSegment) {
   // "かいたい"  | "買いたい" "解体" "飼いたい"
   const char *kNekowo = "ねこを";
   const char *kNeko = "ねこ";
-  const uint16 id = pos_matcher_.GetUnknownId();
+  const uint16_t id = pos_matcher_.GetUnknownId();
   const CandidateData kNekowoCands[] = {
       {kNekowo, kNeko, "ネコを", "ネコを", 0, id, id},
       {kNekowo, kNeko, "猫を", "猫を", 0, id, id},
@@ -306,7 +309,7 @@ TEST_F(CollocationRewriterTest, DoNotPromoteHighCostCandidate) {
   //         | "飼いたい" (high cost)
   const char *kNekowo = "ねこを";
   const char *kNeko = "ねこ";
-  const uint16 id = pos_matcher_.GetUnknownId();
+  const uint16_t id = pos_matcher_.GetUnknownId();
   const CandidateData kNekowoCands[] = {
       {kNekowo, kNeko, "ネコを", "ネコを", 0, id, id},
       {kNekowo, kNeko, "猫を", "猫を", 0, id, id},

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,26 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <cstdint>
 #include <map>
 #include <string>
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/port.h"
 #include "data_manager/serialized_dictionary.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(output_token_array, "",
-              "Output token array of noun prefix dictionary");
-DEFINE_string(output_string_array, "",
-              "Output string array of noun prefix dictionary");
+ABSL_FLAG(std::string, output_token_array, "",
+          "Output token array of noun prefix dictionary");
+ABSL_FLAG(std::string, output_string_array, "",
+          "Output string array of noun prefix dictionary");
 
 namespace {
 
 struct NounPrefix {
   const char *key;
   const char *value;
-  int16 rank;
+  int16_t rank;
 } kNounPrefixList[] = {
     {"お", "お", 1},
     {"ご", "ご", 1},
@@ -86,9 +87,9 @@ struct NounPrefix {
 }  // namespace
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, true);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  std::map<string, mozc::SerializedDictionary::TokenList> tokens;
+  std::map<std::string, mozc::SerializedDictionary::TokenList> tokens;
   for (const NounPrefix &entry : kNounPrefixList) {
     std::unique_ptr<mozc::SerializedDictionary::CompilerToken> token(
         new mozc::SerializedDictionary::CompilerToken);
@@ -98,8 +99,8 @@ int main(int argc, char **argv) {
     token->cost = entry.rank;
     tokens[entry.key].emplace_back(std::move(token));
   }
-  mozc::SerializedDictionary::CompileToFiles(tokens,
-                                             FLAGS_output_token_array,
-                                             FLAGS_output_string_array);
+  mozc::SerializedDictionary::CompileToFiles(
+      tokens, absl::GetFlag(FLAGS_output_token_array),
+      absl::GetFlag(FLAGS_output_string_array));
   return 0;
 }

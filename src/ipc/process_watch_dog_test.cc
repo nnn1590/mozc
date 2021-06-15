@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 
 #include "ipc/process_watch_dog.h"
 
+#include <cstdint>
+
 #include "base/clock.h"
 #include "base/logging.h"
 #include "base/port.h"
@@ -37,15 +39,15 @@
 
 namespace mozc {
 namespace {
-uint64 g_current_time = 0;
+uint64_t g_current_time = 0;
 }
 
 class TestProcessWatchDog : public ProcessWatchDog {
  public:
-  void Signaled(ProcessWatchDog::SignalType type) {
+  void Signaled(ProcessWatchDog::SignalType type) override {
     EXPECT_EQ(type, ProcessWatchDog::PROCESS_SIGNALED);
-    const uint64 diff = Clock::GetTime() - g_current_time;
-    EXPECT_EQ(2, diff);   // allow 1-sec error
+    const uint64_t diff = Clock::GetTime() - g_current_time;
+    EXPECT_EQ(2, diff);  // allow 1-sec error
   }
 };
 
@@ -61,10 +63,11 @@ TEST(ProcessWatchDog, ProcessWatchDogTest) {
     exit(0);
   } else if (pid > 0) {
     TestProcessWatchDog dog;
+    dog.StartWatchDog();
     dog.SetID(static_cast<ProcessWatchDog::ProcessID>(pid),
-              ProcessWatchDog::UnknownThreadID,
-              -1);
+              ProcessWatchDog::UnknownThreadID, -1);
     Util::Sleep(4000);
+    dog.StopWatchDog();
   } else {
     LOG(ERROR) << "cannot execute fork";
   }

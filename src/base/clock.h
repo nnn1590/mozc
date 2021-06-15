@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,31 @@
 #ifndef MOZC_BASE_CLOCK_H_
 #define MOZC_BASE_CLOCK_H_
 
+#include <cstdint>
 #include <ctime>
 
 #include "base/port.h"
+#include "absl/time/time.h"
 
 namespace mozc {
 
 class ClockInterface {
  public:
-  virtual ~ClockInterface() {}
+  virtual ~ClockInterface() = default;
 
-  virtual void GetTimeOfDay(uint64 *sec, uint32 *usec) = 0;
-  virtual uint64 GetTime() = 0;
-  virtual bool GetTmWithOffsetSecond(time_t offset_sec, tm *output) = 0;
+  virtual void GetTimeOfDay(uint64_t *sec, uint32_t *usec) = 0;
+  virtual uint64_t GetTime() = 0;
+  virtual absl::Time GetAbslTime() = 0;
 
   // High accuracy clock.
-  virtual uint64 GetFrequency() = 0;
-  virtual uint64 GetTicks() = 0;
+  virtual uint64_t GetFrequency() = 0;
+  virtual uint64_t GetTicks() = 0;
 
-#ifdef OS_NACL
-  virtual void SetTimezoneOffset(int32 timezone_offset_sec) = 0;
-#endif  // OS_NACL
+  virtual const absl::TimeZone& GetTimeZone() = 0;
+  virtual void SetTimeZoneOffset(int32_t timezone_offset_sec) = 0;
 
  protected:
-  ClockInterface() {}
+  ClockInterface() = default;
 };
 
 class Clock {
@@ -61,36 +62,31 @@ class Clock {
   // Gets the current time using gettimeofday-like functions.
   // sec: number of seconds from epoch
   // usec: micro-second passed: [0,1000000)
-  static void GetTimeOfDay(uint64 *sec, uint32 *usec);
+  static void GetTimeOfDay(uint64_t *sec, uint32_t *usec);
 
   // Gets the current time using time-like function
   // For Windows, _time64() is used.
   // For Linux/Mac, time() is used.
-  static uint64 GetTime();
+  static uint64_t GetTime();
 
-  // Gets local time, which is offset_sec seconds after now. Returns true if
-  // succeeded.
-  static bool GetTmWithOffsetSecond(tm *time_with_offset, int offset_sec);
-
-  // Gets the current local time to current_time.  Returns true if succeeded.
-  static bool GetCurrentTm(tm *current_time) {
-    return GetTmWithOffsetSecond(current_time, 0);
-  }
+  // Returns the current time in absl::Time.
+  static absl::Time GetAbslTime();
 
   // Gets the system frequency to calculate the time from ticks.
-  static uint64 GetFrequency();
+  static uint64_t GetFrequency();
 
   // Gets the current ticks. It may return incorrect value on Virtual Machines.
   // If you'd like to get a value in secs, it is necessary to divide a result by
   // GetFrequency().
-  static uint64 GetTicks();
+  static uint64_t GetTicks();
 
-#ifdef OS_NACL
+  // Returns the timezone. LocalTimeZone is usually returned.
+  static const absl::TimeZone& GetTimeZone();
+
   // Sets the time difference between local time and UTC time in seconds.
   // We use this function in NaCl Mozc because we can't know the local timezone
   // in NaCl environment.
-  static void SetTimezoneOffset(int32 timezone_offset_sec);
-#endif  // OS_NACL
+  static void SetTimeZoneOffset(int32_t timezone_offset_sec);
 
   // TESTONLY: The behavior of global system clock can be overridden by using
   // this method.  Set to nullptr to restore the default clock.  This method

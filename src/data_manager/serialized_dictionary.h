@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_DATA_MANAGER_SERIALIZED_DICTIONARY_H_
 #define MOZC_DATA_MANAGER_SERIALIZED_DICTIONARY_H_
 
+#include <cstdint>
 #include <istream>
 #include <iterator>
 #include <map>
@@ -38,7 +39,7 @@
 
 #include "base/port.h"
 #include "base/serialized_string_array.h"
-#include "base/string_piece.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 
@@ -108,85 +109,95 @@ namespace mozc {
 class SerializedDictionary {
  public:
   struct CompilerToken {
-    string value;
-    string description;
-    string additional_description;
-    uint16 lid;
-    uint16 rid;
-    int16 cost;
+    std::string value;
+    std::string description;
+    std::string additional_description;
+    uint16_t lid;
+    uint16_t rid;
+    int16_t cost;
   };
 
   using TokenList = std::vector<std::unique_ptr<CompilerToken>>;
 
-  static const size_t kTokenByteLength = 24;
+  static constexpr size_t kTokenByteLength = 24;
 
   class iterator : public std::iterator<std::random_access_iterator_tag,
-                                        StringPiece> {
+                                        absl::string_view> {
    public:
     iterator() : token_ptr_(nullptr), string_array_(nullptr) {}
     iterator(const char *token_ptr, const SerializedStringArray *string_array)
         : token_ptr_(token_ptr), string_array_(string_array) {}
     iterator(const iterator &x) = default;
 
-    uint32 key_index() { return *reinterpret_cast<const uint32 *>(token_ptr_); }
-    uint32 key_index() const {
-      return *reinterpret_cast<const uint32 *>(token_ptr_);
+    uint32_t key_index() {
+      return *reinterpret_cast<const uint32_t *>(token_ptr_);
     }
-    StringPiece key() { return (*string_array_)[key_index()]; }
-    StringPiece key() const { return (*string_array_)[key_index()]; }
+    uint32_t key_index() const {
+      return *reinterpret_cast<const uint32_t *>(token_ptr_);
+    }
+    absl::string_view key() { return (*string_array_)[key_index()]; }
+    absl::string_view key() const { return (*string_array_)[key_index()]; }
 
-    uint32 value_index() {
-      return *reinterpret_cast<const uint32 *>(token_ptr_ + 4);
+    uint32_t value_index() {
+      return *reinterpret_cast<const uint32_t *>(token_ptr_ + 4);
     }
-    uint32 value_index() const {
-      return *reinterpret_cast<const uint32 *>(token_ptr_ + 4);
+    uint32_t value_index() const {
+      return *reinterpret_cast<const uint32_t *>(token_ptr_ + 4);
     }
-    StringPiece value() { return (*string_array_)[value_index()]; }
-    StringPiece value() const { return (*string_array_)[value_index()]; }
+    absl::string_view value() { return (*string_array_)[value_index()]; }
+    absl::string_view value() const { return (*string_array_)[value_index()]; }
 
-    uint32 description_index() {
-      return *reinterpret_cast<const uint32 *>(token_ptr_ + 8);
+    uint32_t description_index() {
+      return *reinterpret_cast<const uint32_t *>(token_ptr_ + 8);
     }
-    uint32 description_index() const {
-      return *reinterpret_cast<const uint32 *>(token_ptr_ + 8);
+    uint32_t description_index() const {
+      return *reinterpret_cast<const uint32_t *>(token_ptr_ + 8);
     }
 
-    StringPiece description() { return (*string_array_)[description_index()]; }
-    StringPiece description() const {
+    absl::string_view description() {
+      return (*string_array_)[description_index()];
+    }
+    absl::string_view description() const {
       return (*string_array_)[description_index()];
     }
 
-    uint32 additional_description_index() {
-      return *reinterpret_cast<const uint32 *>(token_ptr_ + 12);
+    uint32_t additional_description_index() {
+      return *reinterpret_cast<const uint32_t *>(token_ptr_ + 12);
     }
-    uint32 additional_description_index() const {
-      return *reinterpret_cast<const uint32 *>(token_ptr_ + 12);
+    uint32_t additional_description_index() const {
+      return *reinterpret_cast<const uint32_t *>(token_ptr_ + 12);
     }
-    StringPiece additional_description() {
+    absl::string_view additional_description() {
       return (*string_array_)[additional_description_index()];
     }
 
-    StringPiece additional_description() const {
+    absl::string_view additional_description() const {
       return (*string_array_)[additional_description_index()];
     }
 
-    uint16 lid() { return *reinterpret_cast<const uint16 *>(token_ptr_ + 16); }
-    uint16 lid() const {
-      return *reinterpret_cast<const uint16 *>(token_ptr_ + 16);
+    uint16_t lid() {
+      return *reinterpret_cast<const uint16_t *>(token_ptr_ + 16);
+    }
+    uint16_t lid() const {
+      return *reinterpret_cast<const uint16_t *>(token_ptr_ + 16);
     }
 
-    uint16 rid() { return *reinterpret_cast<const uint16 *>(token_ptr_ + 18); }
-    uint16 rid() const {
-      return *reinterpret_cast<const uint16 *>(token_ptr_ + 18);
+    uint16_t rid() {
+      return *reinterpret_cast<const uint16_t *>(token_ptr_ + 18);
+    }
+    uint16_t rid() const {
+      return *reinterpret_cast<const uint16_t *>(token_ptr_ + 18);
     }
 
-    int16 cost() { return *reinterpret_cast<const uint16 *>(token_ptr_ + 20); }
-    int16 cost() const {
-      return *reinterpret_cast<const uint16 *>(token_ptr_ + 20);
+    int16_t cost() {
+      return *reinterpret_cast<const uint16_t *>(token_ptr_ + 20);
+    }
+    int16_t cost() const {
+      return *reinterpret_cast<const uint16_t *>(token_ptr_ + 20);
     }
 
-    StringPiece operator*() { return key(); }
-    StringPiece operator*() const { return key(); }
+    absl::string_view operator*() { return key(); }
+    absl::string_view operator*() const { return key(); }
 
     void swap(iterator &x) {
       using std::swap;
@@ -285,39 +296,37 @@ class SerializedDictionary {
 
   using IterRange = std::pair<const_iterator, const_iterator>;
 
-  // Creates serialized data into buffers.  The first and second StringPieces of
+  // Creates serialized data into buffers.  The first and second string views of
   // returned value points to memory block for token array and string array,
   // respectively.  The input stream should supply TSV file of Mozc's dctionary
   // format; see, e.g., data/symbol/symbol.tsv.
-  static std::pair<StringPiece, StringPiece> Compile(
-      std::istream *input,
-      std::unique_ptr<uint32[]> *output_token_array_buf,
-      std::unique_ptr<uint32[]> *output_string_array_buf);
-  static std::pair<StringPiece, StringPiece> Compile(
-      const std::map<string, TokenList> &dic,
-      std::unique_ptr<uint32[]> *output_token_array_buf,
-      std::unique_ptr<uint32[]> *output_string_array_buf);
+  static std::pair<absl::string_view, absl::string_view> Compile(
+      std::istream *input, std::unique_ptr<uint32_t[]> *output_token_array_buf,
+      std::unique_ptr<uint32_t[]> *output_string_array_buf);
+  static std::pair<absl::string_view, absl::string_view> Compile(
+      const std::map<std::string, TokenList> &dic,
+      std::unique_ptr<uint32_t[]> *output_token_array_buf,
+      std::unique_ptr<uint32_t[]> *output_string_array_buf);
 
   // Creates serialized data and writes them to files.
-  static void CompileToFiles(const string &input,
-                             const string &output_token_array,
-                             const string &output_string_array);
-  static void CompileToFiles(const std::map<string, TokenList> &dic,
-                             const string &output_token_array,
-                             const string &output_string_array);
+  static void CompileToFiles(const std::string &input,
+                             const std::string &output_token_array,
+                             const std::string &output_string_array);
+  static void CompileToFiles(const std::map<std::string, TokenList> &dic,
+                             const std::string &output_token_array,
+                             const std::string &output_string_array);
 
   // Validates the serialized data.
-  static bool VerifyData(StringPiece token_array_data,
-                         StringPiece string_array_data);
+  static bool VerifyData(absl::string_view token_array_data,
+                         absl::string_view string_array_data);
 
   // Both |token_array| and |string_array_data| must be aligned at 4-byte
   // boundary.
-  SerializedDictionary(StringPiece token_array, StringPiece string_array_data);
+  SerializedDictionary(absl::string_view token_array,
+                       absl::string_view string_array_data);
   ~SerializedDictionary();
 
-  std::size_t size() const {
-    return token_array_.size() / kTokenByteLength;
-  }
+  std::size_t size() const { return token_array_.size() / kTokenByteLength; }
 
   iterator begin() { return iterator(token_array_.data(), &string_array_); }
   const_iterator begin() const {
@@ -333,10 +342,10 @@ class SerializedDictionary {
 
   // Returns the range of iterators whose keys match the given key.  The range
   // is sorted in ascending order of cost.
-  IterRange equal_range(StringPiece key) const;
+  IterRange equal_range(absl::string_view key) const;
 
  private:
-  StringPiece token_array_;
+  absl::string_view token_array_;
   SerializedStringArray string_array_;
 };
 

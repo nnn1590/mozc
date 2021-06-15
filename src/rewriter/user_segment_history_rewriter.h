@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_REWRITER_USER_SEGMENT_HISTORY_REWRITER_H_
 #define MOZC_REWRITER_USER_SEGMENT_HISTORY_REWRITER_H_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -47,56 +48,46 @@ class LRUStorage;
 class UserSegmentHistoryRewriter : public RewriterInterface {
  public:
   struct ScoreType {
-    uint32 last_access_time;
-    uint32 score;
+    uint32_t last_access_time;
+    uint32_t score;
     const Segment::Candidate *candidate;
   };
 
   UserSegmentHistoryRewriter(const dictionary::POSMatcher *pos_matcher,
                              const dictionary::PosGroup *pos_group);
-  virtual ~UserSegmentHistoryRewriter();
+  ~UserSegmentHistoryRewriter() override;
 
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
 
-  virtual void Finish(const ConversionRequest &request, Segments *segments);
-
-  virtual bool Reload();
-
-  virtual void Clear();
+  void Finish(const ConversionRequest &request, Segments *segments) override;
+  bool Sync() override;
+  bool Reload() override;
+  void Clear() override;
 
  private:
   bool IsAvailable(const ConversionRequest &request,
                    const Segments &segments) const;
-  bool GetScore(const Segments &segments,
-                size_t segment_index,
-                int candidate_index,
-                uint32 *score,
-                uint32 *last_access_time) const;
+  bool GetScore(const Segments &segments, size_t segment_index,
+                int candidate_index, uint32_t *score,
+                uint32_t *last_access_time) const;
   bool Replaceable(const Segment::Candidate &lhs,
                    const Segment::Candidate &rhs) const;
-  void RememberFirstCandidate(const Segments &segments,
-                              size_t segment_index);
+  void RememberFirstCandidate(const Segments &segments, size_t segment_index);
   void RememberNumberPreference(const Segment &segment);
   bool RewriteNumber(Segment *segment) const;
-  bool ShouldRewrite(const Segment &segment,
-                     size_t *max_candidates_size) const;
+  bool ShouldRewrite(const Segment &segment, size_t *max_candidates_size) const;
   void InsertTriggerKey(const Segment &segment);
   bool IsPunctuation(const Segment &seg,
                      const Segment::Candidate &candidate) const;
-  bool GetFeatureLN(const Segments &segments,
-                    size_t i,
-                    const string &base_key,
-                    const string &base_value,
-                    string *value) const;
-  bool GetFeatureRN(const Segments &segments,
-                    size_t i,
-                    const string &base_key,
-                    const string &base_value,
-                    string *value) const;
+  bool GetFeatureLN(const Segments &segments, size_t i,
+                    const std::string &base_key, const std::string &base_value,
+                    std::string *value) const;
+  bool GetFeatureRN(const Segments &segments, size_t i,
+                    const std::string &base_key, const std::string &base_value,
+                    std::string *value) const;
   bool SortCandidates(const std::vector<ScoreType> &sorted_scores,
                       Segment *segment) const;
-
 
   std::unique_ptr<storage::LRUStorage> storage_;
   const dictionary::POSMatcher *pos_matcher_;

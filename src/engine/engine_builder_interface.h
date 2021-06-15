@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,24 @@
 #define MOZC_ENGINE_ENGINE_BUILDER_INTERFACE_H_
 
 #include <memory>
-#include <string>
 
-#include "base/port.h"
-#include "base/string_piece.h"
 #include "engine/engine_interface.h"
 #include "protocol/engine_builder.pb.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 
 // Defines interface to build Engine instance in asynchronous way.
 class EngineBuilderInterface {
  public:
+  EngineBuilderInterface(const EngineBuilderInterface &) = delete;
+  EngineBuilderInterface &operator=(const EngineBuilderInterface &) = delete;
+
   virtual ~EngineBuilderInterface() = default;
 
   // Accepts data load request and sets |response->status()| to one of the
   // following values:
-  //   * ACCEPTED: Request is successfuly accepted.
+  //   * ACCEPTED: Request is successfully accepted.
   //   * ALREADY_RUNNING: The previous request is still being processed.
   virtual void PrepareAsync(const EngineReloadRequest &request,
                             EngineReloadResponse *response) = 0;
@@ -67,9 +68,6 @@ class EngineBuilderInterface {
 
  protected:
   EngineBuilderInterface() = default;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(EngineBuilderInterface);
 };
 
 }  // namespace mozc

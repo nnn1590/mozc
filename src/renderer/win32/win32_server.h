@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -53,8 +53,7 @@ class WindowManager;
 // This class also implements RendererInterface to receive a handler
 // to callback mouse events.
 // Actual window management is delegated to WindowManager class.
-class Win32Server : public RendererServer,
-                    public RendererInterface {
+class Win32Server : public RendererServer, public RendererInterface {
  public:
   Win32Server();
   virtual ~Win32Server();
@@ -65,11 +64,11 @@ class Win32Server : public RendererServer,
   virtual bool ExecCommand(const commands::RendererCommand &command);
   virtual void SetSendCommandInterface(
       client::SendCommandInterface *send_command_interface);
-  virtual bool AsyncExecCommand(string *proto_message);
+  virtual bool AsyncExecCommand(std::string *proto_message);
   virtual int StartMessageLoop();
 
  private:
-  string message_;
+  std::string message_;
   Mutex mutex_;
   HANDLE event_;
   std::unique_ptr<WindowManager> window_manager_;

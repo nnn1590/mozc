@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_DICTIONARY_USER_POS_INTERFACE_H_
 #define MOZC_DICTIONARY_USER_POS_INTERFACE_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -45,7 +46,7 @@ class POSListProviderInterface {
   virtual ~POSListProviderInterface() = default;
 
   // Sets posssible list of POS which Mozc can handle.
-  virtual void GetPOSList(std::vector<string> *pos_list) const = 0;
+  virtual void GetPOSList(std::vector<std::string> *pos_list) const = 0;
 
  protected:
   POSListProviderInterface() = default;
@@ -58,28 +59,32 @@ class POSListProviderInterface {
 class UserPOSInterface : public POSListProviderInterface {
  public:
   struct Token {
-    string key;
-    string value;
-    uint16 id;
-    int16  cost;
-    string comment;  // This field comes from user dictionary.
+    std::string key;
+    std::string value;
+    uint16_t id;
+    int16_t cost;
+    std::string comment;  // This field comes from user dictionary.
   };
 
-  virtual ~UserPOSInterface() = default;
+  ~UserPOSInterface() override = default;
 
   // Returns true if the given string is one of the POSes Mozc can handle.
-  virtual bool IsValidPOS(const string &pos) const = 0;
+  virtual bool IsValidPOS(const std::string &pos) const = 0;
 
   // Returns iid from Mozc POS. If the pos has inflection, this method only
   // returns the ids of base form.
-  virtual bool GetPOSIDs(const string &pos, uint16 *id) const = 0;
+  virtual bool GetPOSIDs(const std::string &pos, uint16_t *id) const = 0;
 
-  // Converts the given tuple (key, value, pos) to Token.  If the pos has
-  // inflection, this function expands possible inflections automatically.
-  virtual bool GetTokens(const string &key,
-                         const string &value,
-                         const string &pos,
+  // Converts the given tuple (key, value, pos, locale) to Token.  If the pos
+  // has inflection, this function expands possible inflections automatically.
+  virtual bool GetTokens(const std::string &key, const std::string &value,
+                         const std::string &pos, const std::string &locale,
                          std::vector<Token> *tokens) const = 0;
+
+  bool GetTokens(const std::string &key, const std::string &value,
+                 const std::string &pos, std::vector<Token> *tokens) const {
+    return GetTokens(key, value, pos, "", tokens);
+  }
 
  protected:
   UserPOSInterface() = default;

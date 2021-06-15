@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,14 @@
 #include "base/system_util.h"
 #include "converter/segments.h"
 #include "request/conversion_request.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace mozc {
 namespace {
 
-void AddSegment(const string &key, const string &value,
+void AddSegment(const std::string &key, const std::string &value,
                 Segments *segments) {
   segments->Clear();
   Segment *seg = segments->push_back_segment();
@@ -61,12 +61,9 @@ bool HasFortune(const Segments &segments) {
     const Segment::Candidate &candidate = segments.segment(0).candidate(i);
     if ("今日の運勢" == candidate.description) {
       // has valid value?
-      if ("大吉" == candidate.value ||
-          "吉" == candidate.value ||
-          "中吉" == candidate.value ||
-          "小吉" == candidate.value ||
-          "末吉" == candidate.value ||
-          "凶" == candidate.value) {
+      if ("大吉" == candidate.value || "吉" == candidate.value ||
+          "中吉" == candidate.value || "小吉" == candidate.value ||
+          "末吉" == candidate.value || "凶" == candidate.value) {
         return true;
       }
     }
@@ -77,7 +74,7 @@ bool HasFortune(const Segments &segments) {
 class FortuneRewriterTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
   }
 };
 

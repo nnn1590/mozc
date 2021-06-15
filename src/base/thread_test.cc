@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,19 +38,15 @@ namespace {
 class TestThread : public Thread {
  public:
   explicit TestThread(int time) : time_(time), invoked_(false) {}
-  virtual ~TestThread() {}
+  ~TestThread() override {}
 
-  virtual void Run() {
+  void Run() override {
     invoked_ = true;
     Util::Sleep(time_);
   }
 
-  bool invoked() const {
-    return invoked_;
-  }
-  void clear_invoked() {
-    invoked_ = false;
-  }
+  bool invoked() const { return invoked_; }
+  void clear_invoked() { invoked_ = false; }
 
  private:
   int time_;

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,10 @@
 #ifndef MOZC_DICTIONARY_USER_DICTIONARY_UTIL_H_
 #define MOZC_DICTIONARY_USER_DICTIONARY_UTIL_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
+
 #include "base/port.h"
 #include "protocol/user_dictionary_storage.pb.h"
 
@@ -51,22 +53,21 @@ class UserDictionaryUtil {
 
   // Returns true if all characters in the given string is a legitimate
   // character for reading.
-  static bool IsValidReading(const string &reading);
+  static bool IsValidReading(const std::string &reading);
 
   // Performs varirous kinds of character normalization such as
   // katakana-> hiragana and full-width ascii -> half width
   // ascii. Identity of reading of a word should be defined by the
   // output of this function.
-  static void NormalizeReading(const string &input, string *output);
+  static void NormalizeReading(const std::string &input, std::string *output);
 
   // Returns true if all fields of the given data is properly set and
   // have a legitimate value. It checks for an empty string, an
   // invalid character and so on. If the function returns false, we
   // shouldn't accept the data being passed into the dictionary.
   // TODO(hidehikoo): Replace this method by the following ValidateEntry.
-  static bool IsValidEntry(
-      const UserPOSInterface &user_pos,
-      const user_dictionary::UserDictionary::Entry &entry);
+  static bool IsValidEntry(const UserPOSInterface &user_pos,
+                           const user_dictionary::UserDictionary::Entry &entry);
 
   // Returns the error status of the validity for the given entry.
   // The validation process is as follows:
@@ -94,12 +95,12 @@ class UserDictionaryUtil {
   // Helper function for SanitizeEntry
   // "max_size" is the maximum allowed size of str. If str size exceeds
   // "max_size", remaining part is truncated by this function.
-  static bool Sanitize(string *str, size_t max_size);
+  static bool Sanitize(std::string *str, size_t max_size);
 
   // Returns the error status of the validity for the given dictionary name.
   static user_dictionary::UserDictionaryCommandStatus::Status
   ValidateDictionaryName(const user_dictionary::UserDictionaryStorage &storage,
-                         const string &dictionary_name);
+                         const std::string &dictionary_name);
 
   // Returns true if the given storage hits the limit for the number of
   // dictionaries.
@@ -111,52 +112,49 @@ class UserDictionaryUtil {
   static bool IsDictionaryFull(
       const user_dictionary::UserDictionary &dictionary);
 
-  // Returns UserDictionary with the given id, or NULL if not found.
+  // Returns UserDictionary with the given id, or nullptr if not found.
   static const user_dictionary::UserDictionary *GetUserDictionaryById(
       const user_dictionary::UserDictionaryStorage &storage,
-      uint64 dictionary_id);
+      uint64_t dictionary_id);
   static user_dictionary::UserDictionary *GetMutableUserDictionaryById(
-      user_dictionary::UserDictionaryStorage *storage,
-      uint64 dictionary_id);
+      user_dictionary::UserDictionaryStorage *storage, uint64_t dictionary_id);
 
   // Returns the index of the dictionary with the given dictionary_id
   // in the storage, or -1 if not found.
   static int GetUserDictionaryIndexById(
       const user_dictionary::UserDictionaryStorage &storage,
-      uint64 dictionary_id);
+      uint64_t dictionary_id);
 
   // Returns the file name of UserDictionary.
-  static string GetUserDictionaryFileName();
+  static std::string GetUserDictionaryFileName();
 
-  // Returns the string representation of PosType, or NULL if the given
+  // Returns the string representation of PosType, or nullptr if the given
   // pos is invalid.
   // For historicall reason, the pos was represented in Japanese characters.
-  static const char* GetStringPosType(
+  static const char *GetStringPosType(
       user_dictionary::UserDictionary::PosType pos_type);
 
-  // Returns the string representation of PosType, or NULL if the given
+  // Returns the string representation of PosType, or nullptr if the given
   // pos is invalid.
   static user_dictionary::UserDictionary::PosType ToPosType(
       const char *string_pos_type);
 
   // Generates a new dictionary id, i.e. id which is not in the storage.
-  static uint64 CreateNewDictionaryId(
+  static uint64_t CreateNewDictionaryId(
       const user_dictionary::UserDictionaryStorage &storage);
 
   // Creates dictionary with the given name.
   static user_dictionary::UserDictionaryCommandStatus::Status CreateDictionary(
       user_dictionary::UserDictionaryStorage *storage,
-      const string &dictionary_name,
-      uint64 *new_dictionary_id);
+      const std::string &dictionary_name, uint64_t *new_dictionary_id);
 
   // Deletes dictionary specified by the given dictionary_id.
-  // If the deleted_dictionary is not NULL, the pointer to the
+  // If the deleted_dictionary is not nullptr, the pointer to the
   // delete dictionary is stored into it. In other words,
   // caller has responsibility to actual deletion of the instance.
   // Returns true if succeeded, otherwise false.
   static bool DeleteDictionary(
-      user_dictionary::UserDictionaryStorage *storage,
-      uint64 dictionary_id,
+      user_dictionary::UserDictionaryStorage *storage, uint64_t dictionary_id,
       int *original_index,
       user_dictionary::UserDictionary **deleted_dictionary);
 

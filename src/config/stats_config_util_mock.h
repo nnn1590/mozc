@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,13 +38,11 @@ namespace config {
 class StatsConfigUtilMock : public StatsConfigUtilInterface {
  public:
   StatsConfigUtilMock() : is_enabled_(true) {}
-  virtual ~StatsConfigUtilMock() {}
+  ~StatsConfigUtilMock() override {}
 
-  virtual bool IsEnabled() {
-    return is_enabled_;
-  }
+  bool IsEnabled() override { return is_enabled_; }
 
-  virtual bool SetEnabled(bool val) {
+  bool SetEnabled(bool val) override {
     is_enabled_ = val;
     return true;
   }
@@ -55,6 +53,5 @@ class StatsConfigUtilMock : public StatsConfigUtilInterface {
 
 }  // namespace config
 }  // namespace mozc
-
 
 #endif  // MOZC_CONFIG_STATS_CONFIG_UTIL_MOCK_H_

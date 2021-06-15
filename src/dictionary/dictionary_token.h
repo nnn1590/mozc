@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_DICTIONARY_DICTIONARY_TOKEN_H_
 #define MOZC_DICTIONARY_DICTIONARY_TOKEN_H_
 
+#include <cstdint>
 #include <string>
 
 #include "base/port.h"
@@ -38,7 +39,7 @@ namespace mozc {
 namespace dictionary {
 
 struct Token {
-  typedef uint8 AttributesBitfield;
+  typedef uint8_t AttributesBitfield;
 
   enum Attribute {
     NONE = 0,
@@ -51,19 +52,20 @@ struct Token {
 
     // The following attribute is not stored in the system dictionary but is
     // added by dictionary modules when looking up from user dictionary.
+    SUFFIX_DICTIONARY = 1 << 6,
     USER_DICTIONARY = 1 << 7,
   };
 
   Token() : cost(0), lid(0), rid(0), attributes(NONE) {}
-  Token(const string &k, const string &v, int c, int l, int r,
-        AttributesBitfield a) : key(k), value(v), cost(c), lid(l), rid(r),
-                                attributes(a) {}
+  Token(const std::string &k, const std::string &v, int c, int l, int r,
+        AttributesBitfield a)
+      : key(k), value(v), cost(c), lid(l), rid(r), attributes(a) {}
 
-  string key;
-  string value;
-  int    cost;
-  int    lid;
-  int    rid;
+  std::string key;
+  std::string value;
+  int cost;
+  int lid;
+  int rid;
   AttributesBitfield attributes;
 };
 

@@ -1,4 +1,4 @@
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -57,28 +57,22 @@
             'mac_util.mm',
           ],
         }],
+        ['target_platform=="iOS" and _toolset=="target"', {
+          'sources!': [
+            'mac_process.mm',
+            'process.cc',
+          ],
+          'link_settings': {
+            'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
+            ],
+          },
+        }],
         ['OS=="win"', {
           'sources': [
             'win_api_test_helper.cc',
             'win_sandbox.cc',
           ],
-        }],
-        ['target_platform=="Android"', {
-          'sources!': [
-            'process.cc',
-          ],
-        }],
-        ['target_platform=="NaCl" and _toolset=="target"', {
-          'sources!': [
-            'process.cc',
-          ],
-          # TODO(hsumita): Move this link settings to more suitable position.
-          'link_settings': {
-            'libraries': [
-              '-lppapi',
-              '-lppapi_cpp',
-            ],
-          },
         }],
       ],
     },
@@ -101,6 +95,7 @@
       'sources': [
         '<(gen_out_dir)/character_set.inc',
         '<(gen_out_dir)/version_def.h',
+        'environ.cc',
         'file_stream.cc',
         'file_util.cc',
         'init_mozc.cc',
@@ -123,7 +118,8 @@
         'hash',
         'mutex',
         'singleton',
-        'string_piece',
+        'absl.gyp:absl_strings',
+        'absl.gyp:absl_time',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -151,16 +147,6 @@
             'MOZC_DOCUMENT_DIRECTORY="<(document_dir)"',
           ],
         }],
-        ['target_platform=="Android" and _toolset=="target"', {
-          'sources': [
-            'android_util.cc',
-          ],
-        }],
-        ['target_platform=="NaCl" and _toolset=="target"', {
-          'sources': [
-            'pepper_file_util.cc',
-          ],
-        }],
       ],
     },
     {
@@ -177,14 +163,6 @@
       'toolsets': ['host', 'target'],
       'sources': [
         'scoped_handle.cc',
-      ],
-    },
-    {
-      'target_name': 'string_piece',
-      'type': 'static_library',
-      'toolsets': ['host', 'target'],
-      'sources': [
-        'string_piece.cc',
       ],
     },
     {
@@ -210,11 +188,8 @@
       'target_name': 'flags',
       'type': 'static_library',
       'toolsets': ['host', 'target'],
-      'sources': [
-        'flags.cc',
-      ],
       'dependencies': [
-        'singleton',
+        'absl.gyp:absl_flags',
       ],
     },
     {
@@ -226,6 +201,7 @@
       ],
       'dependencies': [
         'singleton',
+        'absl.gyp:absl_time',
       ],
     },
     {
@@ -236,7 +212,7 @@
         'hash.cc',
       ],
       'dependencies': [
-        'string_piece',
+        'absl.gyp:absl_strings',
       ],
     },
     {
@@ -248,11 +224,8 @@
           'action_name': 'gen_character_set',
           'variables': {
             'input_files': [
-              '../data/unicode/CP932.TXT',
               '../data/unicode/JIS0201.TXT',
               '../data/unicode/JIS0208.TXT',
-              '../data/unicode/JIS0212.TXT',
-              '../data/unicode/jisx0213-2004-std.txt',
             ],
           },
           'inputs': [
@@ -263,12 +236,9 @@
             '<(gen_out_dir)/character_set.inc',
           ],
           'action': [
-            'python', 'gen_character_set.py',
-            '--cp932file=../data/unicode/CP932.TXT',
+            '<(python)', 'gen_character_set.py',
             '--jisx0201file=../data/unicode/JIS0201.TXT',
             '--jisx0208file=../data/unicode/JIS0208.TXT',
-            '--jisx0212file=../data/unicode/JIS0212.TXT',
-            '--jisx0213file=../data/unicode/jisx0213-2004-std.txt',
             '--output=<(gen_out_dir)/character_set.inc'
           ],
         },
@@ -276,10 +246,10 @@
     },
     {
       'target_name': 'codegen_bytearray_stream',
-      'type': 'none',
+      'type': 'static_library',
       'toolsets': ['host'],
       'sources': [
-        'codegen_bytearray_stream.h',  # this is header only library.
+        'codegen_bytearray_stream.cc',
       ],
       'dependencies': [
         'base_core#host',
@@ -339,7 +309,7 @@
             '<(gen_out_dir)/version_def.h',
           ],
           'action': [
-            'python', '../build_tools/replace_version.py',
+            '<(python)', '../build_tools/replace_version.py',
             '--version_file', '../mozc_version.txt',
             '--input', 'version_def_template.h',
             '--output', '<(gen_out_dir)/version_def.h',
@@ -374,8 +344,11 @@
             '../data/keymap/ms-ime.tsv',
             '../data/preedit/12keys-halfwidthascii.tsv',
             '../data/preedit/12keys-hiragana.tsv',
+            '../data/preedit/12keys-hiragana_intuitive.tsv',
             '../data/preedit/flick-halfwidthascii.tsv',
+            '../data/preedit/flick-halfwidthascii_ios.tsv',
             '../data/preedit/flick-hiragana.tsv',
+            '../data/preedit/flick-hiragana_intuitive.tsv',
             '../data/preedit/hiragana-romanji.tsv',
             '../data/preedit/kana.tsv',
             '../data/preedit/notouch-hiragana.tsv',
@@ -384,13 +357,15 @@
             '../data/preedit/qwerty_mobile-hiragana.tsv',
             '../data/preedit/romanji-hiragana.tsv',
             '../data/preedit/toggle_flick-halfwidthascii.tsv',
+            '../data/preedit/toggle_flick-halfwidthascii_ios.tsv',
             '../data/preedit/toggle_flick-hiragana.tsv',
+            '../data/preedit/toggle_flick-hiragana_intuitive.tsv',
           ],
           'outputs': [
             '<(gen_out_dir)/config_file_stream_data.inc',
           ],
           'action': [
-            'python', 'gen_config_file_stream_data.py',
+            '<(python)', 'gen_config_file_stream_data.py',
             '--output', '<@(_outputs)',
             '<@(_inputs)',
           ],
@@ -441,13 +416,6 @@
       ],
     },
     {
-      'target_name': 'debug',
-      'type': 'static_library',
-      'sources': [
-        'debug.cc',
-      ],
-    },
-    {
       'target_name': 'serialized_string_array',
       'type': 'static_library',
       'toolsets': ['host', 'target'],
@@ -458,19 +426,19 @@
         'base_core',
       ],
     },
+    {
+      'target_name': 'status',
+      'type': 'static_library',
+      'toolsets': ['host', 'target'],
+      'sources': [
+        'status.cc',
+      ],
+      'dependencies': [
+        'base_core',
+      ],
+    },
   ],
   'conditions': [
-    ['target_platform=="Android"', {
-      'targets': [
-        {
-          'target_name': 'jni_proxy',
-          'type': 'static_library',
-          'sources': [
-            'android_jni_proxy.cc'
-          ],
-        },
-      ],
-    }],
     ['OS=="win" and branding=="GoogleJapaneseInput"', {
       'targets': [
         {
@@ -541,12 +509,12 @@
           'target_name': 'breakpad',
           'type': 'none',
           'variables': {
-            'pbdir': '<(third_party_dir)/breakpad',
+            'bpdir': '<(third_party_dir)/breakpad',
           },
           'actions': [{
             'action_name': 'build_breakpad',
             'inputs': [
-              '<(pbdir)/src/client/mac/Breakpad.xcodeproj/project.pbxproj',
+              '<(bpdir)/src/client/mac/Breakpad.xcodeproj/project.pbxproj',
             ],
             'outputs': [
               '<(mac_breakpad_dir)/Breakpad.framework',
@@ -555,10 +523,11 @@
               '<(mac_breakpad_dir)/symupload',
             ],
             'action': [
-              'python', '../build_tools/build_breakpad.py',
-              '--pbdir', '<(pbdir)',
+              '<(python)', '../build_tools/build_breakpad.py',
+              '--bpdir', '<(bpdir)',
               '--outdir', '<(mac_breakpad_dir)',
               '--sdk', 'macosx<(mac_sdk)',
+              '--deployment_target', '<(mac_deployment_target)',
             ],
           }],
           'direct_dependent_settings': {
@@ -575,20 +544,6 @@
           ],
           'dependencies': [
             'base',
-          ],
-        },
-      ]},
-    ],
-    ['target_platform=="NaCl"', {
-      'targets': [
-        {
-          'target_name': 'pepper_file_system_mock',
-          'type': 'static_library',
-          'sources': [
-            'pepper_file_system_mock.cc',
-          ],
-          'dependencies': [
-            'base.gyp:base',
           ],
         },
       ]},

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,11 @@
 
 #include "base/logging.h"
 #include "base/util.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 
-InputMultiFile::InputMultiFile(const string &filenames,
+InputMultiFile::InputMultiFile(const std::string &filenames,
                                std::ios_base::openmode mode)
     : mode_(mode) {
   Util::SplitStringUsing(filenames, ",", &filenames_);
@@ -46,16 +47,14 @@ InputMultiFile::InputMultiFile(const string &filenames,
   }
 }
 
-InputMultiFile::~InputMultiFile() {
-  ifs_.reset();
-}
+InputMultiFile::~InputMultiFile() { ifs_.reset(); }
 
-bool InputMultiFile::ReadLine(string* line) {
-  if (ifs_.get() == NULL) {
+bool InputMultiFile::ReadLine(std::string *line) {
+  if (ifs_ == nullptr) {
     return false;
   }
   do {
-    if (!getline(*ifs_, *line).fail()) {
+    if (!std::getline(*ifs_, *line).fail()) {
       return true;
     }
   } while (OpenNext());
@@ -65,7 +64,7 @@ bool InputMultiFile::ReadLine(string* line) {
 bool InputMultiFile::OpenNext() {
   while (next_iter_ != filenames_.end()) {
     const char *filename = next_iter_->c_str();
-    ifs_.reset(new InputFileStream(filename, mode_));
+    ifs_ = absl::make_unique<InputFileStream>(filename, mode_);
     ++next_iter_;
     if (!ifs_->fail()) {
       return true;

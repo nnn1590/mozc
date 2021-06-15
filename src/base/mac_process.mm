@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -41,13 +41,12 @@ namespace {
 const char kFileSchema[] = "file://";
 }  // namespace
 
-bool MacProcess::OpenBrowserForMac(const string &url) {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+bool MacProcess::OpenBrowserForMac(const std::string &url) {
   bool success = false;
   NSURL *nsURL = nil;
   if (url.find(kFileSchema) == 0) {
     // for making URL from "file://...", use fileURLWithPath
-    const string filepath = url.substr(strlen(kFileSchema));
+    const std::string filepath = url.substr(strlen(kFileSchema));
     NSString *nsStr = [[NSString alloc] initWithBytes:filepath.data()
                                         length:filepath.size()
                                         encoding:NSUTF8StringEncoding];
@@ -63,24 +62,20 @@ bool MacProcess::OpenBrowserForMac(const string &url) {
   } else {
     DLOG(ERROR) << "NSURL is not initialized";
   }
-  [pool drain];
   return success;
 }
 
-bool MacProcess::OpenApplication(const string &path) {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+bool MacProcess::OpenApplication(const std::string &path) {
   NSString *nsStr = [[NSString alloc] initWithBytes:path.data()
                                       length:path.size()
                                       encoding:NSUTF8StringEncoding];
   [[NSWorkspace sharedWorkspace] launchApplication:nsStr];
-  [pool drain];
   return true;
 }
 
 namespace {
-bool LaunchMozcToolInternal(const string &tool_name, const string &error_type) {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
+bool LaunchMozcToolInternal(const std::string &tool_name,
+                            const std::string &error_type) {
   // FLAGS_error_type is used where FLAGS_mode is "error_message_dialog".
   setenv("FLAGS_error_type", error_type.c_str(), 1);
 
@@ -113,21 +108,20 @@ bool LaunchMozcToolInternal(const string &tool_name, const string &error_type) {
     // use --fromenv option to specify tool name
     setenv("FLAGS_mode", tool_name.c_str(), 1);
     toolAppPath = [toolAppPath
-                    stringByAppendingPathComponent:@ kProductPrefix "Tool.app"];
+                   stringByAppendingPathComponent:@ kProductPrefix "Tool.app"];
   }
 
   bool succeeded =
       [[NSWorkspace sharedWorkspace] launchApplication:toolAppPath];
-  [pool drain];
   return succeeded;
 }
 }  // namespace
 
-bool MacProcess::LaunchMozcTool(const string &tool_name) {
+bool MacProcess::LaunchMozcTool(const std::string &tool_name) {
   return LaunchMozcToolInternal(tool_name, "");
 }
 
-bool MacProcess::LaunchErrorMessageDialog(const string &error_type) {
+bool MacProcess::LaunchErrorMessageDialog(const std::string &error_type) {
   return LaunchMozcToolInternal("error_message_dialog", error_type);
 }
 

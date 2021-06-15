@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,9 @@
 
 """Generate a binary image of SerializedStringArray."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+import io
 import struct
 
 
@@ -43,26 +46,28 @@ def SerializeToFile(strings, filename):
     filename: Output binary file.
   """
   array_size = len(strings)
+  str_data = io.BytesIO()
 
   # Precompute offsets and lengths.
   offsets = []
   lengths = []
   offset = 4 + 8 * array_size  # The start offset of strings chunk
-  for s in strings:
+  for data in strings:
+    if isinstance(data, str):
+      data = data.encode('utf-8')
     offsets.append(offset)
-    lengths.append(len(s))
-    offset += len(s) + 1  # Include one byte for the trailing '\0'
+    lengths.append(len(data))
+    offset += len(data) + 1  # Include one byte for the trailing '\0'
+    str_data.write(data + b'\0')
 
   with open(filename, 'wb') as f:
     # 4-byte array_size.
     f.write(struct.pack('<I', array_size))
 
     # Offset and length array of (4 + 4) * array_size bytes.
-    for i in xrange(array_size):
+    for i in range(array_size):
       f.write(struct.pack('<I', offsets[i]))
       f.write(struct.pack('<I', lengths[i]))
 
     # Strings chunk.
-    for i in xrange(array_size):
-      f.write(strings[i])
-      f.write('\0')
+    f.write(str_data.getvalue())

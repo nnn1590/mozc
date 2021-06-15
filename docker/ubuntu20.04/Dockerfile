@@ -1,4 +1,4 @@
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2020, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ ENV DEBIAN_FRONTEND noninteractive
 # Package installation
 RUN apt update
 ## Common packages for linux build environment
-RUN apt install -y clang python pkg-config git curl bzip2 unzip make wget
+RUN apt install -y clang libc++-dev libc++abi-dev python python-six python3-six pkg-config git curl bzip2 unzip make ninja-build
 ## Packages for linux desktop version
 RUN apt install -y libibus-1.0-dev libglib2.0-dev qtbase5-dev libgtk2.0-dev libxcb-xfixes0-dev
 ## Packages for Android
@@ -48,15 +48,23 @@ RUN mv apache-ant-1.9.15 ${ANT_HOME}
 RUN apt install -y libc6-i386 lib32stdc++6
 ## Packages for UT Dictionary
 RUN apt install -y ruby rubygems ruby-dev
-RUN gem install bzip2-ffi
-## For emacsian, vimmer and nano users
+RUN gem install bzip2-ffi parallel
+## Packages for misc tools
 RUN apt install -y emacs vim nano
 
+## For Bazel
+## https://docs.bazel.build/versions/master/install-ubuntu.html
+RUN apt install -y curl gnupg libncurses5
+RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+RUN mv bazel.gpg /etc/apt/trusted.gpg.d/
+RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
+RUN apt update
+RUN apt install -y bazel
+
+# Working environemnt
 ENV HOME /home/mozc_builder
 RUN useradd --create-home --shell /bin/bash --base-dir /home mozc_builder
 USER mozc_builder
-
-# SDK setup
 RUN mkdir -p /home/mozc_builder/work
 WORKDIR /home/mozc_builder/work
 
@@ -78,11 +86,13 @@ RUN cd nacl_sdk && sed -i -ze's/req.*uest)\n/return urllib2.urlopen(url)/' sdk_t
 ENV NACL_SDK_ROOT /home/mozc_builder/work/nacl_sdk/pepper_49
 
 ## depot_tools for Ninja prebuilt
-RUN git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-ENV PATH $PATH:/home/mozc_builder/work/depot_tools
+# RUN git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+# ENV PATH $PATH:/home/mozc_builder/work/depot_tools
 
 # check out Mozc source with submodules
-RUN git clone https://github.com/nnn1590/mozc.git -b nnn1590 --single-branch --recursive
+RUN mkdir /home/mozc_builder/work/mozc
+# COPY --chown=mozc_builder:mozc_builder src/ /home/mozc_builder/work/mozc/src/
+RUN git clone https://github.com/nnn1590/mozc.git -b nnn1590-newer-keepdroid --single-branch --recursive
 
 WORKDIR /home/mozc_builder/work/mozc/src
 ENTRYPOINT bash

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
+#include <cstdint>
 #ifdef OS_WIN
 #include <windows.h>
 #include <ws2tcpip.h>
@@ -47,7 +47,6 @@ using ssize_t = SSIZE_T;
 #include <string>
 #include <vector>
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/singleton.h"
 #include "base/system_util.h"
@@ -56,26 +55,26 @@ using ssize_t = SSIZE_T;
 #include "session/random_keyevents_generator.h"
 #include "session/session_handler.h"
 #include "session/session_usage_observer.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(host, "localhost", "server host name");
-DEFINE_bool(server, true, "server mode");
-DEFINE_bool(client, false, "client mode");
-DEFINE_int32(client_test_size, 100, "client test size");
-DEFINE_int32(port, 8000, "port of RPC server");
-DEFINE_int32(rpc_timeout, 60000, "timeout");
-DEFINE_string(user_profile_directory, "", "user profile directory");
+ABSL_FLAG(std::string, host, "localhost", "server host name");
+ABSL_FLAG(bool, server, true, "server mode");
+ABSL_FLAG(bool, client, false, "client mode");
+ABSL_FLAG(int32_t, client_test_size, 100, "client test size");
+ABSL_FLAG(int32_t, port, 8000, "port of RPC server");
+ABSL_FLAG(int32_t, rpc_timeout, 60000, "timeout");
+ABSL_FLAG(std::string, user_profile_directory, "", "user profile directory");
 
 namespace mozc {
 
 namespace {
 
 const size_t kMaxRequestSize = 32 * 32 * 8192;
-const size_t kMaxOutputSize  = 32 * 32 * 8192;
-const int    kInvalidSocket  = -1;
+const size_t kMaxOutputSize = 32 * 32 * 8192;
+const int kInvalidSocket = -1;
 
 // TODO(taku): timeout should be handled.
-bool Recv(int socket, char *buf,
-          size_t buf_size, int timeout) {
+bool Recv(int socket, char *buf, size_t buf_size, int timeout) {
   ssize_t buf_left = buf_size;
   while (buf_left > 0) {
     const ssize_t read_size = ::recv(socket, buf, buf_left, 0);
@@ -90,13 +89,12 @@ bool Recv(int socket, char *buf,
 }
 
 // TODO(taku): timeout should be handled.
-bool Send(int socket, const char *buf,
-          size_t buf_size, int timeout) {
+bool Send(int socket, const char *buf, size_t buf_size, int timeout) {
   ssize_t buf_left = buf_size;
   while (buf_left > 0) {
 #if defined(OS_WIN)
     const int kFlag = 0;
-#elif defined(OS_MACOSX)
+#elif defined(__APPLE__)
     const int kFlag = SO_NOSIGPIPE;
 #else
     const int kFlag = MSG_NOSIGNAL;
@@ -127,9 +125,10 @@ void CloseSocket(int client_socket) {
 // This allows us to reuse client::Session library and SessionServer.
 class RPCServer {
  public:
-  RPCServer() : server_socket_(kInvalidSocket),
-                handler_(new SessionHandler(
-                    std::unique_ptr<Engine>(EngineFactory::Create()))) {
+  RPCServer()
+      : server_socket_(kInvalidSocket),
+        handler_(new SessionHandler(
+            std::unique_ptr<Engine>(EngineFactory::Create()))) {
     struct sockaddr_in sin;
 
     server_socket_ = ::socket(AF_INET, SOCK_STREAM, 0);
@@ -145,19 +144,18 @@ class RPCServer {
 #endif
 
     ::memset(&sin, 0, sizeof(sin));
-    sin.sin_port = htons(FLAGS_port);
+    sin.sin_port = htons(absl::GetFlag(FLAGS_port));
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
 
     int on = 1;
-    ::setsockopt(server_socket_,
-                 SOL_SOCKET,
-                 SO_REUSEADDR, reinterpret_cast<char * >(&on),
-                 sizeof(on));
+    ::setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR,
+                 reinterpret_cast<char *>(&on), sizeof(on));
 
-    CHECK_GE(::bind(server_socket_,
-                    reinterpret_cast<struct sockaddr *>(&sin),
-                    sizeof(sin)), 0) << "bind failed";
+    CHECK_GE(::bind(server_socket_, reinterpret_cast<struct sockaddr *>(&sin),
+                    sizeof(sin)),
+             0)
+        << "bind failed";
 
     CHECK_GE(::listen(server_socket_, SOMAXCONN), 0) << "listen failed";
     CHECK_NE(server_socket_, 0);
@@ -174,17 +172,17 @@ class RPCServer {
     LOG(INFO) << "Start Mozc RPCServer";
 
     while (true) {
-      const int client_socket = ::accept(server_socket_, NULL, NULL);
+      const int client_socket = ::accept(server_socket_, nullptr, nullptr);
 
       if (client_socket == kInvalidSocket) {
         LOG(ERROR) << "accept failed";
         continue;
       }
 
-      uint32 request_size = 0;
+      uint32_t request_size = 0;
       // Receive the size of data.
       if (!Recv(client_socket, reinterpret_cast<char *>(&request_size),
-                sizeof(request_size), FLAGS_rpc_timeout)) {
+                sizeof(request_size), absl::GetFlag(FLAGS_rpc_timeout))) {
         LOG(ERROR) << "Cannot receive request_size header.";
         CloseSocket(client_socket);
         continue;
@@ -195,8 +193,8 @@ class RPCServer {
 
       // Receive the body of serialized protobuf.
       std::unique_ptr<char[]> request_str(new char[request_size]);
-      if (!Recv(client_socket,
-                request_str.get(), request_size, FLAGS_rpc_timeout)) {
+      if (!Recv(client_socket, request_str.get(), request_size,
+                absl::GetFlag(FLAGS_rpc_timeout))) {
         LOG(ERROR) << "cannot receive body of request.";
         CloseSocket(client_socket);
         continue;
@@ -212,19 +210,19 @@ class RPCServer {
 
       CHECK(handler_->EvalCommand(&command));
 
-      string output_str;
+      std::string output_str;
       // Return the result.
       CHECK(command.output().SerializeToString(&output_str));
 
-      uint32 output_size = output_str.size();
+      uint32_t output_size = output_str.size();
       CHECK_GT(output_size, 0);
       CHECK_LT(output_size, kMaxOutputSize);
       output_size = htonl(output_size);
 
       if (!Send(client_socket, reinterpret_cast<char *>(&output_size),
-                sizeof(output_size), FLAGS_rpc_timeout) ||
+                sizeof(output_size), absl::GetFlag(FLAGS_rpc_timeout)) ||
           !Send(client_socket, output_str.data(), output_str.size(),
-                FLAGS_rpc_timeout)) {
+                absl::GetFlag(FLAGS_rpc_timeout))) {
         LOG(ERROR) << "Cannot send reply.";
       }
 
@@ -274,54 +272,52 @@ class RPCClient {
     commands::Input input;
     input.set_type(commands::Input::SEND_KEY);
     input.set_id(id_);
-    input.mutable_key()->CopyFrom(key);
+    *input.mutable_key() = key;
     return (Call(input, output) &&
             output->error_code() == commands::Output::SESSION_SUCCESS);
   }
 
  private:
-  bool Call(const commands::Input &input,
-            commands::Output *output) const {
+  bool Call(const commands::Input &input, commands::Output *output) const {
     struct addrinfo hints, *res;
     ::memset(&hints, 0, sizeof(hints));
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_family = AF_INET;
 
-    const string port_str = std::to_string(FLAGS_port);
-    CHECK_EQ(::getaddrinfo(FLAGS_host.c_str(), port_str.c_str(),
-                           &hints, &res), 0)
+    const std::string port_str = std::to_string(absl::GetFlag(FLAGS_port));
+    CHECK_EQ(::getaddrinfo(absl::GetFlag(FLAGS_host).c_str(), port_str.c_str(),
+                           &hints, &res),
+             0)
         << "getaddrinfo failed";
 
-    const int client_socket = ::socket(res->ai_family,
-                                       res->ai_socktype,
-                                       res->ai_protocol);
+    const int client_socket =
+        ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     CHECK_NE(client_socket, kInvalidSocket) << "socket failed";
-    CHECK_GE(::connect(client_socket,
-                       res->ai_addr, res->ai_addrlen), 0)
+    CHECK_GE(::connect(client_socket, res->ai_addr, res->ai_addrlen), 0)
         << "connect failed";
 
-    string request_str;
+    std::string request_str;
     CHECK(input.SerializeToString(&request_str));
-    uint32 request_size = request_str.size();
+    uint32_t request_size = request_str.size();
     CHECK_GT(request_size, 0);
     CHECK_LT(request_size, kMaxRequestSize);
     request_size = htonl(request_size);
 
     CHECK(Send(client_socket, reinterpret_cast<char *>(&request_size),
-               sizeof(request_size), FLAGS_rpc_timeout));
+               sizeof(request_size), absl::GetFlag(FLAGS_rpc_timeout)));
     CHECK(Send(client_socket, request_str.data(), request_str.size(),
-               FLAGS_rpc_timeout));
+               absl::GetFlag(FLAGS_rpc_timeout)));
 
-    uint32 output_size = 0;
+    uint32_t output_size = 0;
     CHECK(Recv(client_socket, reinterpret_cast<char *>(&output_size),
-               sizeof(output_size), FLAGS_rpc_timeout));
+               sizeof(output_size), absl::GetFlag(FLAGS_rpc_timeout)));
     output_size = ntohl(output_size);
     CHECK_GT(output_size, 0);
     CHECK_LT(output_size, kMaxOutputSize);
 
     std::unique_ptr<char[]> output_str(new char[output_size]);
-    CHECK(Recv(client_socket,
-               output_str.get(), output_size, FLAGS_rpc_timeout));
+    CHECK(Recv(client_socket, output_str.get(), output_size,
+               absl::GetFlag(FLAGS_rpc_timeout)));
 
     CHECK(output->ParseFromArray(output_str.get(), output_size));
 
@@ -332,7 +328,7 @@ class RPCClient {
     return true;
   }
 
-  uint64 id_;
+  uint64_t id_;
 };
 
 // Wrapper class for WSAStartup on Windows.
@@ -341,8 +337,7 @@ class ScopedWSAData {
   ScopedWSAData() {
 #ifdef OS_WIN
     WSADATA wsaData;
-    CHECK_EQ(::WSAStartup(MAKEWORD(2, 1), &wsaData), 0)
-        << "WSAStartup failed";
+    CHECK_EQ(::WSAStartup(MAKEWORD(2, 1), &wsaData), 0) << "WSAStartup failed";
 #endif
   }
   ~ScopedWSAData() {
@@ -356,20 +351,21 @@ class ScopedWSAData {
 }  // namespace mozc
 
 int main(int argc, char *argv[]) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   mozc::ScopedWSAData wsadata;
 
-  if (!FLAGS_user_profile_directory.empty()) {
+  if (!absl::GetFlag(FLAGS_user_profile_directory).empty()) {
     LOG(INFO) << "Setting user profile directory to "
-              << FLAGS_user_profile_directory;
-    mozc::SystemUtil::SetUserProfileDirectory(FLAGS_user_profile_directory);
+              << absl::GetFlag(FLAGS_user_profile_directory);
+    mozc::SystemUtil::SetUserProfileDirectory(
+        absl::GetFlag(FLAGS_user_profile_directory));
   }
 
-  if (FLAGS_client) {
+  if (absl::GetFlag(FLAGS_client)) {
     mozc::RPCClient client;
     CHECK(client.CreateSession());
-    for (int n = 0; n < FLAGS_client_test_size; ++n) {
+    for (int n = 0; n < absl::GetFlag(FLAGS_client_test_size); ++n) {
       std::vector<mozc::commands::KeyEvent> keys;
       mozc::session::RandomKeyEventsGenerator::GenerateSequence(&keys);
       for (size_t i = 0; i < keys.size(); ++i) {
@@ -381,7 +377,7 @@ int main(int argc, char *argv[]) {
     }
     CHECK(client.DeleteSession());
     return 0;
-  } else if (FLAGS_server) {
+  } else if (absl::GetFlag(FLAGS_server)) {
     mozc::RPCServer server;
     server.Loop();
   } else {

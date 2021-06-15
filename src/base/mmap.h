@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,18 @@
 #ifndef MOZC_BASE_MMAP_H_
 #define MOZC_BASE_MMAP_H_
 
-#ifdef MOZC_USE_PEPPER_FILE_IO
-#include <memory>
-#endif  // MOZC_USE_PEPPER_FILE_IO
 #include <string>
 
 #include "base/mmap_sync_interface.h"
 #include "base/port.h"
+
 
 namespace mozc {
 
 class Mmap : public MmapSyncInterface {
  public:
   Mmap();
-  virtual ~Mmap() { Close(); }
+  ~Mmap() override { Close(); }
 
   bool Open(const char *filename, const char *mode = "r");
   void Close();
@@ -57,43 +55,23 @@ class Mmap : public MmapSyncInterface {
   // - The storage is (usually) solid state thus page-in/out is expected to
   //   be faster.
   // On Linux, in the kernel version >= 2.6.9, user process can mlock. In older
-  // kernel, it fails if the process is running in user priviledge.
+  // kernel, it fails if the process is running in user privilege.
   // TODO(team): Check if mlock is really necessary for Mac.
   static bool IsMLockSupported();
   static int MaybeMLock(const void *addr, size_t len);
   static int MaybeMUnlock(const void *addr, size_t len);
 
-#ifndef MOZC_USE_PEPPER_FILE_IO
   char &operator[](size_t n) { return *(text_ + n); }
   char operator[](size_t n) const { return *(text_ + n); }
   char *begin() { return text_; }
   const char *begin() const { return text_; }
   char *end() { return text_ + size_; }
   const char *end() const { return text_ + size_; }
-#else  // MOZC_USE_PEPPER_FILE_IO
-  char &operator[](size_t n) { return *(text_.get() + n); }
-  char operator[](size_t n) const { return *(text_.get() + n); }
-  char *begin() { return text_.get(); }
-  const char *begin() const { return text_.get(); }
-  char *end() { return text_.get() + size_; }
-  const char *end() const { return text_.get() + size_; }
-#endif  // MOZC_USE_PEPPER_FILE_IO
 
   size_t size() const { return size_; }
 
-#ifdef MOZC_USE_PEPPER_FILE_IO
-  // Save the data in memory to the file.
-  virtual bool SyncToFile();
-#endif  // MOZC_USE_PEPPER_FILE_IO
-
  private:
-#ifndef MOZC_USE_PEPPER_FILE_IO
   char *text_;
-#else  // MOZC_USE_PEPPER_FILE_IO
-  string filename_;
-  std::unique_ptr<char[]> text_;
-  bool write_mode_;
-#endif  // MOZC_USE_PEPPER_FILE_IO
   size_t size_;
 
   DISALLOW_COPY_AND_ASSIGN(Mmap);

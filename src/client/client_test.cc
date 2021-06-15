@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "client/client.h"
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -40,27 +41,32 @@
 #include "base/version.h"
 #include "ipc/ipc_mock.h"
 #include "protocol/commands.pb.h"
+#include "protocol/config.pb.h"
 #include "testing/base/public/gunit.h"
+#include "absl/memory/memory.h"
+#include "absl/strings/str_format.h"
 
 namespace mozc {
 namespace client {
-
 namespace {
-const char kPrecedingText[] = "preceding_text";
-const char kFollowingText[] = "following_text";
-const bool kSuppressSuggestion = true;
 
-const string UpdateVersion(int diff) {
-  std::vector<string> tokens;
+constexpr char kPrecedingText[] = "preceding_text";
+constexpr char kFollowingText[] = "following_text";
+constexpr bool kSuppressSuggestion = true;
+
+const std::string UpdateVersion(int diff) {
+  std::vector<std::string> tokens;
   Util::SplitStringUsing(Version::GetMozcVersion(), ".", &tokens);
   EXPECT_EQ(tokens.size(), 4);
   char buf[64];
-  snprintf(buf, sizeof(buf), "%d", NumberUtil::SimpleAtoi(tokens[3]) + diff);
+  absl::SNPrintF(buf, sizeof(buf), "%d",
+                 NumberUtil::SimpleAtoi(tokens[3]) + diff);
   tokens[3] = buf;
-  string output;
+  std::string output;
   Util::JoinStrings(tokens, ".", &output);
   return output;
 }
+
 }  // namespace
 
 class TestServerLauncher : public ServerLauncherInterface {
@@ -77,7 +83,7 @@ class TestServerLauncher : public ServerLauncherInterface {
   virtual void Wait() {}
   virtual void Error() {}
 
-  virtual bool StartServer(ClientInterface *client) {
+  bool StartServer(ClientInterface *client) override {
     if (!response_.empty()) {
       factory_->SetMockResponse(response_);
     }
@@ -89,16 +95,14 @@ class TestServerLauncher : public ServerLauncherInterface {
     return start_server_result_;
   }
 
-  virtual bool ForceTerminateServer(const string &name) {
+  bool ForceTerminateServer(const std::string &name) override {
     force_terminate_server_called_ = true;
     return force_terminate_server_result_;
   }
 
-  virtual bool WaitServer(uint32 pid) {
-    return true;
-  }
+  bool WaitServer(uint32_t pid) override { return true; }
 
-  virtual void OnFatal(ServerLauncherInterface::ServerErrorType type) {
+  void OnFatal(ServerLauncherInterface::ServerErrorType type) override {
     LOG(ERROR) << static_cast<int>(type);
     error_map_[static_cast<int>(type)]++;
   }
@@ -107,9 +111,7 @@ class TestServerLauncher : public ServerLauncherInterface {
     return error_map_[static_cast<int>(type)];
   }
 
-  bool start_server_called() const {
-    return start_server_called_;
-  }
+  bool start_server_called() const { return start_server_called_; }
 
   void set_start_server_called(bool start_server_called) {
     start_server_called_ = start_server_called;
@@ -123,17 +125,15 @@ class TestServerLauncher : public ServerLauncherInterface {
     force_terminate_server_called_ = force_terminate_server_called;
   }
 
-  void set_server_program(const string &server_path) {
+  void set_server_program(const std::string &server_path) override {}
+
+  const std::string &server_program() const override {
+    return placeholder_server_program_path_;
   }
 
-  virtual const string &server_program() const {
-    static const string path;
-    return path;
-  }
+  void set_restricted(bool restricted) override {}
 
-  void set_restricted(bool restricted) {}
-
-  void set_suppress_error_dialog(bool suppress) {}
+  void set_suppress_error_dialog(bool suppress) override {}
 
   void set_start_server_result(const bool result) {
     start_server_result_ = result;
@@ -143,7 +143,7 @@ class TestServerLauncher : public ServerLauncherInterface {
     force_terminate_server_result_ = result;
   }
 
-  void set_server_protocol_version(uint32 server_protocol_version) {
+  void set_server_protocol_version(uint32_t server_protocol_version) {
     server_protocol_version_ = server_protocol_version;
   }
 
@@ -151,19 +151,20 @@ class TestServerLauncher : public ServerLauncherInterface {
     mock_output.SerializeToString(&response_);
   }
 
-  void set_product_version_after_start_server(const string &version) {
+  void set_product_version_after_start_server(const std::string &version) {
     product_version_after_start_server_ = version;
   }
 
  private:
+  const std::string placeholder_server_program_path_;
   IPCClientFactoryMock *factory_;
   bool start_server_result_;
   bool start_server_called_;
   bool force_terminate_server_result_;
   bool force_terminate_server_called_;
-  uint32 server_protocol_version_;
-  string response_;
-  string product_version_after_start_server_;
+  uint32_t server_protocol_version_;
+  std::string response_;
+  std::string product_version_after_start_server_;
   std::map<int, int> error_map_;
 };
 
@@ -171,22 +172,22 @@ class ClientTest : public testing::Test {
  protected:
   ClientTest() : version_diff_(0) {}
 
-  virtual void SetUp() {
-    client_factory_.reset(new IPCClientFactoryMock);
-    client_.reset(new Client);
+  void SetUp() override {
+    client_factory_ = absl::make_unique<IPCClientFactoryMock>();
+    client_ = absl::make_unique<Client>();
     client_->SetIPCClientFactory(client_factory_.get());
 
     server_launcher_ = new TestServerLauncher(client_factory_.get());
     client_->SetServerLauncher(server_launcher_);
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     client_.reset();
     client_factory_.reset();
   }
 
   void SetMockOutput(const commands::Output &mock_output) {
-    string response;
+    std::string response;
     mock_output.SerializeToString(&response);
     client_factory_->SetMockResponse(response);
   }
@@ -198,9 +199,7 @@ class ClientTest : public testing::Test {
     }
   }
 
-  void SetupProductVersion(int version_diff) {
-    version_diff_ = version_diff;
-  }
+  void SetupProductVersion(int version_diff) { version_diff_ = version_diff; }
 
   bool SetupConnection(const int id) {
     client_factory_->SetConnection(true);
@@ -323,7 +322,6 @@ TEST_F(ClientTest, TestSendKey) {
   EXPECT_EQ(commands::Input::TEST_SEND_KEY, input.type());
 }
 
-
 TEST_F(ClientTest, TestSendKeyWithContext) {
   const int mock_id = 512;
   EXPECT_TRUE(SetupConnection(mock_id));
@@ -394,9 +392,8 @@ TEST_F(ClientTest, SendCommandWithContext) {
   SetMockOutput(mock_output);
 
   commands::Output output;
-  EXPECT_TRUE(client_->SendCommandWithContext(session_command,
-                                              context,
-                                              &output));
+  EXPECT_TRUE(
+      client_->SendCommandWithContext(session_command, context, &output));
 
   commands::Input input;
   GetGeneratedInput(&input);
@@ -483,8 +480,8 @@ TEST_F(ClientTest, VersionMismatch) {
   commands::Output output;
   EXPECT_FALSE(client_->SendKey(key_event, &output));
   EXPECT_FALSE(client_->EnsureConnection());
-  EXPECT_EQ(1, server_launcher_->error_count
-            (ServerLauncherInterface::SERVER_VERSION_MISMATCH));
+  EXPECT_EQ(1, server_launcher_->error_count(
+                   ServerLauncherInterface::SERVER_VERSION_MISMATCH));
 }
 
 TEST_F(ClientTest, ProtocolUpdate) {
@@ -538,8 +535,8 @@ TEST_F(ClientTest, ProtocolUpdateFailSameBinary) {
   EXPECT_TRUE(server_launcher_->start_server_called());
   EXPECT_TRUE(server_launcher_->force_terminate_server_called());
   EXPECT_FALSE(client_->EnsureConnection());
-  EXPECT_EQ(1, server_launcher_->error_count
-            (ServerLauncherInterface::SERVER_BROKEN_MESSAGE));
+  EXPECT_EQ(1, server_launcher_->error_count(
+                   ServerLauncherInterface::SERVER_BROKEN_MESSAGE));
 }
 
 TEST_F(ClientTest, ProtocolUpdateFailOnTerminate) {
@@ -568,8 +565,8 @@ TEST_F(ClientTest, ProtocolUpdateFailOnTerminate) {
   EXPECT_FALSE(server_launcher_->start_server_called());
   EXPECT_TRUE(server_launcher_->force_terminate_server_called());
   EXPECT_FALSE(client_->EnsureConnection());
-  EXPECT_EQ(1, server_launcher_->error_count
-            (ServerLauncherInterface::SERVER_BROKEN_MESSAGE));
+  EXPECT_EQ(1, server_launcher_->error_count(
+                   ServerLauncherInterface::SERVER_BROKEN_MESSAGE));
 }
 
 TEST_F(ClientTest, ServerUpdate) {
@@ -634,13 +631,13 @@ TEST_F(ClientTest, ServerUpdateFail) {
   EXPECT_FALSE(client_->EnsureSession());
   EXPECT_TRUE(server_launcher_->start_server_called());
   EXPECT_FALSE(client_->EnsureConnection());
-  EXPECT_EQ(1, server_launcher_->error_count
-            (ServerLauncherInterface::SERVER_BROKEN_MESSAGE));
+  EXPECT_EQ(1, server_launcher_->error_count(
+                   ServerLauncherInterface::SERVER_BROKEN_MESSAGE));
 }
 
 TEST_F(ClientTest, TranslateProtoBufToMozcToolArgTest) {
   commands::Output output;
-  string mode = "";
+  std::string mode = "";
 
   // If no value is set, we expect to return false
   EXPECT_FALSE(client::Client::TranslateProtoBufToMozcToolArg(output, &mode));
@@ -678,7 +675,7 @@ class SessionPlaybackTestServerLauncher : public ServerLauncherInterface {
   virtual void Wait() {}
   virtual void Error() {}
 
-  virtual bool StartServer(ClientInterface *client) {
+  bool StartServer(ClientInterface *client) override {
     if (!response_.empty()) {
       factory_->SetMockResponse(response_);
     }
@@ -690,31 +687,27 @@ class SessionPlaybackTestServerLauncher : public ServerLauncherInterface {
     return start_server_result_;
   }
 
-  virtual bool ForceTerminateServer(const string &name) {
+  bool ForceTerminateServer(const std::string &name) override {
     force_terminate_server_called_ = true;
     return force_terminate_server_result_;
   }
 
-  virtual bool WaitServer(uint32 pid) {
-    return true;
-  }
+  bool WaitServer(uint32_t pid) override { return true; }
 
-  virtual void OnFatal(ServerLauncherInterface::ServerErrorType type) {
-  }
+  void OnFatal(ServerLauncherInterface::ServerErrorType type) override {}
 
-  void set_server_program(const string &server_path) {}
+  void set_server_program(const std::string &server_path) override {}
 
-  void set_restricted(bool restricted) {}
+  void set_restricted(bool restricted) override {}
 
-  void set_suppress_error_dialog(bool suppress) {}
+  void set_suppress_error_dialog(bool suppress) override {}
 
   void set_start_server_result(const bool result) {
     start_server_result_ = result;
   }
 
-
-  virtual const string &server_program() const {
-    static const string path;
+  const std::string &server_program() const override {
+    static const std::string path;
     return path;
   }
 
@@ -724,29 +717,29 @@ class SessionPlaybackTestServerLauncher : public ServerLauncherInterface {
   bool start_server_called_;
   bool force_terminate_server_result_;
   bool force_terminate_server_called_;
-  uint32 server_protocol_version_;
-  string response_;
-  string product_version_after_start_server_;
+  uint32_t server_protocol_version_;
+  std::string response_;
+  std::string product_version_after_start_server_;
   std::map<int, int> error_map_;
 };
 
 class SessionPlaybackTest : public testing::Test {
  protected:
   SessionPlaybackTest() {}
-  virtual ~SessionPlaybackTest() {}
+  ~SessionPlaybackTest() override {}
 
-  virtual void SetUp() {
-    ipc_client_factory_.reset(new IPCClientFactoryMock);
-    ipc_client_.reset(reinterpret_cast<IPCClientMock *>(
-        ipc_client_factory_->NewClient("")));
-    client_.reset(new Client);
+  void SetUp() override {
+    ipc_client_factory_ = absl::make_unique<IPCClientFactoryMock>();
+    ipc_client_.reset(
+        reinterpret_cast<IPCClientMock *>(ipc_client_factory_->NewClient("")));
+    client_ = absl::make_unique<Client>();
     client_->SetIPCClientFactory(ipc_client_factory_.get());
-    server_launcher_ = new SessionPlaybackTestServerLauncher(
-        ipc_client_factory_.get());
+    server_launcher_ =
+        new SessionPlaybackTestServerLauncher(ipc_client_factory_.get());
     client_->SetServerLauncher(server_launcher_);
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     client_.reset();
     ipc_client_factory_.reset();
   }
@@ -767,7 +760,7 @@ class SessionPlaybackTest : public testing::Test {
   }
 
   void SetMockOutput(const commands::Output &mock_output) {
-    string response;
+    std::string response;
     mock_output.SerializeToString(&response);
     ipc_client_factory_->SetMockResponse(response);
   }
@@ -857,7 +850,7 @@ TEST_F(SessionPlaybackTest, PushAndResetHistoryWithModeTest) {
   EXPECT_TRUE(client_->SendKey(key_event, &output));
   EXPECT_EQ(mock_output.consumed(), output.consumed());
   client_->GetHistoryInputs(&history);
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   // history is reset, but initializer should be added because the last mode
   // is not DIRECT.
   // TODO(team): fix b/10250883 to remove this special treatment.
@@ -1004,7 +997,7 @@ TEST_F(SessionPlaybackTest, SetModeInitializerTest) {
   EXPECT_TRUE(client_->SendKey(key_event, &output));
   EXPECT_EQ(mock_output.consumed(), output.consumed());
   client_->GetHistoryInputs(&history);
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   // history is reset, but initializer should be added.
   // TODO(team): fix b/10250883 to remove this special treatment.
   EXPECT_EQ(1, history.size());

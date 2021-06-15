@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "session/internal/ime_context.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -60,7 +61,7 @@ TEST(ImeContextTest, DefaultValues) {
   // Don't access composer().
   // Before using composer, set_composer() must be called with non-null-value.
 
-  EXPECT_TRUE(NULL == context.mutable_converter());
+  EXPECT_TRUE(nullptr == context.mutable_converter());
 
   EXPECT_EQ(ImeContext::NONE, context.state());
 
@@ -81,14 +82,14 @@ TEST(ImeContextTest, BasicTest) {
 
   // The ownership of composer is moved to context.
   composer::Composer *composer =
-      new composer::Composer(NULL, &request, &config);
+      new composer::Composer(nullptr, &request, &config);
   context.set_composer(composer);
   EXPECT_EQ(composer, &context.composer());
   EXPECT_EQ(composer, context.mutable_composer());
 
   std::unique_ptr<ConverterMock> converter_mock(new ConverterMock);
-  SessionConverter *converter = new SessionConverter(
-      converter_mock.get(), &request, &config);
+  SessionConverter *converter =
+      new SessionConverter(converter_mock.get(), &request, &config);
   context.set_converter(converter);
   EXPECT_EQ(converter, &context.converter());
   EXPECT_EQ(converter, context.mutable_converter());
@@ -143,19 +144,19 @@ TEST(ImeContextTest, CopyContext) {
   {
     ImeContext source;
     source.set_composer(new composer::Composer(&table, &request, &config));
-    source.set_converter(new SessionConverter(
-        engine->GetConverter(), &request, &config));
+    source.set_converter(
+        new SessionConverter(engine->GetConverter(), &request, &config));
 
     ImeContext destination;
     destination.set_composer(new composer::Composer(&table, &request, &config));
-    destination.set_converter(new SessionConverter(
-        engine->GetConverter(), &request, &config));
+    destination.set_converter(
+        new SessionConverter(engine->GetConverter(), &request, &config));
 
     source.set_state(ImeContext::COMPOSITION);
     source.mutable_composer()->InsertCharacter("a");
     source.mutable_composer()->InsertCharacter("n");
 
-    string composition;
+    std::string composition;
     source.composer().GetStringForSubmission(&composition);
     EXPECT_EQ("あｎ", composition);
 
@@ -167,28 +168,28 @@ TEST(ImeContextTest, CopyContext) {
   }
 
   {
-    const uint64 kCreateTime = 100;
-    const uint64 kLastCommandTime = 200;
+    const uint64_t kCreateTime = 100;
+    const uint64_t kLastCommandTime = 200;
     ImeContext source;
     source.set_create_time(kCreateTime);
     source.set_last_command_time(kLastCommandTime);
     source.set_composer(new composer::Composer(&table, &request, &config));
-    source.set_converter(new SessionConverter(
-        engine->GetConverter(), &request, &config));
+    source.set_converter(
+        new SessionConverter(engine->GetConverter(), &request, &config));
 
     ImeContext destination;
     destination.set_composer(new composer::Composer(&table, &request, &config));
-    destination.set_converter(new SessionConverter(
-        engine->GetConverter(), &request, &config));
+    destination.set_converter(
+        new SessionConverter(engine->GetConverter(), &request, &config));
 
     source.set_state(ImeContext::CONVERSION);
     source.mutable_composer()->InsertCharacter("a");
     source.mutable_composer()->InsertCharacter("n");
     source.mutable_converter()->Convert(source.composer());
-    const string &kQuick = "早い";
+    const std::string &kQuick = "早い";
     source.mutable_composer()->set_source_text(kQuick);
 
-    string composition;
+    std::string composition;
     source.composer().GetQueryForConversion(&composition);
     EXPECT_EQ("あん", composition);
 
@@ -219,7 +220,7 @@ TEST(ImeContextTest, CustomKeymap) {
 
   // Init config with custom keymap.  It will be set later.
   config::Config config;
-  const string custom_keymap_table =
+  const std::string custom_keymap_table =
       "status\tkey\tcommand\n"
       "Precomposition\tCtrl a\tUndo\n";
   config.set_session_keymap(config::Config::CUSTOM);
@@ -228,13 +229,13 @@ TEST(ImeContextTest, CustomKeymap) {
   // Set composer
   const commands::Request request;
   composer::Composer *composer =
-      new composer::Composer(NULL, &request, &config);
+      new composer::Composer(nullptr, &request, &config);
   context.set_composer(composer);
 
   // Set converter
   std::unique_ptr<ConverterMock> converter_mock(new ConverterMock);
-  SessionConverter *converter = new SessionConverter(
-      converter_mock.get(), &request, &config);
+  SessionConverter *converter =
+      new SessionConverter(converter_mock.get(), &request, &config);
   context.set_converter(converter);
 
   // Set config.

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 #ifndef MOZC_BASE_CPU_STATS_H_
 #define MOZC_BASE_CPU_STATS_H_
 
+#include <cstdint>
+
 #include "base/port.h"
 
 namespace mozc {
@@ -60,22 +62,22 @@ class CPUStatsInterface {
 class CPUStats : public CPUStatsInterface {
  public:
   CPUStats();
-  virtual ~CPUStats();
+  ~CPUStats() override;
 
   // return 0.0 if CPU load is unknown
-  float GetSystemCPULoad();
+  float GetSystemCPULoad() override;
 
   // return 0.0 if CPU load is unknown
-  float GetCurrentProcessCPULoad();
+  float GetCurrentProcessCPULoad() override;
 
   // return the number of processors
-  size_t GetNumberOfProcessors() const;
+  size_t GetNumberOfProcessors() const override;
 
  private:
-  uint64 prev_system_total_times_;
-  uint64 prev_system_cpu_times_;
-  uint64 prev_current_process_total_times_;
-  uint64 prev_current_process_cpu_times_;
+  uint64_t prev_system_total_times_;
+  uint64_t prev_system_cpu_times_;
+  uint64_t prev_current_process_total_times_;
+  uint64_t prev_current_process_cpu_times_;
 };
 
 }  // namespace mozc

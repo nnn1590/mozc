@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,11 @@ const gchar kIBusPanelSchema[] = "org.freedesktop.ibus.panel";
 const gchar kIBusPanelUseCustomFont[] = "use-custom-font";
 const gchar kIBusPanelCustomFont[] = "custom-font";
 
-bool GetString(GVariant *value, string *out_string) {
+bool GetString(GVariant *value, std::string *out_string) {
   if (g_variant_classify(value) != G_VARIANT_CLASS_STRING) {
     return false;
   }
-  *out_string = static_cast<const char *>(g_variant_get_string(value, NULL));
+  *out_string = static_cast<const char *>(g_variant_get_string(value, nullptr));
   return true;
 }
 
@@ -68,8 +68,8 @@ bool HasScheme(const char *schema_name) {
   if (schema_source == nullptr) {
     return false;
   }
-  GSettingsSchema *schema = g_settings_schema_source_lookup(
-      schema_source, schema_name, TRUE);
+  GSettingsSchema *schema =
+      g_settings_schema_source_lookup(schema_source, schema_name, TRUE);
   if (schema == nullptr) {
     return false;
   }
@@ -85,8 +85,7 @@ GSettings *OpenIBusPanelSettings() {
 }
 
 // The callback function to the "changed" signal to GSettings object.
-void GSettingsChangedCallback(GSettings *settings,
-                              const gchar *key,
+void GSettingsChangedCallback(GSettings *settings, const gchar *key,
                               gpointer user_data) {
   GtkCandidateWindowHandler *handler =
       reinterpret_cast<GtkCandidateWindowHandler *>(user_data);
@@ -100,9 +99,9 @@ void GSettingsChangedCallback(GSettings *settings,
       LOG(ERROR) << "Cannot get panel:use_custom_font configuration.";
     }
   } else if (g_strcmp0(key, kIBusPanelCustomFont) == 0) {
-    GVariant *custom_font_value = g_settings_get_value(settings,
-                                                       kIBusPanelCustomFont);
-    string font_description;
+    GVariant *custom_font_value =
+        g_settings_get_value(settings, kIBusPanelCustomFont);
+    std::string font_description;
     if (GetString(custom_font_value, &font_description)) {
       handler->OnIBusCustomFontDescriptionChanged(font_description);
     } else {
@@ -116,15 +115,11 @@ void GSettingsChangedCallback(GSettings *settings,
 class GSettingsObserver {
  public:
   explicit GSettingsObserver(GtkCandidateWindowHandler *handler)
-      :  settings_(OpenIBusPanelSettings()),
-         settings_observer_id_(0) {
+      : settings_(OpenIBusPanelSettings()), settings_observer_id_(0) {
     if (settings_ != nullptr) {
       gpointer ptr = reinterpret_cast<gpointer>(handler);
       settings_observer_id_ = g_signal_connect(
-          settings_,
-          "changed",
-          G_CALLBACK(GSettingsChangedCallback),
-          ptr);
+          settings_, "changed", G_CALLBACK(GSettingsChangedCallback), ptr);
       // Emulate state changes to set the initial values to the renderer.
       GSettingsChangedCallback(settings_, kIBusPanelUseCustomFont, ptr);
       GSettingsChangedCallback(settings_, kIBusPanelCustomFont, ptr);
@@ -149,24 +144,20 @@ GtkCandidateWindowHandler::GtkCandidateWindowHandler(
     renderer::RendererInterface *renderer)
     : renderer_(renderer),
       last_update_output_(new commands::Output()),
-      use_custom_font_description_(false) {
-}
+      use_custom_font_description_(false) {}
 
-GtkCandidateWindowHandler::~GtkCandidateWindowHandler() {
-}
+GtkCandidateWindowHandler::~GtkCandidateWindowHandler() {}
 
 bool GtkCandidateWindowHandler::SendUpdateCommand(
-    IBusEngine *engine,
-    const commands::Output &output,
-    bool visibility) const {
+    IBusEngine *engine, const commands::Output &output, bool visibility) {
   using commands::RendererCommand;
   RendererCommand command;
 
   *command.mutable_output() = output;
   command.set_type(RendererCommand::UPDATE);
   command.set_visible(visibility);
-  RendererCommand::ApplicationInfo *appinfo
-      = command.mutable_application_info();
+  RendererCommand::ApplicationInfo *appinfo =
+      command.mutable_application_info();
 
   auto *preedit_rectangle = command.mutable_preedit_rectangle();
   const auto &cursor_area = engine->cursor_area;
@@ -174,6 +165,21 @@ bool GtkCandidateWindowHandler::SendUpdateCommand(
   preedit_rectangle->set_top(cursor_area.y);
   preedit_rectangle->set_right(cursor_area.x + cursor_area.width);
   preedit_rectangle->set_bottom(cursor_area.y + cursor_area.height);
+
+  // `cursor_area` represents the position of the cursor only, however
+  // `preedit_rectangle` should represent the whole area of the preedit.
+  // To workaround the gap, `preedit_begin_` stores the cursor position on
+  // the beginning of the preedit.
+  if (output.preedit().segment_size() == 0) {
+    preedit_begin_ = *preedit_rectangle;
+  } else if (preedit_begin_.top() == preedit_rectangle->top() &&
+             preedit_begin_.bottom() == preedit_rectangle->bottom()) {
+    // If the Y coordinates are moved, it means that the preedit is:
+    //   1. moved for some reasons, or
+    //   2. extended to multiple lines.
+    // The workaround is only applied when the Y coordinates are not moved.
+    preedit_rectangle->set_left(preedit_begin_.left());
+  }
 
   // Set pid
   static_assert(sizeof(::getpid()) <= sizeof(appinfo->process_id()),
@@ -215,7 +221,7 @@ void GtkCandidateWindowHandler::Show(IBusEngine *engine) {
 }
 
 void GtkCandidateWindowHandler::OnIBusCustomFontDescriptionChanged(
-    const string &custom_font_description) {
+    const std::string &custom_font_description) {
   custom_font_description_.assign(custom_font_description);
 }
 
@@ -228,7 +234,7 @@ void GtkCandidateWindowHandler::RegisterGSettingsObserver() {
   settings_observer_.reset(new GSettingsObserver(this));
 }
 
-string GtkCandidateWindowHandler::GetFontDescription() const {
+std::string GtkCandidateWindowHandler::GetFontDescription() const {
   if (!use_custom_font_description_) {
     // TODO(nona): Load application default font settings.
     return kDefaultFont;

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,8 @@ class MessageTranslatorInterface;
 class PropertyHandler : public PropertyHandlerInterface {
  public:
   // This class takes the ownership of translator, but not client.
-  PropertyHandler(MessageTranslatorInterface *translator,
+  PropertyHandler(std::unique_ptr<MessageTranslatorInterface> translator,
+                  bool is_active_on_launch,
                   client::ClientInterface *client);
   virtual ~PropertyHandler();
 
@@ -72,7 +73,7 @@ class PropertyHandler : public PropertyHandlerInterface {
   void AppendToolPropertyToPanel();
   // Appends switch properties into panel
   void UpdateCompositionModeIcon(
-      IBusEngine* engine, const commands::CompositionMode new_composition_mode);
+      IBusEngine *engine, const commands::CompositionMode new_composition_mode);
   void SetCompositionMode(IBusEngine *engine,
                           commands::CompositionMode composition_mode);
 

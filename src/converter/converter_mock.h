@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,19 @@
 #ifndef MOZC_CONVERTER_CONVERTER_MOCK_H_
 #define MOZC_CONVERTER_CONVERTER_MOCK_H_
 
-#include "converter/converter_interface.h"
-
+#include <cstdint>
 #include <string>
 #include <vector>
+
 #include "base/port.h"
+#include "converter/converter_interface.h"
 #include "converter/segments.h"
 
 namespace mozc {
 class ConverterMock : public ConverterInterface {
  public:
   ConverterMock();
-  virtual ~ConverterMock();
+  ~ConverterMock() override;
 
   // set next output of respective functions
   void SetStartConversionForRequest(Segments *segments, bool result);
@@ -71,20 +72,20 @@ class ConverterMock : public ConverterInterface {
   // get last input of respective functions
   void GetStartConversionForRequest(Segments *segments,
                                     ConversionRequest *request);
-  void GetStartConversion(Segments *segments, string *key);
-  void GetStartReverseConversion(Segments *segments, string *key);
+  void GetStartConversion(Segments *segments, std::string *key);
+  void GetStartReverseConversion(Segments *segments, std::string *key);
   void GetStartPredictionForRequest(Segments *segments,
                                     ConversionRequest *request);
-  void GetStartPrediction(Segments *segments, string *key);
+  void GetStartPrediction(Segments *segments, std::string *key);
   void GetStartSuggestionForRequest(Segments *segments,
                                     ConversionRequest *request);
-  void GetStartSuggestion(Segments *segments, string *key);
+  void GetStartSuggestion(Segments *segments, std::string *key);
   void GetStartPartialPredictionForRequest(Segments *segments,
                                            ConversionRequest *request);
-  void GetStartPartialPrediction(Segments *segments, string *key);
+  void GetStartPartialPrediction(Segments *segments, std::string *key);
   void GetStartPartialSuggestionForRequest(Segments *segments,
                                            ConversionRequest *request);
-  void GetStartPartialSuggestion(Segments *segments, string *key);
+  void GetStartPartialSuggestion(Segments *segments, std::string *key);
   void GetFinishConversion(Segments *segments);
   void GetCancelConversion(Segments *segments);
   void GetResetConversion(Segments *segments);
@@ -95,75 +96,68 @@ class ConverterMock : public ConverterInterface {
   void GetCommitPartialSuggestionSegmentValue(Segments *segments,
                                               size_t *segment_index,
                                               int *candidate_index,
-                                              string *current_segment_key,
-                                              string *new_segment_key);
+                                              std::string *current_segment_key,
+                                              std::string *new_segment_key);
   void GetFocusSegmentValue(Segments *segments, size_t *segment_index,
                             int *candidate_index);
   void GetFreeSegmentValue(Segments *segments, size_t *segment_index);
   void GetCommitSegments(Segments *segments,
                          std::vector<size_t> *candidate_index);
   void GetResizeSegment1(Segments *segments, size_t *segment_index,
-                        int *offset_length);
+                         int *offset_length);
   void GetResizeSegment2(Segments *segments, size_t *start_segment_index,
-                        size_t *segments_size, uint8 **new_size_array,
-                        size_t *array_size);
+                         size_t *segments_size, uint8_t **new_size_array,
+                         size_t *array_size);
 
   // ConverterInterface
   bool StartConversionForRequest(const ConversionRequest &request,
-                                 Segments *segments) const;
+                                 Segments *segments) const override;
   bool StartConversion(Segments *segments,
-                       const string &key) const;
+                       const std::string &key) const override;
   bool StartReverseConversion(Segments *segments,
-                              const string &key) const;
+                              const std::string &key) const override;
   bool StartPredictionForRequest(const ConversionRequest &request,
-                                 Segments *segments) const;
+                                 Segments *segments) const override;
   bool StartPrediction(Segments *segments,
-                       const string &key) const;
+                       const std::string &key) const override;
   bool StartSuggestionForRequest(const ConversionRequest &request,
-                                 Segments *segments) const;
+                                 Segments *segments) const override;
   bool StartSuggestion(Segments *segments,
-                       const string &key) const;
+                       const std::string &key) const override;
   bool StartPartialPredictionForRequest(const ConversionRequest &request,
-                                        Segments *segments) const;
+                                        Segments *segments) const override;
   bool StartPartialPrediction(Segments *segments,
-                              const string &key) const;
+                              const std::string &key) const override;
   bool StartPartialSuggestionForRequest(const ConversionRequest &request,
-                                        Segments *segments) const;
+                                        Segments *segments) const override;
   bool StartPartialSuggestion(Segments *segments,
-                              const string &key) const;
+                              const std::string &key) const override;
   bool FinishConversion(const ConversionRequest &request,
-                        Segments *segments) const;
-  bool CancelConversion(Segments *segments) const;
-  bool ResetConversion(Segments *segments) const;
-  bool RevertConversion(Segments *segments) const;
+                        Segments *segments) const override;
+  bool CancelConversion(Segments *segments) const override;
+  bool ResetConversion(Segments *segments) const override;
+  bool RevertConversion(Segments *segments) const override;
   bool ReconstructHistory(Segments *segments,
-                          const string &preceding_text) const;
-  bool CommitSegmentValue(Segments *segments,
-                          size_t segment_index,
-                          int    candidate_index) const;
+                          const std::string &preceding_text) const override;
+  bool CommitSegmentValue(Segments *segments, size_t segment_index,
+                          int candidate_index) const override;
   bool CommitPartialSuggestionSegmentValue(
-      Segments *segments,
-      size_t segment_index,
-      int candidate_index,
-      const string &current_segment_key,
-      const string &new_segment_key) const;
-  bool FocusSegmentValue(Segments *segments,
-                         size_t segment_index,
-                         int candidate_index) const;
+      Segments *segments, size_t segment_index, int candidate_index,
+      absl::string_view current_segment_key,
+      absl::string_view new_segment_key) const override;
+  bool FocusSegmentValue(Segments *segments, size_t segment_index,
+                         int candidate_index) const override;
   bool FreeSegmentValue(Segments *segments,
-                        size_t segment_index) const;
-  bool CommitSegments(Segments *segments,
-                      const std::vector<size_t> &candidate_index) const;
-  bool ResizeSegment(Segments *segments,
-                     const ConversionRequest &request,
-                     size_t segment_index,
-                     int offset_length) const;
-  bool ResizeSegment(Segments *segments,
-                     const ConversionRequest &request,
-                     size_t start_segment_index,
-                     size_t segments_size,
-                     const uint8 *new_size_array,
-                     size_t array_size) const;
+                        size_t segment_index) const override;
+  bool CommitSegments(
+      Segments *segments,
+      const std::vector<size_t> &candidate_index) const override;
+  bool ResizeSegment(Segments *segments, const ConversionRequest &request,
+                     size_t segment_index, int offset_length) const override;
+  bool ResizeSegment(Segments *segments, const ConversionRequest &request,
+                     size_t start_segment_index, size_t segments_size,
+                     const uint8_t *new_size_array,
+                     size_t array_size) const override;
 
  private:
   struct ConverterOutput {
@@ -177,16 +171,16 @@ class ConverterMock : public ConverterInterface {
   struct ConverterInput {
     ConversionRequest request;
     Segments segments;
-    string key;
+    std::string key;
     size_t segment_index;
     int candidate_index;
     std::vector<size_t> candidate_index_list;
     int offset_length;
     size_t start_segment_index;
     size_t segments_size;
-    std::vector<uint8> new_size_array;
-    string current_segment_key;
-    string new_segment_key;
+    std::vector<uint8_t> new_size_array;
+    std::string current_segment_key;
+    std::string new_segment_key;
     ConverterInput() {}
   };
 

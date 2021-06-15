@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_SESSION_SESSION_USAGE_OBSERVER_H_
 #define MOZC_SESSION_SESSION_USAGE_OBSERVER_H_
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -53,9 +54,9 @@ namespace session {
 class SessionUsageObserver : public SessionObserverInterface {
  public:
   SessionUsageObserver();
-  virtual ~SessionUsageObserver();
+  ~SessionUsageObserver() override;
 
-  virtual void EvalCommandHandler(const commands::Command &command);
+  void EvalCommandHandler(const commands::Command &command) override;
 
  private:
   struct UsageCache {
@@ -70,8 +71,8 @@ class SessionUsageObserver : public SessionObserverInterface {
     // Memory usage estimation: TouchEventStat message uses 240 bytes and
     // the number of source_id can be a few hundreds, so these variables seem to
     // use less than 100 KBytes.
-    std::map<string, usage_stats::TouchEventStatsMap> touch_event;
-    std::map<string, usage_stats::TouchEventStatsMap> miss_touch_event;
+    std::map<std::string, usage_stats::TouchEventStatsMap> touch_event;
+    std::map<std::string, usage_stats::TouchEventStatsMap> miss_touch_event;
     void Clear();
   };
 
@@ -81,11 +82,10 @@ class SessionUsageObserver : public SessionObserverInterface {
   static bool SaveCachedStats(void *data);
 
   void EvalCreateSession(const commands::Input &input,
-                        const commands::Output &output,
-                        std::map<uint64, protocol::SessionState> *states);
+                         const commands::Output &output,
+                         std::map<uint64_t, protocol::SessionState> *states);
   // Update state and update stats using input and output.
-  void UpdateState(const commands::Input &input,
-                   const commands::Output &output,
+  void UpdateState(const commands::Input &input, const commands::Output &output,
                    protocol::SessionState *state);
   // Update client side stats.
   void UpdateClientSideStats(const commands::Input &input,
@@ -96,15 +96,15 @@ class SessionUsageObserver : public SessionObserverInterface {
                      const protocol::SessionState &state);
   // Stores KeyTouch message to TouchEventStats.
   void StoreTouchEventStats(
-       const commands::Input_TouchEvent &touch_event,
-       usage_stats::TouchEventStatsMap *touch_event_stats_map);
+      const commands::Input_TouchEvent &touch_event,
+      usage_stats::TouchEventStatsMap *touch_event_stats_map);
 
-  std::map<uint64, protocol::SessionState> states_;
+  std::map<uint64_t, protocol::SessionState> states_;
   UsageCache usage_cache_;
 
   // last_touchevents_ is used to keep the touch_events of last SEND_KEY
   // message.
-  // When the subsequent command will be recieved, if the command is BACKSPACE
+  // When the subsequent command will be received, if the command is BACKSPACE
   // last_touchevents_ will be aggregated to miss_touch_event_stat_cache_,
   // if the command is not BACKSPACE last_touchevents_ will be aggregated to
   // touch_event_stat_cache_.

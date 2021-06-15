@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,17 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "base/password_manager.h"
+
 #include "base/system_util.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace mozc {
 TEST(PasswordManager, PasswordManagerTest) {
-  SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
 
-  string password1, password2;
+  std::string password1, password2;
   EXPECT_TRUE(PasswordManager::InitPassword());
   EXPECT_TRUE(PasswordManager::GetPassword(&password1));
   EXPECT_TRUE(PasswordManager::GetPassword(&password2));

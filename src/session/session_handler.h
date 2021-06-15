@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #ifndef MOZC_SESSION_SESSION_HANDLER_H_
 #define MOZC_SESSION_SESSION_HANDLER_H_
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -46,20 +47,10 @@
 // for FRIEND_TEST()
 #include "testing/base/public/gunit_prod.h"
 
-#if defined(OS_ANDROID) || defined(OS_NACL)
-// Session watch dog is not aviable from android mozc for now.
-#define MOZC_DISABLE_SESSION_WATCHDOG
-#endif  // OS_ANDROID || OS_NACL
-
-
 namespace mozc {
 
 #ifndef MOZC_DISABLE_SESSION_WATCHDOG
 class SessionWatchDog;
-#else  // MOZC_DISABLE_SESSION_WATCHDOG
-// Session watch dog is not aviable from android mozc for now.
-// TODO(kkojima): Remove this guard after
-// enabling session watch dog for android.
 #endif  // MOZC_DISABLE_SESSION_WATCHDOG
 class Stopwatch;
 
@@ -93,12 +84,12 @@ class SessionHandler : public SessionHandlerInterface {
   // Starts watch dog timer to cleanup sessions.
   bool StartWatchDog() override;
 
-  // NewSession returns new Sessoin.
+  // NewSession returns new Session.
   // Client needs to delete it properly
   session::SessionInterface *NewSession();
 
   void AddObserver(session::SessionObserverInterface *observer) override;
-  StringPiece GetDataVersion() const override {
+  absl::string_view GetDataVersion() const override {
     return engine_->GetDataVersion();
   }
 
@@ -136,9 +127,6 @@ class SessionHandler : public SessionHandlerInterface {
   bool SetImposedConfig(commands::Command *command);
   bool SetRequest(commands::Command *command);
 
-  bool InsertToStorage(commands::Command *command);
-  bool ReadAllFromStorage(commands::Command *command);
-  bool ClearStorage(commands::Command *command);
   bool Cleanup(commands::Command *command);
   bool SendUserDictionaryCommand(commands::Command *command);
   bool SendEngineReloadRequest(commands::Command *command);
@@ -150,16 +138,12 @@ class SessionHandler : public SessionHandlerInterface {
   std::unique_ptr<SessionMap> session_map_;
 #ifndef MOZC_DISABLE_SESSION_WATCHDOG
   std::unique_ptr<SessionWatchDog> session_watch_dog_;
-#else  // MOZC_DISABLE_SESSION_WATCHDOG
-  // Session watch dog is not aviable from android mozc and nacl mozc for now.
-  // TODO(kkojima): Remove this guard after
-  // enabling session watch dog for android.
 #endif  // MOZC_DISABLE_SESSION_WATCHDOG
   bool is_available_ = false;
-  uint32 max_session_size_ = 0;
-  uint64 last_session_empty_time_ = 0;
-  uint64 last_cleanup_time_ = 0;
-  uint64 last_create_session_time_ = 0;
+  uint32_t max_session_size_ = 0;
+  uint64_t last_session_empty_time_ = 0;
+  uint64_t last_cleanup_time_ = 0;
+  uint64_t last_create_session_time_ = 0;
 
   std::unique_ptr<EngineInterface> engine_;
   std::unique_ptr<EngineBuilderInterface> engine_builder_;

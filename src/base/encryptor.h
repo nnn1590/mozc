@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_BASE_ENCRYPTOR_H_
 #define MOZC_BASE_ENCRYPTOR_H_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -45,27 +46,26 @@ class Encryptor {
     // Make a session key from password and salt.
     // You can also set an initialization vector whose
     // size must be iv_size().
-    // if iv is NULL, default iv is used.
-    bool DeriveFromPassword(const string &password,
-                            const string &salt,
-                            const uint8 *iv);
+    // if iv is nullptr, default iv is used.
+    bool DeriveFromPassword(const std::string &password,
+                            const std::string &salt, const uint8_t *iv);
 
     // use default iv.
-    bool DeriveFromPassword(const string &password,
-                            const string &salt) {
-      return DeriveFromPassword(password, salt, NULL);
+    bool DeriveFromPassword(const std::string &password,
+                            const std::string &salt) {
+      return DeriveFromPassword(password, salt, nullptr);
     }
 
     // use empty salt and default iv
-    bool DeriveFromPassword(const string &password) {
-      return DeriveFromPassword(password, "", NULL);
+    bool DeriveFromPassword(const std::string &password) {
+      return DeriveFromPassword(password, "", nullptr);
     }
 
     // return block size. the result should be 16byte with AES
     size_t block_size() const;
 
     // return initialization vector
-    const uint8* iv() const;
+    const uint8_t *iv() const;
 
     // return the size of initialization vector
     // the result should be the same as block_size() with AES
@@ -99,10 +99,10 @@ class Encryptor {
   static bool DecryptArray(const Key &key, char *buf, size_t *buf_size);
 
   // Encrypt string with key.
-  static bool EncryptString(const Key &key, string *data);
+  static bool EncryptString(const Key &key, std::string *data);
 
   // Encrypt string with key.
-  static bool DecryptString(const Key &key, string *data);
+  static bool DecryptString(const Key &key, std::string *data);
 
   // Encrypt string to protect plain_text which may contain
   // sensitive data, like auth_token, password ..etc.
@@ -110,11 +110,13 @@ class Encryptor {
   // http://msdn.microsoft.com/en-us/library/aa380261.aspx
   // Basically, it uses a OS-specific encrpytor object to
   // encrypt/decrypt data
-  static bool ProtectData(const string &plain_text, string *cipher_text);
+  static bool ProtectData(const std::string &plain_text,
+                          std::string *cipher_text);
 
   // Decrpyt string to unprotect cipher_text.
   // It uses CryptUnprotectData API to decrypt data on Windows.
-  static bool UnprotectData(const string &cipher_text, string *plain_text);
+  static bool UnprotectData(const std::string &cipher_text,
+                            std::string *plain_text);
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(Encryptor);

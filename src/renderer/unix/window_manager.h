@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@ class WindowManager : public WindowManagerInterface {
   std::unique_ptr<GtkWindowInterface> infolist_window_;
   std::unique_ptr<GtkWrapperInterface> gtk_;
   client::SendCommandInterface *send_command_interface_;
-  string previous_font_description_;
+  std::string previous_font_description_;
   DISALLOW_COPY_AND_ASSIGN(WindowManager);
 };
 

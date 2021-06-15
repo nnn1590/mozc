@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,10 @@
 #ifndef MOZC_WIN32_CUSTOM_ACTION_CUSTOM_ACTION_H_
 #define MOZC_WIN32_CUSTOM_ACTION_CUSTOM_ACTION_H_
 
+// clang-format off
 #include <windows.h>
 #include <msi.h>
+// clang-format on
 
 // Ensures that "ALL APPLICATION PACKAGES" group has read/execute accesses
 // to server, renderer, and TIP DLL files.
@@ -94,7 +96,7 @@ UINT __stdcall InitialInstallationCommit(MSIHANDLE msi_handle);
 // RestoreServiceState.
 // Since they are executed as deferred customs actions and most properties
 // cannot be accessible from a deferred custom action, it is necessary to store
-// these data explictly to CustomCationData.
+// these data explicitly to CustomCationData.
 UINT __stdcall SaveCustomActionData(MSIHANDLE msi_handle);
 
 // Restore the settings of the cache service as it was.

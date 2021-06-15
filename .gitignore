@@ -4,10 +4,30 @@
 # backup files (vim)
 .*.swp
 
+# backup files (mercurial)
+*.orig
+
 # Python compiled objects
 *.pyc
 
-# Mozc build artifacts
+# Hidden files
+.DS_Store
+
+# Temporary dir for Docker
+/docker/ubuntu20.04/src/
+
+# Temporary working dirs
+/src-*
+/src_*
+
+# Mozc build artifacts by Bazel (symbolic links)
+/src/bazel-bin
+/src/bazel-out
+/src/bazel-src
+/src/bazel-src_*
+/src/bazel-testlogs
+
+# Mozc build artifacts by GYP
 /src/out_android/
 /src/out_linux/
 /src/out_mac/

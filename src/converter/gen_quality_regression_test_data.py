@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""
-A tool to embedded tsv file into test binary for quality regression test.
-"""
+"""A tool to embedded tsv file into test binary for quality regression test."""
 
-__author__ = "taku"
+from __future__ import absolute_import
+from __future__ import print_function
 
-import xml.dom.minidom
+import codecs
 import sys
+import xml.dom.minidom
+
 
 def EscapeString(s):
-  """ escape the string with "\\xXX" format.
+  r"""escape the string with "\xXX" format.
 
   We don't use encode('string_escape') because it doesn't escape ascii
   characters.
@@ -49,18 +50,14 @@ def EscapeString(s):
   Returns:
     an escaped string.
   """
-  result = ''
-  for c in s:
-    hexstr = hex(ord(c))
-    # because hexstr contains '0x', remove the prefix and add our prefix
-    result += '\\x' + hexstr[2:]
-  return result
+  return ''.join([r'\x%02X' % c for c in s.encode('utf-8')])
 
 _DISABLED = 'false'
 _ENABLED = 'true'
 
+
 def ParseTSV(file):
-  for line in open(file, 'r'):
+  for line in codecs.open(file, 'r', encoding='utf-8'):
     if line.startswith('#'):
       continue
     line = line.rstrip('\r\n')
@@ -77,7 +74,8 @@ def GetText(node):
 
 
 def ParseXML(file):
-  dom = xml.dom.minidom.parse(file)
+  contents = codecs.open(file, 'r', encoding='utf-8').read()
+  dom = xml.dom.minidom.parseString(contents)
   for issue in dom.getElementsByTagName('issue'):
     status = GetText(issue.getElementsByTagName('status'))
     enabled = (_DISABLED if status != 'Fixed' and status != 'Verified'
@@ -91,7 +89,7 @@ def ParseXML(file):
         fields.append(GetText(detail.getElementsByTagName(key)))
       if target:
         fields.append(target)
-      tsv_line = ('\t'.join(fields)).encode('utf-8')
+      tsv_line = '\t'.join(fields)
       yield (enabled, tsv_line)
 
 
@@ -103,21 +101,23 @@ def ParseFile(file):
 
 
 def GenerateHeader(files):
-  try:
-    print 'namespace mozc{'
-    print 'struct TestCase {'
-    print '  const bool enabled;'
-    print '  const char *tsv;'
-    print '} kTestData[] = {'
-    for file in files:
+  print('namespace mozc{')
+  print('struct TestCase {')
+  print('  const bool enabled;')
+  print('  const char *tsv;')
+  print('} kTestData[] = {')
+
+  for file in files:
+    try:
       for enabled, line in ParseFile(file):
-        print ' {%s, "%s"},' % (enabled, EscapeString(line))
-    print '  {false, nullptr},'
-    print '};'
-    print '}  // namespace mozc'
-  except:
-    print 'cannot open %s' % (file)
-    sys.exit(1)
+        print(' {%s, "%s"},' % (enabled, EscapeString(line)))
+    except Exception as e:  # pylint: disable=broad-except
+      print('cannot open %s: %s' % (file, e))
+      sys.exit(1)
+
+  print('  {false, nullptr},')
+  print('};')
+  print('}  // namespace mozc')
 
 
 def main():

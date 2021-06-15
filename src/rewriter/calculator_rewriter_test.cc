@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -45,13 +45,16 @@
 #include "request/conversion_request.h"
 #include "rewriter/calculator/calculator_interface.h"
 #include "rewriter/calculator/calculator_mock.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
+#include "absl/strings/match.h"
 
 namespace mozc {
 namespace {
-void AddCandidate(const string &key, const string &value, Segment *segment) {
+void AddCandidate(const std::string &key, const std::string &value,
+                  Segment *segment) {
   Segment::Candidate *candidate = segment->add_candidate();
   candidate->Init();
   candidate->value = value;
@@ -59,13 +62,15 @@ void AddCandidate(const string &key, const string &value, Segment *segment) {
   candidate->content_key = key;
 }
 
-void AddSegment(const string &key, const string &value, Segments *segments) {
+void AddSegment(const std::string &key, const std::string &value,
+                Segments *segments) {
   Segment *segment = segments->push_back_segment();
   segment->set_key(key);
   AddCandidate(key, value, segment);
 }
 
-void SetSegment(const string &key, const string &value, Segments *segments) {
+void SetSegment(const std::string &key, const std::string &value,
+                Segments *segments) {
   segments->Clear();
   AddSegment(key, value, segments);
 }
@@ -73,7 +78,7 @@ void SetSegment(const string &key, const string &value, Segments *segments) {
 const char kCalculationDescription[] = "計算結果";
 
 bool ContainsCalculatedResult(const Segment::Candidate &candidate) {
-  return candidate.description.find(kCalculationDescription) != string::npos;
+  return absl::StrContains(candidate.description, kCalculationDescription);
 }
 
 // If the segment has a candidate which was inserted by CalculatorRewriter,
@@ -98,23 +103,20 @@ class CalculatorRewriterTest : public ::testing::Test {
   }
 
   static bool InsertCandidate(const CalculatorRewriter &calculator_rewriter,
-                              const string &value,
-                              size_t insert_pos,
+                              const std::string &value, size_t insert_pos,
                               Segment *segment) {
     return calculator_rewriter.InsertCandidate(value, insert_pos, segment);
   }
 
-  CalculatorMock &calculator_mock() {
-    return calculator_mock_;
-  }
+  CalculatorMock &calculator_mock() { return calculator_mock_; }
 
   CalculatorRewriter *BuildCalculatorRewriterWithConverterMock() {
-    converter_mock_.reset(new ConverterMock);
+    converter_mock_ = absl::make_unique<ConverterMock>();
     return new CalculatorRewriter(converter_mock_.get());
   }
 
-  virtual void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
 
     // use mock
     CalculatorFactory::SetCalculator(&calculator_mock_);
@@ -123,9 +125,9 @@ class CalculatorRewriterTest : public ::testing::Test {
     config_.set_use_calculator(true);
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     // Clear the mock test calculator
-    CalculatorFactory::SetCalculator(NULL);
+    CalculatorFactory::SetCalculator(nullptr);
   }
 
   ConversionRequest convreq_;
@@ -215,8 +217,8 @@ TEST_F(CalculatorRewriterTest, SeparatedSegmentsTest) {
   EXPECT_NE(index, -1);
 
   // Secondary result with expression (description: "1+1=2");
-  EXPECT_TRUE(ContainsCalculatedResult(
-      segments.segment(0).candidate(index + 1)));
+  EXPECT_TRUE(
+      ContainsCalculatedResult(segments.segment(0).candidate(index + 1)));
 
   EXPECT_EQ("2", segments.segment(0).candidate(index).value);
   EXPECT_EQ("1+1=2", segments.segment(0).candidate(index + 1).value);
@@ -237,8 +239,8 @@ TEST_F(CalculatorRewriterTest, ExpressionStartingWithEqualTest) {
   int index = GetIndexOfCalculatedCandidate(segments);
   EXPECT_NE(-1, index);
   EXPECT_EQ("2", segments.segment(0).candidate(index).value);
-  EXPECT_TRUE(ContainsCalculatedResult(
-      segments.segment(0).candidate(index + 1)));
+  EXPECT_TRUE(
+      ContainsCalculatedResult(segments.segment(0).candidate(index + 1)));
   // CalculatorRewriter should append the result to the side '=' exists.
   EXPECT_EQ("2=1+1", segments.segment(0).candidate(index + 1).value);
 }
@@ -247,7 +249,7 @@ TEST_F(CalculatorRewriterTest, ExpressionStartingWithEqualTest) {
 TEST_F(CalculatorRewriterTest, DescriptionCheckTest) {
   const char kExpression[] = "５・（８／４）ー７％３＋６＾−１＊９＝";
   // Expected description
-  const string description = kCalculationDescription;
+  const std::string description = kCalculationDescription;
 
   // Pretend kExpression is calculated to "3"
   calculator_mock().SetCalculatePair(kExpression, "3", true);
@@ -262,8 +264,8 @@ TEST_F(CalculatorRewriterTest, DescriptionCheckTest) {
   const int index = GetIndexOfCalculatedCandidate(segments);
 
   EXPECT_EQ(segments.segment(0).candidate(index).description, description);
-  EXPECT_TRUE(ContainsCalculatedResult(
-      segments.segment(0).candidate(index + 1)));
+  EXPECT_TRUE(
+      ContainsCalculatedResult(segments.segment(0).candidate(index + 1)));
 }
 
 TEST_F(CalculatorRewriterTest, ConfigTest) {

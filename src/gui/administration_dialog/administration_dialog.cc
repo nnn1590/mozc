@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,26 +33,29 @@
 
 #include "base/run_level.h"
 #include "config/stats_config_util.h"
+#include "gui/base/util.h"
+#ifdef OS_WIN
 #include "server/cache_service_manager.h"
+#endif  // OS_WIN
 
 namespace mozc {
 namespace gui {
 
+#ifdef OS_WIN
 using mozc::config::StatsConfigUtil;
+#endif  // OS_WIN
 
-AdministrationDialog::AdministrationDialog() {
+AdministrationDialog::AdministrationDialog()
+    : dialog_title_(
+          GuiUtil::ReplaceString(tr("[ProductName] administration settings"))) {
   setupUi(this);
-  setWindowFlags(Qt::WindowSystemMenuHint |
-                 Qt::WindowCloseButtonHint |
-                 Qt::MSWindowsFixedSizeDialogHint |
-                 Qt::WindowStaysOnTopHint);
+  setWindowFlags(Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint |
+                 Qt::MSWindowsFixedSizeDialogHint | Qt::WindowStaysOnTopHint);
   setWindowModality(Qt::NonModal);
 
   // signal/slot
-  connect(AdministrationDialogbuttonBox,
-          SIGNAL(clicked(QAbstractButton *)),
-          this,
-          SLOT(clicked(QAbstractButton *)));
+  connect(AdministrationDialogbuttonBox, SIGNAL(clicked(QAbstractButton *)),
+          this, SLOT(clicked(QAbstractButton *)));
 
   // When clicking these messages, CheckBoxs corresponding
   // to them should be toggled.
@@ -64,16 +67,17 @@ AdministrationDialog::AdministrationDialog() {
 
 #ifdef CHANNEL_DEV
   usageStatsCheckBox->setEnabled(false);
-#endif
+#endif  // CHANNEL_DEV
 
   usageStatsCheckBox->setChecked(StatsConfigUtil::IsEnabled());
 
   ElevatedProcessDisabledcheckBox->setChecked(
       RunLevel::GetElevatedProcessDisabled());
 
-  CacheServiceEnabledcheckBox->setChecked(
-      CacheServiceManager::IsEnabled() || CacheServiceManager::IsRunning());
+  CacheServiceEnabledcheckBox->setChecked(CacheServiceManager::IsEnabled() ||
+                                          CacheServiceManager::IsRunning());
 #endif
+  GuiUtil::ReplaceWidgetLabels(this);
 }
 
 AdministrationDialog::~AdministrationDialog() {}
@@ -86,8 +90,7 @@ bool AdministrationDialog::CanStartService() {
 
   if (!CacheServiceManager::HasEnoughMemory()) {
     QMessageBox::critical(
-        this,
-        tr("Mozc administration settings"),
+        this, dialog_title_,
         tr("This computer does not have enough memory to load "
            "dictionary into physical memory."));
     return false;
@@ -104,8 +107,7 @@ void AdministrationDialog::clicked(QAbstractButton *button) {
     case QDialogButtonBox::AcceptRole:
       if (!StatsConfigUtil::SetEnabled(usageStatsCheckBox->isChecked())) {
         QMessageBox::critical(
-            this,
-            tr("Mozc administration settings"),
+            this, dialog_title_,
             tr("Failed to change the configuration of "
                "usage statistics and crash report. "
                "Administrator privilege is required to change the "
@@ -121,8 +123,7 @@ void AdministrationDialog::clicked(QAbstractButton *button) {
         }
         if (!result) {
           QMessageBox::critical(
-              this,
-              tr("Mozc administration settings"),
+              this, dialog_title_,
               tr("Failed to change the configuration of on-memory dictionary. "
                  "Administrator privilege is required to change the "
                  "configuration."));
@@ -130,16 +131,14 @@ void AdministrationDialog::clicked(QAbstractButton *button) {
       }
 
       if (ElevatedProcessDisabledcheckBox->isVisible() &&
-          RunLevel::GetElevatedProcessDisabled()
-          != ElevatedProcessDisabledcheckBox->isChecked()) {
-        if (!RunLevel::SetElevatedProcessDisabled
-            (ElevatedProcessDisabledcheckBox->isChecked())) {
-          QMessageBox::critical(
-              this,
-              tr("Mozc administration settings"),
-              tr("Failed to save the UAC policy setting. "
-                 "Administrator privilege is required to "
-                 "change UAC settings."));
+          RunLevel::GetElevatedProcessDisabled() !=
+              ElevatedProcessDisabledcheckBox->isChecked()) {
+        if (!RunLevel::SetElevatedProcessDisabled(
+                ElevatedProcessDisabledcheckBox->isChecked())) {
+          QMessageBox::critical(this, dialog_title_,
+                                tr("Failed to save the UAC policy setting. "
+                                   "Administrator privilege is required to "
+                                   "change UAC settings."));
         }
       }
       QWidget::close();

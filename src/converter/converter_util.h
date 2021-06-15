@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 #define MOZC_CONVERTER_CONVERTER_UTIL_H_
 
 #include <string>
+
 #include "base/port.h"
 
 namespace mozc {
@@ -44,8 +45,8 @@ class ConverterUtil {
   // same as the preedit.  This function can be used for error handling.
   // When the converter fails, we can call this function to make a
   // virtual segment.
-  static void InitSegmentsFromString(const string &key,
-                                     const string &preedit,
+  static void InitSegmentsFromString(const std::string &key,
+                                     const std::string &preedit,
                                      Segments *segments);
 
  private:

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "base/hash.h"
 
+#include <cstdint>
 #include <string>
 
 #include "base/port.h"
@@ -38,7 +39,7 @@ namespace mozc {
 namespace {
 
 TEST(HashTest, Basic) {
-  string s = "";
+  std::string s = "";
   EXPECT_EQ(0x0d46d8e3, Hash::Fingerprint32(s));
   EXPECT_EQ(0x1153f4be, Hash::Fingerprint32WithSeed(s, 0xdeadbeef));
   EXPECT_EQ(0x2dcdbae1b24d9501, Hash::Fingerprint(s));
@@ -58,41 +59,41 @@ TEST(HashTest, Basic) {
 }
 
 TEST(HashTest, Fingerprint32WithSeed_IntegralTypes) {
-  const uint32 seed = 0xabcdef;
+  const uint32_t seed = 0xabcdef;
   {
-    const int32 num = 0x12345678;  // Little endian is assumed.
+    const int32_t num = 0x12345678;  // Little endian is assumed.
     const char* str = "\x78\x56\x34\x12";
 
-    const uint32 num_hash32 = Hash::Fingerprint32WithSeed(num, seed);
-    const uint32 str_hash32 = Hash::Fingerprint32WithSeed(str, seed);
+    const uint32_t num_hash32 = Hash::Fingerprint32WithSeed(num, seed);
+    const uint32_t str_hash32 = Hash::Fingerprint32WithSeed(str, seed);
     EXPECT_EQ(num_hash32, str_hash32);
 
-    const uint64 num_hash64 = Hash::FingerprintWithSeed(num, seed);
-    const uint64 str_hash64 = Hash::FingerprintWithSeed(str, seed);
+    const uint64_t num_hash64 = Hash::FingerprintWithSeed(num, seed);
+    const uint64_t str_hash64 = Hash::FingerprintWithSeed(str, seed);
     EXPECT_EQ(num_hash64, str_hash64);
   }
   {
-    const uint8 num = 0x12;  // Little endian is assumed.
+    const uint8_t num = 0x12;  // Little endian is assumed.
     const char* str = "\x12";
 
-    const uint32 num_hash32 = Hash::Fingerprint32WithSeed(num, seed);
-    const uint32 str_hash32 = Hash::Fingerprint32WithSeed(str, seed);
+    const uint32_t num_hash32 = Hash::Fingerprint32WithSeed(num, seed);
+    const uint32_t str_hash32 = Hash::Fingerprint32WithSeed(str, seed);
     EXPECT_EQ(num_hash32, str_hash32);
 
-    const uint64 num_hash64 = Hash::FingerprintWithSeed(num, seed);
-    const uint64 str_hash64 = Hash::FingerprintWithSeed(str, seed);
+    const uint64_t num_hash64 = Hash::FingerprintWithSeed(num, seed);
+    const uint64_t str_hash64 = Hash::FingerprintWithSeed(str, seed);
     EXPECT_EQ(num_hash64, str_hash64);
   }
   {
-    const uint32 num = 0x12345678;  // Little endian is assumed.
+    const uint32_t num = 0x12345678;  // Little endian is assumed.
     const char* str = "\x78\x56\x34\x12";
 
-    const uint32 num_hash32 = Hash::Fingerprint32WithSeed(num, seed);
-    const uint32 str_hash32 = Hash::Fingerprint32WithSeed(str, seed);
+    const uint32_t num_hash32 = Hash::Fingerprint32WithSeed(num, seed);
+    const uint32_t str_hash32 = Hash::Fingerprint32WithSeed(str, seed);
     EXPECT_EQ(num_hash32, str_hash32);
 
-    const uint64 num_hash64 = Hash::FingerprintWithSeed(num, seed);
-    const uint64 str_hash64 = Hash::FingerprintWithSeed(str, seed);
+    const uint64_t num_hash64 = Hash::FingerprintWithSeed(num, seed);
+    const uint64_t str_hash64 = Hash::FingerprintWithSeed(str, seed);
     EXPECT_EQ(num_hash64, str_hash64);
   }
 }

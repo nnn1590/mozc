@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@
 #include "base/system_util.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace storage {
@@ -49,18 +51,18 @@ namespace {
 // them, because we cannot launch JVM from native tests on Android.
 class TestEncryptedStringStorage : public EncryptedStringStorage {
  public:
-  explicit TestEncryptedStringStorage(const string &filename)
-      : EncryptedStringStorage(filename) {
-  }
+  explicit TestEncryptedStringStorage(const std::string &filename)
+      : EncryptedStringStorage(filename) {}
+
  protected:
-  virtual bool Encrypt(const string &salt, string *data) const {
+  virtual bool Encrypt(const std::string &salt, std::string *data) const {
     salt_ = salt;
     original_data_ = *data;
     *data = "123456789012345678901234567890";
     return true;
   }
 
-  virtual bool Decrypt(const string &salt, string *data) const {
+  virtual bool Decrypt(const std::string &salt, std::string *data) const {
     if (salt_ != salt) {
       return false;
     }
@@ -69,8 +71,8 @@ class TestEncryptedStringStorage : public EncryptedStringStorage {
     return true;
   }
 
-  mutable string salt_;
-  mutable string original_data_;
+  mutable std::string salt_;
+  mutable std::string original_data_;
 };
 #else
 typedef EncryptedStringStorage TestEncryptedStringStorage;
@@ -79,15 +81,15 @@ typedef EncryptedStringStorage TestEncryptedStringStorage;
 
 class EncryptedStringStorageTest : public testing::Test {
  protected:
-  void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
     filename_ = FileUtil::JoinPath(SystemUtil::GetUserProfileDirectory(),
                                    "encrypted_string_storage_for_test.db");
 
-    storage_.reset(new TestEncryptedStringStorage(filename_));
+    storage_ = absl::make_unique<TestEncryptedStringStorage>(filename_);
   }
 
-  string filename_;
+  std::string filename_;
   std::unique_ptr<EncryptedStringStorage> storage_;
 };
 
@@ -95,7 +97,7 @@ TEST_F(EncryptedStringStorageTest, SaveAndLoad) {
   const char *kData = "abcdefghijklmnopqrstuvwxyz";
   ASSERT_TRUE(storage_->Save(kData));
 
-  string output;
+  std::string output;
   ASSERT_TRUE(storage_->Load(&output));
 
   EXPECT_EQ(kData, output);
@@ -105,7 +107,7 @@ TEST_F(EncryptedStringStorageTest, SaveAndLoad) {
 // Note: On Android, we cannot check the behavior of Encryption because
 // it depends on the JVM's behavior, which cannot be launched from native test.
 TEST_F(EncryptedStringStorageTest, Encrypt) {
-  const string original_data = "abcdefghijklmnopqrstuvwxyz";
+  const std::string original_data = "abcdefghijklmnopqrstuvwxyz";
   ASSERT_TRUE(storage_->Save(original_data));
 
   InputFileStream ifs(filename_.c_str(), (std::ios::in | std::ios::binary));
@@ -118,12 +120,12 @@ TEST_F(EncryptedStringStorageTest, Encrypt) {
   const size_t read_size = ifs.gcount();
   ifs.peek();
   ASSERT_TRUE(ifs.eof());
-  const string result(buf, read_size);
+  const std::string result(buf, read_size);
 
-  // Saved stirng is longer than original string since it has some data
+  // Saved string is longer than original string since it has some data
   // used for encryption.
   EXPECT_LT(original_data.size(), result.size());
-  EXPECT_TRUE(result.find(original_data) == string::npos);
+  EXPECT_TRUE(result.find(original_data) == std::string::npos);
 }
 #endif  // OS_ANDROID
 

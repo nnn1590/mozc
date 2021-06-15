@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,9 @@
 #include <Windows.h>
 #define _ATL_NO_AUTOMATIC_NAMESPACE
 #define _WTL_NO_AUTOMATIC_NAMESPACE
+#include <Ctffunc.h>
 #include <atlbase.h>
 #include <atlcom.h>
-#include <Ctffunc.h>
 
 #include <memory>
 #include <string>
@@ -68,9 +68,7 @@ const wchar_t kReconvertFunctionDisplayName[] = L"Mozc: Reconversion Function";
 class CandidateListCallbackImpl : public TipCandidateListCallback {
  public:
   CandidateListCallbackImpl(TipTextService *text_service, ITfRange *range)
-      : text_service_(text_service),
-        range_(range) {
-  }
+      : text_service_(text_service), range_(range) {}
 
  private:
   // TipCandidateListCallback overrides:
@@ -87,8 +85,7 @@ class CandidateListCallbackImpl : public TipCandidateListCallback {
 class ReconvertFunctionImpl : public ITfFnReconversion {
  public:
   explicit ReconvertFunctionImpl(TipTextService *text_service)
-      : text_service_(text_service) {
-  }
+      : text_service_(text_service) {}
   ~ReconvertFunctionImpl() {}
 
   // The IUnknown interface methods.
@@ -114,9 +111,7 @@ class ReconvertFunctionImpl : public ITfFnReconversion {
     return S_OK;
   }
 
-  STDMETHODIMP_(ULONG) AddRef() {
-    return ref_count_.AddRefImpl();
-  }
+  STDMETHODIMP_(ULONG) AddRef() { return ref_count_.AddRefImpl(); }
 
   STDMETHODIMP_(ULONG) Release() {
     const ULONG count = ref_count_.ReleaseImpl();
@@ -137,8 +132,9 @@ class ReconvertFunctionImpl : public ITfFnReconversion {
   }
 
   // The ITfFnReconversion interface method.
-  virtual HRESULT STDMETHODCALLTYPE QueryRange(
-      ITfRange *range, ITfRange **new_range, BOOL *convertable) {
+  virtual HRESULT STDMETHODCALLTYPE QueryRange(ITfRange *range,
+                                               ITfRange **new_range,
+                                               BOOL *convertible) {
     if (range == nullptr) {
       return E_INVALIDARG;
     }
@@ -146,10 +142,10 @@ class ReconvertFunctionImpl : public ITfFnReconversion {
       return E_INVALIDARG;
     }
     BOOL dummy_bool = FALSE;
-    if (convertable == nullptr) {
-      convertable = &dummy_bool;
+    if (convertible == nullptr) {
+      convertible = &dummy_bool;
     }
-    *convertable = FALSE;
+    *convertible = FALSE;
     *new_range = nullptr;
 
     CComPtr<ITfContext> context;
@@ -164,7 +160,7 @@ class ReconvertFunctionImpl : public ITfFnReconversion {
 
     if (info.in_composition) {
       // on-going composition is found.
-      *convertable = FALSE;
+      *convertible = FALSE;
       *new_range = nullptr;
       return S_OK;
     }
@@ -172,7 +168,7 @@ class ReconvertFunctionImpl : public ITfFnReconversion {
     if (info.selected_text.find(static_cast<wchar_t>(TS_CHAR_EMBEDDED)) !=
         std::wstring::npos) {
       // embedded object is found.
-      *convertable = FALSE;
+      *convertible = FALSE;
       *new_range = nullptr;
       return S_OK;
     }
@@ -180,12 +176,12 @@ class ReconvertFunctionImpl : public ITfFnReconversion {
     if (FAILED(range->Clone(new_range))) {
       return E_FAIL;
     }
-    *convertable = TRUE;
+    *convertible = TRUE;
     return S_OK;
   }
 
-  virtual HRESULT STDMETHODCALLTYPE GetReconversion(
-      ITfRange *range, ITfCandidateList **candidate_list) {
+  virtual HRESULT STDMETHODCALLTYPE
+  GetReconversion(ITfRange *range, ITfCandidateList **candidate_list) {
     if (range == nullptr) {
       return E_INVALIDARG;
     }
@@ -201,9 +197,7 @@ class ReconvertFunctionImpl : public ITfFnReconversion {
       return E_FAIL;
     }
     std::vector<std::wstring> candidates;
-    if (!provider->Query(query,
-                         TipQueryProvider::kReconversion,
-                         &candidates)) {
+    if (!provider->Query(query, TipQueryProvider::kReconversion, &candidates)) {
       return E_FAIL;
     }
     auto *callback = new CandidateListCallbackImpl(text_service_, range);

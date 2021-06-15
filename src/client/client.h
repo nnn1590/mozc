@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #ifndef MOZC_CLIENT_CLIENT_H_
 #define MOZC_CLIENT_CLIENT_H_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -39,6 +40,7 @@
 #include "base/port.h"
 #include "client/client_interface.h"
 #include "protocol/commands.pb.h"
+#include "protocol/config.pb.h"
 #include "testing/base/public/gunit_prod.h"
 // for FRIEND_TEST()
 
@@ -47,48 +49,44 @@ class IPCClientFactoryInterface;
 
 namespace config {
 class Config;
-}  // config
+}  // namespace config
 
 namespace client {
 
-// default ServerLauncher implemntation.
+// default ServerLauncher implementation.
 // This class uses fork&exec (linux/mac) and CreateProcess() (Windows)
 // to launch server process
 class ServerLauncher : public ServerLauncherInterface {
  public:
-  bool StartServer(ClientInterface *client);
+  bool StartServer(ClientInterface *client) override;
 
-  bool ForceTerminateServer(const string &name);
+  bool ForceTerminateServer(const std::string &name) override;
 
-  bool WaitServer(uint32 pid);
+  bool WaitServer(uint32_t pid) override;
 
-  void OnFatal(ServerLauncherInterface::ServerErrorType type);
+  void OnFatal(ServerLauncherInterface::ServerErrorType type) override;
 
   // specify server program. On Mac, we need to specify the server path
   // using this method.
-  void set_server_program(const string &server_program) {
+  void set_server_program(const std::string &server_program) override {
     server_program_ = server_program;
   }
 
   // return server program
-  const string &server_program() const {
-    return server_program_;
-  }
+  const std::string &server_program() const override { return server_program_; }
 
-  void set_restricted(bool restricted) {
-    restricted_ = restricted;
-  }
+  void set_restricted(bool restricted) override { restricted_ = restricted; }
 
   // Sets the flag of error dialog suppression.
-  void set_suppress_error_dialog(bool suppress) {
+  void set_suppress_error_dialog(bool suppress) override {
     suppress_error_dialog_ = suppress;
   }
 
   ServerLauncher();
-  virtual ~ServerLauncher();
+  ~ServerLauncher() override;
 
  private:
-  string server_program_;
+  std::string server_program_;
   bool restricted_;
   bool suppress_error_dialog_;
 };
@@ -96,65 +94,65 @@ class ServerLauncher : public ServerLauncherInterface {
 class Client : public ClientInterface {
  public:
   Client();
-  virtual ~Client();
-  void SetIPCClientFactory(IPCClientFactoryInterface *client_factory);
+  ~Client() override;
+  void SetIPCClientFactory(IPCClientFactoryInterface *client_factory) override;
 
   // set ServerLauncher.
   // ServerLauncher is used as default
   // NOTE: Client class takes the owership of start_server_handler.
-  void SetServerLauncher(ServerLauncherInterface *server_launcher);
+  void SetServerLauncher(ServerLauncherInterface *server_launcher) override;
 
-  bool IsValidRunLevel() const;
+  bool IsValidRunLevel() const override;
 
-  bool EnsureConnection();
+  bool EnsureConnection() override;
 
-  bool EnsureSession();
+  bool EnsureSession() override;
 
-  bool CheckVersionOrRestartServer();
+  bool CheckVersionOrRestartServer() override;
 
   bool SendKeyWithContext(const commands::KeyEvent &key,
                           const commands::Context &context,
-                          commands::Output *output);
+                          commands::Output *output) override;
   bool TestSendKeyWithContext(const commands::KeyEvent &key,
                               const commands::Context &context,
-                              commands::Output *output);
+                              commands::Output *output) override;
   bool SendCommandWithContext(const commands::SessionCommand &command,
                               const commands::Context &context,
-                              commands::Output *output);
+                              commands::Output *output) override;
 
-  bool GetConfig(config::Config *config);
-  bool SetConfig(const config::Config &config);
+  bool GetConfig(config::Config *config) override;
+  bool SetConfig(const config::Config &config) override;
 
-  bool ClearUserHistory();
-  bool ClearUserPrediction();
-  bool ClearUnusedUserPrediction();
-  bool Shutdown();
-  bool SyncData();
-  bool Reload();
-  bool Cleanup();
+  bool ClearUserHistory() override;
+  bool ClearUserPrediction() override;
+  bool ClearUnusedUserPrediction() override;
+  bool Shutdown() override;
+  bool SyncData() override;
+  bool Reload() override;
+  bool Cleanup() override;
 
-  bool NoOperation();
-  bool PingServer() const;
+  bool NoOperation() override;
+  bool PingServer() const override;
 
-  void Reset();
+  void Reset() override;
 
-  void EnableCascadingWindow(bool enable);
+  void EnableCascadingWindow(bool enable) override;
 
-  void set_timeout(int timeout);
-  void set_restricted(bool restricted);
-  void set_server_program(const string &server_program);
-  void set_suppress_error_dialog(bool suppress);
-  void set_client_capability(const commands::Capability &capability);
+  void set_timeout(int timeout) override;
+  void set_restricted(bool restricted) override;
+  void set_server_program(const std::string &program_path) override;
+  void set_suppress_error_dialog(bool suppress) override;
+  void set_client_capability(const commands::Capability &capability) override;
 
-  bool LaunchTool(const string &mode, const string &arg);
-  bool LaunchToolWithProtoBuf(const commands::Output &output);
+  bool LaunchTool(const std::string &mode, const std::string &arg) override;
+  bool LaunchToolWithProtoBuf(const commands::Output &output) override;
   // Converts Output message from server to corresponding mozc_tool arguments
   // If launch_tool_mode is not set or NO_TOOL is set or an invalid value is
   // set, this function will return false and do nothing.
   static bool TranslateProtoBufToMozcToolArg(const commands::Output &output,
-                                             string *mode);
+                                             std::string *mode);
 
-  bool OpenBrowser(const string &url);
+  bool OpenBrowser(const std::string &url) override;
 
  private:
   FRIEND_TEST(SessionPlaybackTest, PushAndResetHistoryWithNoModeTest);
@@ -177,12 +175,13 @@ class Client : public ClientInterface {
 
   // Dump the recent user inputs to specified file with label
   // This is used for debugging
-  void DumpHistorySnapshot(const string &filename,
-                           const string &label) const;
+  void DumpHistorySnapshot(const std::string &filename,
+                           const std::string &label) const;
 
   // Start server:
-  // return true if server is launched sucessfully or server is already running.
-  // return false if server cannot be launched.
+  // * Return true if server is launched successfully or server is already
+  //   running.
+  // * Return false if server cannot be launched.
   // If server_program is empty, which is default setting, the path to
   // GoogleJapaneseInputConverter is determined automatically.
   // Windows: "C:\Program Files\Google\Google Japanese Input\"
@@ -201,15 +200,13 @@ class Client : public ClientInterface {
 
   // This method automatically re-launch mozc_server and
   // re-issue session id if it is not available.
-  bool EnsureCallCommand(commands::Input *input,
-                         commands::Output *output);
+  bool EnsureCallCommand(commands::Input *input, commands::Output *output);
 
   // The most primitive Call method
   // This method won't change the server_status_ even
   // when version mismatch happens. In this case,
   // just return false.
-  bool Call(const commands::Input &input,
-            commands::Output *output);
+  bool Call(const commands::Input &input, commands::Output *output);
 
   // first invoke Call() command and check the
   // protocol_version. When protocol version mismatch,
@@ -241,16 +238,16 @@ class Client : public ClientInterface {
   // copy the history inputs to |result|.
   void GetHistoryInputs(std::vector<commands::Input> *result) const;
 
-  uint64 id_;
+  uint64_t id_;
   IPCClientFactoryInterface *client_factory_;
   std::unique_ptr<ServerLauncherInterface> server_launcher_;
   std::unique_ptr<char[]> result_;
   std::unique_ptr<config::Config> preferences_;
   int timeout_;
   ServerStatus server_status_;
-  uint32 server_protocol_version_;
-  uint32 server_process_id_;
-  string server_product_version_;
+  uint32_t server_protocol_version_;
+  uint32_t server_process_id_;
+  std::string server_product_version_;
   std::vector<commands::Input> history_inputs_;
   // Remember the composition mode of input session for playback.
   commands::CompositionMode last_mode_;

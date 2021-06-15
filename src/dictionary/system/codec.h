@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,12 @@
 #ifndef MOZC_DICTIONARY_SYSTEM_CODEC_H_
 #define MOZC_DICTIONARY_SYSTEM_CODEC_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
-#include "base/port.h"
-#include "base/string_piece.h"
 #include "dictionary/system/codec_interface.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace dictionary {
@@ -44,65 +44,69 @@ class SystemDictionaryCodec : public SystemDictionaryCodecInterface {
  public:
   SystemDictionaryCodec();
 
-  virtual ~SystemDictionaryCodec();
+  SystemDictionaryCodec(const SystemDictionaryCodec &) = delete;
+  SystemDictionaryCodec &operator=(const SystemDictionaryCodec &) = delete;
+
+  ~SystemDictionaryCodec() override;
 
   // Return section name for key trie
-  virtual const string GetSectionNameForKey() const;
+  const std::string GetSectionNameForKey() const override;
 
   // Return section name for value trie
-  virtual const string GetSectionNameForValue() const;
+  const std::string GetSectionNameForValue() const override;
 
   // Return section name for tokens array
-  virtual const string GetSectionNameForTokens() const;
+  const std::string GetSectionNameForTokens() const override;
 
   // Return section name for frequent pos map
-  virtual const string GetSectionNameForPos() const;
+  const std::string GetSectionNameForPos() const override;
 
   // Compresses key string into small bytes.
-  virtual void EncodeKey(const StringPiece src, string *dst) const;
+  void EncodeKey(const absl::string_view src, std::string *dst) const override;
 
   // Decompress key string
-  virtual void DecodeKey(const StringPiece src, string *dst) const;
+  void DecodeKey(const absl::string_view src, std::string *dst) const override;
 
   // Returns the length of encoded key string.
-  virtual size_t GetEncodedKeyLength(const StringPiece src) const;
+  size_t GetEncodedKeyLength(const absl::string_view src) const override;
 
   // Returns the length of decoded key string.
-  virtual size_t GetDecodedKeyLength(const StringPiece src) const;
+  size_t GetDecodedKeyLength(const absl::string_view src) const override;
 
   // Compresses value string into small bytes.
-  virtual void EncodeValue(const StringPiece src, string *dst) const;
+  void EncodeValue(const absl::string_view src,
+                   std::string *dst) const override;
 
   // Decompress value string
-  virtual void DecodeValue(const StringPiece src, string *dst) const;
+  void DecodeValue(const absl::string_view src,
+                   std::string *dst) const override;
 
   // Compress tokens
-  virtual void EncodeTokens(
-      const std::vector<TokenInfo> &tokens, string *output) const;
+  void EncodeTokens(const std::vector<TokenInfo> &tokens,
+                    std::string *output) const override;
 
   // Decompress tokens
-  virtual void DecodeTokens(const uint8 *ptr,
-                            std::vector<TokenInfo> *tokens) const;
+  void DecodeTokens(const uint8_t *ptr,
+                    std::vector<TokenInfo> *tokens) const override;
 
   // Decompress a token.
-  virtual bool DecodeToken(
-      const uint8 *ptr, TokenInfo *token_info, int *read_bytes) const;
+  bool DecodeToken(const uint8_t *ptr, TokenInfo *token_info,
+                   int *read_bytes) const override;
 
   // Read a token for reverse lookup
   // If the token have value id, assign it to |id_in_value_trie|
   // otherwise assign -1
   // Return false if a token is the last token for a certain key
-  virtual bool ReadTokenForReverseLookup(
-      const uint8 *ptr, int *value_id, int *read_bytes) const;
+  bool ReadTokenForReverseLookup(const uint8_t *ptr, int *value_id,
+                                 int *read_bytes) const override;
 
-  virtual uint8 GetTokensTerminationFlag() const;
+  uint8_t GetTokensTerminationFlag() const override;
 
  private:
-  void EncodeToken(
-      const std::vector<TokenInfo> &tokens, int index, string *output) const;
-
-  DISALLOW_COPY_AND_ASSIGN(SystemDictionaryCodec);
+  void EncodeToken(const std::vector<TokenInfo> &tokens, int index,
+                   std::string *output) const;
 };
+
 }  // namespace dictionary
 }  // namespace mozc
 

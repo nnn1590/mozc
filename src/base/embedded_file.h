@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -50,10 +50,12 @@
 //    }
 //
 //    // In this translation unit, the file content can be retrieved by:
-//    StringPiece data = LoadEmbeddedFile(kVarName);
+//    absl::string_view data = LoadEmbeddedFile(kVarName);
+
+#include <cstdint>
 
 #include "base/port.h"
-#include "base/string_piece.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 
@@ -61,13 +63,13 @@ namespace mozc {
 // embed_file.py.  The first address of embedded file data is aligned at 64 bit
 // boundary, so we can embed data that requires normal alignment (8, 16, etc.).
 struct EmbeddedFile {
-  const uint64 *const data;
+  const uint64_t *const data;
   const size_t size;
 };
 
 // Interprets EmbeddedFile as a byte array.
-inline StringPiece LoadEmbeddedFile(EmbeddedFile f) {
-  return StringPiece(reinterpret_cast<const char*>(f.data), f.size);
+inline absl::string_view LoadEmbeddedFile(EmbeddedFile f) {
+  return absl::string_view(reinterpret_cast<const char *>(f.data), f.size);
 }
 
 }  // namespace mozc

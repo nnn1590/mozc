@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,50 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "storage/registry.h"
+
+#include <cstdint>
 #include <string>
 
 #include "base/system_util.h"
-#include "storage/registry.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace mozc {
 namespace storage {
 
 TEST(RegistryTest, TinyStorageTest) {
-  SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
 
   {
-    uint64 value = 20;
+    uint64_t value = 20;
     EXPECT_TRUE(Registry::Insert("uint64", value));
-    uint64 expected = 0;
+    uint64_t expected = 0;
     EXPECT_TRUE(Registry::Lookup("uint64", &expected));
     EXPECT_EQ(expected, value);
   }
 
   {
-    uint32 value = 20;
+    uint32_t value = 20;
     EXPECT_TRUE(Registry::Insert("uint32", value));
-    uint32 expected = 0;
+    uint32_t expected = 0;
     EXPECT_TRUE(Registry::Lookup("uint32", &expected));
     EXPECT_EQ(expected, value);
   }
 
   {
-    uint16 value = 20;
+    uint16_t value = 20;
     EXPECT_TRUE(Registry::Insert("uint16", value));
-    uint16 expected = 0;
+    uint16_t expected = 0;
     EXPECT_TRUE(Registry::Lookup("uint16", &expected));
     EXPECT_EQ(expected, value);
   }
 
   {
-    uint8 value = 20;
+    uint8_t value = 20;
     EXPECT_TRUE(Registry::Insert("uint8", value));
-    uint8 expected = 0;
+    uint8_t expected = 0;
     EXPECT_TRUE(Registry::Lookup("uint8", &expected));
     EXPECT_EQ(expected, value);
   }
@@ -77,16 +78,15 @@ TEST(RegistryTest, TinyStorageTest) {
   {
     bool value = true;
     EXPECT_TRUE(Registry::Insert("bool", value));
-    bool expected = 0;
+    bool expected = false;
     EXPECT_TRUE(Registry::Lookup("bool", &expected));
     EXPECT_EQ(expected, value);
   }
 
-
   {
-    string value = "test";
+    std::string value = "test";
     EXPECT_TRUE(Registry::Insert("string", value));
-    string expected;
+    std::string expected;
     EXPECT_TRUE(Registry::Lookup("string", &expected));
     EXPECT_EQ(expected, value);
   }

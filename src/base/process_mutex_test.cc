@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 #ifndef OS_WIN
 #include <unistd.h>
+
 #include <cstdlib>
 #endif  // OS_WIN
 
@@ -38,9 +39,9 @@
 #include "base/logging.h"
 #include "base/system_util.h"
 #include "base/util.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace mozc {
 namespace {
@@ -48,12 +49,12 @@ static const char kName[] = "process_mutex_test";
 
 class ProcessMutexTest : public testing::Test {
  protected:
-  virtual void SetUp() {
+  void SetUp() override {
     original_user_profile_dir_ = SystemUtil::GetUserProfileDirectory();
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     ProcessMutex mutex(kName);
     if (FileUtil::FileExists(mutex.lock_filename())) {
       LOG(FATAL) << "Lock file unexpectedly remains: " << mutex.lock_filename();
@@ -63,10 +64,10 @@ class ProcessMutexTest : public testing::Test {
   }
 
  private:
-  string original_user_profile_dir_;
+  std::string original_user_profile_dir_;
 };
 
-#if !defined(OS_WIN) && !defined(OS_NACL)
+#if !defined(OS_WIN)
 TEST_F(ProcessMutexTest, ForkProcessMutexTest) {
   const pid_t pid = ::fork();
   if (pid == 0) {  // child process
@@ -91,7 +92,7 @@ TEST_F(ProcessMutexTest, ForkProcessMutexTest) {
     LOG(FATAL) << "fork() failed";
   }
 }
-#endif  // !OS_WIN && !OS_NACL
+#endif  // !OS_WIN
 
 TEST_F(ProcessMutexTest, BasicTest) {
   ProcessMutex m1(kName);

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #include "rewriter/fortune_rewriter.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <ctime>
 #include <string>
 
@@ -45,60 +46,59 @@ namespace mozc {
 namespace {
 
 enum FortuneType {
-  FORTUNE_TYPE_EXCELLENT_LUCK  = 0,
-  FORTUNE_TYPE_LUCK            = 1,
-  FORTUNE_TYPE_MIDDLE_LUCK     = 2,
-  FORTUNE_TYPE_LITTLE_LUCK     = 3,
+  FORTUNE_TYPE_EXCELLENT_LUCK = 0,
+  FORTUNE_TYPE_LUCK = 1,
+  FORTUNE_TYPE_MIDDLE_LUCK = 2,
+  FORTUNE_TYPE_LITTLE_LUCK = 3,
   FORTUNE_TYPE_LUCK_AT_THE_END = 4,
-  FORTUNE_TYPE_MISFORTUNE      = 5,
-  NUM_FORTUNE_TYPES            = 6,
+  FORTUNE_TYPE_MISFORTUNE = 5,
+  NUM_FORTUNE_TYPES = 6,
 };
 
 const int kMaxLevel = 100;
-const int kNormalLevels[]     = { 20, 40, 60, 80, 90 };
-const int kNewYearLevels[]    = { 30, 60, 80, 90, 95 };
-const int kMyBirthdayLevels[] = { 30, 60, 80, 90, 95 };
-const int kFriday13Levels[]   = { 10, 25, 40, 55, 70 };
+const int kNormalLevels[] = {20, 40, 60, 80, 90};
+const int kNewYearLevels[] = {30, 60, 80, 90, 95};
+const int kMyBirthdayLevels[] = {30, 60, 80, 90, 95};
+const int kFriday13Levels[] = {10, 25, 40, 55, 70};
 
 bool IsValidFortuneType(FortuneType fortune_type) {
-  return (fortune_type >= 0 && fortune_type < NUM_FORTUNE_TYPES);
+  return (fortune_type < NUM_FORTUNE_TYPES);
 }
 
 class FortuneData {
  public:
-  FortuneData()
-      : fortune_type_(FORTUNE_TYPE_EXCELLENT_LUCK),
-        last_update_yday_(-1),
-        last_update_year_(-1) {
+  FortuneData() : fortune_type_(FORTUNE_TYPE_EXCELLENT_LUCK) {
     ChangeFortune();
   }
 
   void ChangeFortune() {
     const int *levels = kNormalLevels;
-    tm today;
-    if (Clock::GetCurrentTm(&today)) {
-      // Modify once per one day
-      if (today.tm_yday == last_update_yday_ &&
-          today.tm_year == last_update_year_) {
-        return;
-      }
-      last_update_yday_ = today.tm_yday;
-      last_update_year_ = today.tm_year;
-      // More happy at New Year's Day
-      if (today.tm_yday == 0) {
-        levels = kNewYearLevels;
-      } else if (today.tm_mon == 2 && today.tm_mday == 3) {
-        // It's my birthday :)
-        levels = kMyBirthdayLevels;
-      } else if (today.tm_mday == 13 && today.tm_wday == 5) {
-        // Friday the 13th
-        levels = kFriday13Levels;
-      }
+
+    const absl::Time at = Clock::GetAbslTime();
+    const absl::TimeZone &tz = Clock::GetTimeZone();
+    const absl::CivilDay today = absl::ToCivilDay(at, tz);
+
+    // Modify once per one day
+    if (today == last_updated_day_) {
+      return;
     }
-    uint32 random = 0;
+    last_updated_day_ = today;
+
+    // More happy at New Year's Day
+    if (today.month() == 1 && today.day() == 1) {
+      levels = kNewYearLevels;
+    } else if (today.month() == 3 && today.day() == 3) {
+      // It's my birthday :)
+      levels = kMyBirthdayLevels;
+    } else if (today.day() == 13 &&
+               absl::GetWeekday(today) == absl::Weekday::friday) {
+      // Friday the 13th
+      levels = kFriday13Levels;
+    }
+    uint32_t random = 0;
     Util::GetRandomSequence(reinterpret_cast<char *>(&random), sizeof(random));
     const int level = random % kMaxLevel;
-    for (int i = 0; i < arraysize(kNormalLevels); ++i) {
+    for (int i = 0; i < std::size(kNormalLevels); ++i) {
       if (level <= levels[i]) {
         fortune_type_ = static_cast<FortuneType>(i);
         break;
@@ -111,32 +111,30 @@ class FortuneData {
 
  private:
   FortuneType fortune_type_;
-  int last_update_yday_;
-  int last_update_year_;
+  absl::CivilDay last_updated_day_;
 };
 
 // Insert Fortune message into the |segment|
 // Only one fortune indicated by fortune_type is inserted at
 // |insert_pos|. Return false if insersion is failed.
-bool InsertCandidate(FortuneType fortune_type,
-                     size_t insert_pos,
+bool InsertCandidate(FortuneType fortune_type, size_t insert_pos,
                      Segment *segment) {
   if (segment->candidates_size() == 0) {
     LOG(WARNING) << "candidates_size is 0";
     return false;
   }
 
-  const Segment::Candidate& base_candidate = segment->candidate(0);
+  const Segment::Candidate &base_candidate = segment->candidate(0);
   size_t offset = std::min(insert_pos, segment->candidates_size());
 
   Segment::Candidate *c = segment->insert_candidate(offset);
-  if (c == NULL) {
+  if (c == nullptr) {
     LOG(ERROR) << "cannot insert candidate at " << offset;
     return false;
   }
   const Segment::Candidate &trigger_c = segment->candidate(offset - 1);
 
-  string value;
+  std::string value;
   switch (fortune_type) {
     case FORTUNE_TYPE_EXCELLENT_LUCK:
       value = "大吉";
@@ -188,7 +186,7 @@ bool FortuneRewriter::Rewrite(const ConversionRequest &request,
   }
 
   const Segment &segment = segments->conversion_segment(0);
-  const string &key = segment.key();
+  const std::string &key = segment.key();
   if (key.empty()) {
     LOG(ERROR) << "Key is empty";
     return false;

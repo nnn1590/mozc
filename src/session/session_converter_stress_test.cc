@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -44,17 +45,16 @@
 #include "session/session_converter.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/flags/flag.h"
 
-DECLARE_string(test_tmpdir);
+ABSL_FLAG(bool, test_deterministic, true,
+          "if true, srand() is initialized by \"test_srand_seed\"."
+          "if false, srand() is initialized by current time "
+          "and \"test_srand_seed\" is ignored");
 
-DEFINE_bool(test_deterministic, true,
-             "if true, srand() is initialized by \"test_srand_seed\"."
-             "if false, srand() is initialized by current time "
-             "and \"test_srand_seed\" is ignored");
-
-DEFINE_int32(test_srand_seed, 0,
-             "seed number for srand(). "
-             "used only when \"test_deterministic\" is true");
+ABSL_FLAG(int32_t, test_srand_seed, 0,
+          "seed number for srand(). "
+          "used only when \"test_deterministic\" is true");
 
 namespace mozc {
 
@@ -65,14 +65,16 @@ namespace session {
 class SessionConverterStressTest : public ::testing::Test {
  public:
   SessionConverterStressTest() {
-    if (!FLAGS_test_deterministic) {
-      FLAGS_test_srand_seed = static_cast<int32>(Clock::GetTime());
+    if (!absl::GetFlag(FLAGS_test_deterministic)) {
+      absl::SetFlag(&FLAGS_test_srand_seed,
+                    static_cast<int32_t>(Clock::GetTime()));
     }
-    Util::SetRandomSeed(static_cast<uint32>(FLAGS_test_srand_seed));
+    Util::SetRandomSeed(
+        static_cast<uint32_t>(absl::GetFlag(FLAGS_test_srand_seed)));
   }
 
-  virtual void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
     config::Config config;
     config::ConfigHandler::GetDefaultConfig(&config);
     config::ConfigHandler::SetConfig(config);
@@ -80,14 +82,14 @@ class SessionConverterStressTest : public ::testing::Test {
 };
 
 namespace {
-void GenerateRandomInput(
-    size_t length, char min_code, char max_code, string* output) {
+void GenerateRandomInput(size_t length, char min_code, char max_code,
+                         std::string* output) {
   output->reserve(length);
   char tmp[2];
   tmp[1] = '\0';
   for (int i = 0; i < length; ++i) {
-    tmp[0] = static_cast<unsigned char>(
-        min_code + Util::Random(max_code - min_code + 1));
+    tmp[0] = static_cast<unsigned char>(min_code +
+                                        Util::Random(max_code - min_code + 1));
     output->append(tmp);
   }
 }
@@ -104,7 +106,7 @@ TEST_F(SessionConverterStressTest, ConvertToHalfWidthForRandomAsciiInput) {
       {'a', 'z'},  // Alphabets
   };
 
-  const string kRomajiHiraganaTable = "system://romanji-hiragana.tsv";
+  const std::string kRomajiHiraganaTable = "system://romanji-hiragana.tsv";
   const commands::Request request;
   config::Config config;
 
@@ -115,7 +117,7 @@ TEST_F(SessionConverterStressTest, ConvertToHalfWidthForRandomAsciiInput) {
   table.LoadFromFile(kRomajiHiraganaTable.c_str());
   composer::Composer composer(&table, &request, &config);
   commands::Output output;
-  string input;
+  std::string input;
 
   for (int test = 0; test < kTestCaseSize; ++test) {
     const int kLoopLimit = 100;
@@ -127,18 +129,17 @@ TEST_F(SessionConverterStressTest, ConvertToHalfWidthForRandomAsciiInput) {
 
       // Limited by kMaxCharLength in immutable_converter.cc
       const int kInputStringLength = 32;
-      GenerateRandomInput(
-          kInputStringLength, kTestCases[test].min, kTestCases[test].max,
-          &input);
+      GenerateRandomInput(kInputStringLength, kTestCases[test].min,
+                          kTestCases[test].max, &input);
 
       composer.InsertCharacterPreedit(input);
       sconverter.ConvertToTransliteration(composer,
                                           transliteration::HALF_ASCII);
       sconverter.FillOutput(composer, &output);
 
-      const commands::Preedit &conversion = output.preedit();
-      EXPECT_EQ(input, conversion.segment(0).value()) <<
-          input << "\t" << conversion.segment(0).value();
+      const commands::Preedit& conversion = output.preedit();
+      EXPECT_EQ(input, conversion.segment(0).value())
+          << input << "\t" << conversion.segment(0).value();
     }
   }
 }

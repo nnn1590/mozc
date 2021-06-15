@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "converter/converter_mock.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -36,15 +37,21 @@
 #include "request/conversion_request.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/memory/memory.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace {
 
-void SetSegments(Segments *segments, const string &cand_value) {
+void SetSegments(Segments *segments, absl::string_view cand_value) {
   Segment *segment = segments->add_segment();
   segment->set_key("Testてすと");
   Segment::Candidate *candidate = segment->add_candidate();
+#ifdef ABSL_USES_STD_STRING_VIEW
   candidate->value = cand_value;
+#else
+  candidate->value = std::string(cand_value);
+#endif  // ABSL_USES_STD_STRING_VIEW
 
   // Add meta candidates
   Segment::Candidate *meta_cand = segment->add_meta_candidate();
@@ -54,13 +61,9 @@ void SetSegments(Segments *segments, const string &cand_value) {
 
 class ConverterMockTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    mock_.reset(new ConverterMock);
-  }
+  void SetUp() override { mock_ = absl::make_unique<ConverterMock>(); }
 
-  ConverterMock *GetMock() {
-    return mock_.get();
-  }
+  ConverterMock *GetMock() { return mock_.get(); }
 
  private:
   std::unique_ptr<ConverterMock> mock_;
@@ -233,7 +236,7 @@ TEST_F(ConverterMockTest, SetResizeSegment2) {
   Segments output, expect;
   SetSegments(&expect, "ResizeSegment2");
   GetMock()->SetResizeSegment2(&expect, true);
-  uint8 size_array[] = {1, 2, 3};
+  uint8_t size_array[] = {1, 2, 3};
   const ConversionRequest default_request;
   EXPECT_TRUE(converter->ResizeSegment(&output, default_request, 1, 5,
                                        size_array, arraysize(size_array)));
@@ -243,15 +246,15 @@ TEST_F(ConverterMockTest, GetStartConversion) {
   ConverterInterface *converter = GetMock();
 
   Segments input;
-  const string input_key = "Key";
+  const std::string input_key = "Key";
   SetSegments(&input, "StartConversion");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->StartConversion(&input, input_key);
 
   Segments last_segment;
-  string last_key;
+  std::string last_key;
   GetMock()->GetStartConversion(&last_segment, &last_key);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_key, last_key);
@@ -261,15 +264,15 @@ TEST_F(ConverterMockTest, GetStartReverseConversion) {
   ConverterInterface *converter = GetMock();
 
   Segments input;
-  const string input_key = "Key";
+  const std::string input_key = "Key";
   SetSegments(&input, "StartReverseConversion");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->StartReverseConversion(&input, input_key);
 
   Segments last_segment;
-  string last_key;
+  std::string last_key;
   GetMock()->GetStartReverseConversion(&last_segment, &last_key);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_key, last_key);
@@ -279,15 +282,15 @@ TEST_F(ConverterMockTest, GetStartPrediction) {
   ConverterInterface *converter = GetMock();
 
   Segments input;
-  const string input_key = "Key";
+  const std::string input_key = "Key";
   SetSegments(&input, "StartPrediction");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->StartPrediction(&input, input_key);
 
   Segments last_segment;
-  string last_key;
+  std::string last_key;
   GetMock()->GetStartPrediction(&last_segment, &last_key);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_key, last_key);
@@ -297,15 +300,15 @@ TEST_F(ConverterMockTest, GetStartSuggestion) {
   ConverterInterface *converter = GetMock();
 
   Segments input;
-  const string input_key = "Key";
+  const std::string input_key = "Key";
   SetSegments(&input, "StartSuggestion");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->StartSuggestion(&input, input_key);
 
   Segments last_segment;
-  string last_key;
+  std::string last_key;
   GetMock()->GetStartSuggestion(&last_segment, &last_key);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_key, last_key);
@@ -315,15 +318,15 @@ TEST_F(ConverterMockTest, GetStartPartialPrediction) {
   ConverterInterface *converter = GetMock();
 
   Segments input;
-  const string input_key = "Key";
+  const std::string input_key = "Key";
   SetSegments(&input, "StartPartialPrediction");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->StartPartialPrediction(&input, input_key);
 
   Segments last_segment;
-  string last_key;
+  std::string last_key;
   GetMock()->GetStartPartialPrediction(&last_segment, &last_key);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_key, last_key);
@@ -333,15 +336,15 @@ TEST_F(ConverterMockTest, GetStartPartialSuggestion) {
   ConverterInterface *converter = GetMock();
 
   Segments input;
-  const string input_key = "Key";
+  const std::string input_key = "Key";
   SetSegments(&input, "StartPartialSuggestion");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->StartPartialSuggestion(&input, input_key);
 
   Segments last_segment;
-  string last_key;
+  std::string last_key;
   GetMock()->GetStartPartialSuggestion(&last_segment, &last_key);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_key, last_key);
@@ -352,13 +355,13 @@ TEST_F(ConverterMockTest, GetFinishConversion) {
 
   Segments input;
   SetSegments(&input, "FinishConversion");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   ConversionRequest default_request;
   converter->FinishConversion(default_request, &input);
 
   Segments last_segment;
   GetMock()->GetFinishConversion(&last_segment);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
 }
@@ -368,12 +371,12 @@ TEST_F(ConverterMockTest, GetCancelConversion) {
 
   Segments input;
   SetSegments(&input, "CancelConversion");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->CancelConversion(&input);
 
   Segments last_segment;
   GetMock()->GetCancelConversion(&last_segment);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
 }
@@ -383,12 +386,12 @@ TEST_F(ConverterMockTest, GetResetConversion) {
 
   Segments input;
   SetSegments(&input, "ResetConversion");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->ResetConversion(&input);
 
   Segments last_segment;
   GetMock()->GetResetConversion(&last_segment);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
 }
@@ -400,14 +403,14 @@ TEST_F(ConverterMockTest, GetCommitSegmentValue) {
   size_t input_idx = 1;
   int input_cidx = 5;
   SetSegments(&input, "CommitSegmentValue");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->CommitSegmentValue(&input, input_idx, input_cidx);
 
   Segments last_segment;
   size_t last_idx;
   int last_cidx;
   GetMock()->GetCommitSegmentValue(&last_segment, &last_idx, &last_cidx);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_idx, last_idx);
@@ -421,14 +424,14 @@ TEST_F(ConverterMockTest, GetFocusSegmentValue) {
   size_t input_idx = 1;
   int input_cidx = 5;
   SetSegments(&input, "FocueSegmentValue");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->FocusSegmentValue(&input, input_idx, input_cidx);
 
   Segments last_segment;
   size_t last_idx;
   int last_cidx;
   GetMock()->GetFocusSegmentValue(&last_segment, &last_idx, &last_cidx);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_idx, last_idx);
@@ -441,13 +444,13 @@ TEST_F(ConverterMockTest, GetFreeSegmentValue) {
   Segments input;
   size_t input_idx = 1;
   SetSegments(&input, "FreeSegmentValue");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   converter->FreeSegmentValue(&input, input_idx);
 
   Segments last_segment;
   size_t last_idx;
   GetMock()->GetFreeSegmentValue(&last_segment, &last_idx);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_idx, last_idx);
@@ -460,7 +463,7 @@ TEST_F(ConverterMockTest, GetCommitSegments) {
   size_t input_idx1 = 1;
   size_t input_idx2 = 2;
   SetSegments(&input, "CommitSegments");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   std::vector<size_t> index_list;
   index_list.push_back(input_idx1);
   index_list.push_back(input_idx2);
@@ -469,7 +472,7 @@ TEST_F(ConverterMockTest, GetCommitSegments) {
   Segments last_segment;
   std::vector<size_t> last_idx;
   GetMock()->GetCommitSegments(&last_segment, &last_idx);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_idx1, last_idx[0]);
@@ -483,16 +486,15 @@ TEST_F(ConverterMockTest, GetResizeSegment1) {
   size_t input_idx = 1;
   int input_offset = 3;
   SetSegments(&input, "ResizeSegment1");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   const ConversionRequest default_request;
-  converter->ResizeSegment(
-      &input, default_request, input_idx, input_offset);
+  converter->ResizeSegment(&input, default_request, input_idx, input_offset);
 
   Segments last_segment;
   size_t last_idx;
   int last_offset;
   GetMock()->GetResizeSegment1(&last_segment, &last_idx, &last_offset);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_idx, last_idx);
@@ -504,21 +506,21 @@ TEST_F(ConverterMockTest, GetResizeSegment2) {
 
   Segments input;
   size_t input_idx = 1, input_size = 3;
-  uint8 input_array[] = {1, 2, 3};
+  uint8_t input_array[] = {1, 2, 3};
   SetSegments(&input, "ResizeSegment2");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   const ConversionRequest default_request;
   converter->ResizeSegment(&input, default_request, input_idx, input_size,
                            input_array, arraysize(input_array));
 
   Segments last_segment;
   size_t last_idx, last_size;
-  uint8 *last_array;
+  uint8_t *last_array;
   size_t last_array_size;
 
   GetMock()->GetResizeSegment2(&last_segment, &last_idx, &last_size,
                                &last_array, &last_array_size);
-  const string last_segment_str = last_segment.DebugString();
+  const std::string last_segment_str = last_segment.DebugString();
 
   EXPECT_EQ(input_str, last_segment_str);
   EXPECT_EQ(input_idx, last_idx);
@@ -533,12 +535,12 @@ TEST_F(ConverterMockTest, DefaultBehavior) {
   ConverterInterface *converter = GetMock();
 
   Segments input;
-  const string input_key = "Key";
+  const std::string input_key = "Key";
   SetSegments(&input, "StartConversion");
-  const string input_str = input.DebugString();
+  const std::string input_str = input.DebugString();
   EXPECT_FALSE(converter->StartConversion(&input, input_key));
 
-  const string last_str = input.DebugString();
+  const std::string last_str = input.DebugString();
   EXPECT_EQ(input_str, last_str);
 }
 

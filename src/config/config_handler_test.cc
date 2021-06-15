@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 
 #include "config/config_handler.h"
 
+#include <cstdint>
+
 #ifdef OS_WIN
 #include <windows.h>
 #endif  // OS_WIN
@@ -38,7 +40,6 @@
 
 #include "base/file_util.h"
 #include "base/logging.h"
-#include "base/mozc_hash_set.h"
 #include "base/port.h"
 #include "base/system_util.h"
 #include "base/thread.h"
@@ -47,6 +48,9 @@
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
 #include "testing/base/public/mozctest.h"
+#include "absl/container/flat_hash_set.h"
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace config {
@@ -54,27 +58,28 @@ namespace {
 
 class ConfigHandlerTest : public ::testing::Test {
  protected:
-  virtual void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
     default_config_filename_ = ConfigHandler::GetConfigFileName();
     Config default_config;
     ConfigHandler::GetDefaultConfig(&default_config);
     ConfigHandler::SetConfig(default_config);
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     ConfigHandler::SetConfigFileName(default_config_filename_);
     Config default_config;
     ConfigHandler::GetDefaultConfig(&default_config);
     ConfigHandler::SetConfig(default_config);
   }
+
  private:
-  string default_config_filename_;
+  std::string default_config_filename_;
 };
 
 class ScopedSetConfigFileName {
  public:
-  explicit ScopedSetConfigFileName(const string &new_name)
+  explicit ScopedSetConfigFileName(const std::string &new_name)
       : default_config_filename_(ConfigHandler::GetConfigFileName()) {
     ConfigHandler::SetConfigFileName(new_name);
   }
@@ -84,7 +89,7 @@ class ScopedSetConfigFileName {
   }
 
  private:
-  string default_config_filename_;
+  std::string default_config_filename_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ScopedSetConfigFileName);
 };
@@ -93,8 +98,8 @@ TEST_F(ConfigHandlerTest, SetConfig) {
   Config input;
   Config output;
 
-  const string config_file = FileUtil::JoinPath(FLAGS_test_tmpdir,
-                                                "mozc_config_test_tmp");
+  const std::string config_file = FileUtil::JoinPath(
+      absl::GetFlag(FLAGS_test_tmpdir), "mozc_config_test_tmp");
   FileUtil::Unlink(config_file);
   ScopedSetConfigFileName scoped_config_file_name(config_file);
   EXPECT_EQ(config_file, ConfigHandler::GetConfigFileName());
@@ -103,9 +108,9 @@ TEST_F(ConfigHandlerTest, SetConfig) {
 
   ConfigHandler::GetDefaultConfig(&input);
   input.set_incognito_mode(true);
-#ifndef NO_LOGGING
+#ifndef MOZC_NO_LOGGING
   input.set_verbose_level(2);
-#endif  // NO_LOGGING
+#endif  // MOZC_NO_LOGGING
   ConfigHandler::SetMetaData(&input);
   EXPECT_TRUE(ConfigHandler::SetConfig(input));
   output.Clear();
@@ -116,9 +121,9 @@ TEST_F(ConfigHandlerTest, SetConfig) {
 
   ConfigHandler::GetDefaultConfig(&input);
   input.set_incognito_mode(false);
-#ifndef NO_LOGGING
+#ifndef MOZC_NO_LOGGING
   input.set_verbose_level(0);
-#endif  // NO_LOGGING
+#endif  // MOZC_NO_LOGGING
   ConfigHandler::SetMetaData(&input);
   EXPECT_TRUE(ConfigHandler::SetConfig(input));
   output.Clear();
@@ -153,8 +158,8 @@ TEST_F(ConfigHandlerTest, SetImposedConfig) {
   Config input;
   Config output;
 
-  const string config_file = FileUtil::JoinPath(FLAGS_test_tmpdir,
-                                                "mozc_config_test_tmp");
+  const std::string config_file = FileUtil::JoinPath(
+      absl::GetFlag(FLAGS_test_tmpdir), "mozc_config_test_tmp");
   FileUtil::Unlink(config_file);
   ScopedSetConfigFileName scoped_config_file_name(config_file);
   ASSERT_TRUE(ConfigHandler::Reload())
@@ -162,16 +167,16 @@ TEST_F(ConfigHandlerTest, SetImposedConfig) {
 
   struct Testcase {
     bool stored_config_value;
-    enum {DO_NOT_IMPOSE, IMPOSE_TRUE, IMPOSE_FALSE} imposed_config_value;
+    enum { DO_NOT_IMPOSE, IMPOSE_TRUE, IMPOSE_FALSE } imposed_config_value;
     bool expected_value;
   };
   const Testcase kTestcases[] = {
-    {true, Testcase::IMPOSE_TRUE, true},
-    {true, Testcase::IMPOSE_FALSE, false},
-    {false, Testcase::IMPOSE_TRUE, true},
-    {false, Testcase::IMPOSE_FALSE, false},
-    {true, Testcase::DO_NOT_IMPOSE, true},
-    {false, Testcase::DO_NOT_IMPOSE, false},
+      {true, Testcase::IMPOSE_TRUE, true},
+      {true, Testcase::IMPOSE_FALSE, false},
+      {false, Testcase::IMPOSE_TRUE, true},
+      {false, Testcase::IMPOSE_FALSE, false},
+      {true, Testcase::DO_NOT_IMPOSE, true},
+      {false, Testcase::DO_NOT_IMPOSE, false},
   };
 
   for (size_t i = 0; i < arraysize(kTestcases); ++i) {
@@ -186,8 +191,8 @@ TEST_F(ConfigHandlerTest, SetImposedConfig) {
     // Set imposed config.
     input.Clear();
     if (kTestcases[i].imposed_config_value != Testcase::DO_NOT_IMPOSE) {
-      input.set_incognito_mode(
-          kTestcases[i].imposed_config_value == Testcase::IMPOSE_TRUE);
+      input.set_incognito_mode(kTestcases[i].imposed_config_value ==
+                               Testcase::IMPOSE_TRUE);
     }
     ConfigHandler::SetImposedConfig(input);
     // Check post-condition.
@@ -225,10 +230,11 @@ TEST_F(ConfigHandlerTest, SetImposedConfig) {
 }
 
 TEST_F(ConfigHandlerTest, ConfigFileNameConfig) {
-  const string config_file =
-      string("config") + std::to_string(config::CONFIG_VERSION);
+  const std::string config_file =
+      std::string("config") + std::to_string(config::CONFIG_VERSION);
 
-  const string filename = FileUtil::JoinPath(FLAGS_test_tmpdir, config_file);
+  const std::string filename =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), config_file);
   FileUtil::Unlink(filename);
   Config input;
   ConfigHandler::SetConfig(input);
@@ -249,32 +255,30 @@ TEST_F(ConfigHandlerTest, SetConfigFileName) {
   EXPECT_EQ(default_incognito_mode, updated_config.incognito_mode());
 }
 
-#if !defined(OS_ANDROID) && !defined(OS_NACL)
+#if !defined(OS_ANDROID)
 // Temporarily disable this test because FileUtil::CopyFile fails on
-// Android for some reason, and on NaCl since it uses mock file system and the
-// mock file system doesn't have a source file.
-// TODO(hsumita): Enable this test on Android and NaCl.
+// Android for some reason.
 TEST_F(ConfigHandlerTest, LoadTestConfig) {
   // TODO(yukawa): Generate test data automatically so that we can keep
   //     the compatibility among variety of config files.
   // TODO(yukawa): Enumerate test data in the directory automatically.
   const char *kDataFiles[] = {
-    "linux_config1.db",
-    "mac_config1.db",
-    "win_config1.db",
+      "linux_config1.db",
+      "mac_config1.db",
+      "win_config1.db",
   };
 
   for (size_t i = 0; i < arraysize(kDataFiles); ++i) {
     const char *file_name = kDataFiles[i];
-    const string &src_path = mozc::testing::GetSourceFileOrDie({
-        "data", "test", "config", file_name});
-    const string &dest_path = FileUtil::JoinPath(
-        SystemUtil::GetUserProfileDirectory(), file_name);
+    const std::string &src_path = mozc::testing::GetSourceFileOrDie(
+        {"data", "test", "config", file_name});
+    const std::string &dest_path =
+        FileUtil::JoinPath(SystemUtil::GetUserProfileDirectory(), file_name);
     ASSERT_TRUE(FileUtil::CopyFile(src_path, dest_path))
         << "Copy failed: " << src_path << " to " << dest_path;
 
-    ScopedSetConfigFileName scoped_config_file_name(
-        "user://" + string(file_name));
+    ScopedSetConfigFileName scoped_config_file_name("user://" +
+                                                    std::string(file_name));
     ASSERT_TRUE(ConfigHandler::Reload())
         << "failed to reload: " << ConfigHandler::GetConfigFileName();
 
@@ -294,20 +298,20 @@ TEST_F(ConfigHandlerTest, LoadTestConfig) {
     EXPECT_FALSE(FileUtil::FileExists(dest_path));
   }
 }
-#endif  // !OS_ANDROID && !OS_NACL
+#endif  // !OS_ANDROID
 
 TEST_F(ConfigHandlerTest, GetDefaultConfig) {
   Config output;
 
   output.Clear();
   ConfigHandler::GetDefaultConfig(&output);
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   EXPECT_EQ(output.session_keymap(), Config::KOTOERI);
-#elif defined(OS_NACL)  // OS_MACOSX
+#elif defined(OS_CHROMEOS)  // __APPLE__
   EXPECT_EQ(output.session_keymap(), Config::CHROMEOS);
-#else  // OS_MACOSX || OS_NACL
+#else   // __APPLE__ || OS_CHROMEOS
   EXPECT_EQ(output.session_keymap(), Config::MSIME);
-#endif  // OS_MACOSX || OS_NACL
+#endif  // __APPLE__ || OS_CHROMEOS
   EXPECT_EQ(output.character_form_rules_size(), 13);
 
   struct TestCase {
@@ -316,29 +320,26 @@ TEST_F(ConfigHandlerTest, GetDefaultConfig) {
     Config::CharacterForm conversion_character_form;
   };
   const TestCase testcases[] = {
-    // "ア"
-    {"ア", Config::FULL_WIDTH, Config::FULL_WIDTH},
-    {"A", Config::FULL_WIDTH, Config::LAST_FORM},
-    {"0", Config::FULL_WIDTH, Config::LAST_FORM},
-    {"(){}[]", Config::FULL_WIDTH, Config::LAST_FORM},
-    {".,", Config::FULL_WIDTH, Config::LAST_FORM},
-    // "。、",
-    {"。、",
-      Config::FULL_WIDTH, Config::FULL_WIDTH},
-    // "・「」"
-    {"・「」",
-      Config::FULL_WIDTH, Config::FULL_WIDTH},
-    {"\"'", Config::FULL_WIDTH, Config::LAST_FORM},
-    {":;", Config::FULL_WIDTH, Config::LAST_FORM},
-    {"#%&@$^_|`\\", Config::FULL_WIDTH, Config::LAST_FORM},
-    {"~", Config::FULL_WIDTH, Config::LAST_FORM},
-    {"<>=+-/*", Config::FULL_WIDTH, Config::LAST_FORM},
-    {"?!", Config::FULL_WIDTH, Config::LAST_FORM},
+      // "ア"
+      {"ア", Config::FULL_WIDTH, Config::FULL_WIDTH},
+      {"A", Config::FULL_WIDTH, Config::LAST_FORM},
+      {"0", Config::FULL_WIDTH, Config::LAST_FORM},
+      {"(){}[]", Config::FULL_WIDTH, Config::LAST_FORM},
+      {".,", Config::FULL_WIDTH, Config::LAST_FORM},
+      // "。、",
+      {"。、", Config::FULL_WIDTH, Config::FULL_WIDTH},
+      // "・「」"
+      {"・「」", Config::FULL_WIDTH, Config::FULL_WIDTH},
+      {"\"'", Config::FULL_WIDTH, Config::LAST_FORM},
+      {":;", Config::FULL_WIDTH, Config::LAST_FORM},
+      {"#%&@$^_|`\\", Config::FULL_WIDTH, Config::LAST_FORM},
+      {"~", Config::FULL_WIDTH, Config::LAST_FORM},
+      {"<>=+-/*", Config::FULL_WIDTH, Config::LAST_FORM},
+      {"?!", Config::FULL_WIDTH, Config::LAST_FORM},
   };
   EXPECT_EQ(output.character_form_rules_size(), arraysize(testcases));
   for (size_t i = 0; i < arraysize(testcases); ++i) {
-    EXPECT_EQ(output.character_form_rules(i).group(),
-              testcases[i].group);
+    EXPECT_EQ(output.character_form_rules(i).group(), testcases[i].group);
     EXPECT_EQ(output.character_form_rules(i).preedit_character_form(),
               testcases[i].preedit_character_form);
     EXPECT_EQ(output.character_form_rules(i).conversion_character_form(),
@@ -354,16 +355,13 @@ TEST_F(ConfigHandlerTest, GetDefaultConfig) {
 TEST_F(ConfigHandlerTest, DefaultConfig) {
   Config config;
   ConfigHandler::GetDefaultConfig(&config);
-  EXPECT_EQ(config.DebugString(),
-            ConfigHandler::DefaultConfig().DebugString());
+  EXPECT_EQ(config.DebugString(), ConfigHandler::DefaultConfig().DebugString());
 }
 
 class SetConfigThread final : public Thread {
  public:
   explicit SetConfigThread(const std::vector<Config> &configs)
-      : quitting_(false),
-        configs_(configs) {
-  }
+      : quitting_(false), configs_(configs) {}
 
   ~SetConfigThread() override {
     quitting_ = true;
@@ -384,8 +382,8 @@ class SetConfigThread final : public Thread {
 };
 
 // Returns concatenated serialized data of |Config::character_form_rules|.
-string ExtractCharacterFormRules(const Config &config) {
-  string rules;
+std::string ExtractCharacterFormRules(const Config &config) {
+  std::string rules;
   for (size_t i = 0; i < config.character_form_rules_size(); ++i) {
     config.character_form_rules(i).AppendToString(&rules);
   }
@@ -395,10 +393,8 @@ string ExtractCharacterFormRules(const Config &config) {
 class GetConfigThread final : public Thread {
  public:
   explicit GetConfigThread(
-      const mozc_hash_set<string> &character_form_rules_set)
-      : quitting_(false),
-        character_form_rules_set_(character_form_rules_set) {
-  }
+      const absl::flat_hash_set<std::string> &character_form_rules_set)
+      : quitting_(false), character_form_rules_set_(character_form_rules_set) {}
 
   ~GetConfigThread() override {
     quitting_ = true;
@@ -418,9 +414,8 @@ class GetConfigThread final : public Thread {
 
  private:
   std::atomic<bool> quitting_;
-  const mozc_hash_set<string> character_form_rules_set_;
+  const absl::flat_hash_set<std::string> character_form_rules_set_;
 };
-
 
 TEST_F(ConfigHandlerTest, ConcurrentAccess) {
   std::vector<Config> configs;
@@ -470,7 +465,7 @@ TEST_F(ConfigHandlerTest, ConcurrentAccess) {
   // |GeneralConfig|, the returned object from |ConfigHandler::GetConfig()|
   // is not predictable.  Hence we only make sure that
   // |Config::character_form_rules()| is one of expected values.
-  mozc_hash_set<string> character_form_rules_set;
+  absl::flat_hash_set<std::string> character_form_rules_set;
   for (const auto &config : configs) {
     character_form_rules_set.insert(ExtractCharacterFormRules(config));
   }
@@ -493,20 +488,19 @@ TEST_F(ConfigHandlerTest, ConcurrentAccess) {
   // 250 msec is good enough to crash the code if it is not guarded by
   // the lock, but feel free to change the duration.  It is basically an
   // arbitrary number.
-  const uint32 kTestDurationMSec = 250;  // 250 msec
+  const uint32_t kTestDurationMSec = 250;  // 250 msec
   const size_t kNumSetThread = 2;
   const size_t kNumGetThread = 4;
   {
     // Set up background threads for concurrent access.
     std::vector<std::unique_ptr<SetConfigThread>> set_threads;
     for (size_t i = 0; i < kNumSetThread; ++i) {
-      set_threads.emplace_back(std::unique_ptr<SetConfigThread>(
-          new SetConfigThread(configs)));
+      set_threads.emplace_back(absl::make_unique<SetConfigThread>(configs));
     }
     std::vector<std::unique_ptr<GetConfigThread>> get_threads;
     for (size_t i = 0; i < kNumGetThread; ++i) {
-      get_threads.emplace_back(std::unique_ptr<GetConfigThread>(
-          new GetConfigThread(character_form_rules_set)));
+      get_threads.emplace_back(
+          absl::make_unique<GetConfigThread>(character_form_rules_set));
     }
     // Let background threads start accessing ConfigHandler from multiple
     // background threads.

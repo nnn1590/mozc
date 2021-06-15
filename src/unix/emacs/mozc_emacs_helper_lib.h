@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_UNIX_EMACS_MOZC_EMACS_HELPER_LIB_H_
 #define MOZC_UNIX_EMACS_MOZC_EMACS_HELPER_LIB_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -55,7 +56,6 @@ const char kErrWrongTypeArgument[] = "wrong-type-argument";
 const char kErrVoidFunction[] = "void-function";
 const char kErrSessionError[] = "session-error";
 
-
 // Parses a line, which must be a single complete command in form of:
 //     '(' EVENT_ID COMMAND [ARGUMENT]... ')'
 // where EVENT_ID is an arbitrary integer used to identify the response
@@ -65,10 +65,8 @@ const char kErrSessionError[] = "session-error";
 // ARGUMENTs depend on a command.
 // An input line must be surrounded by a pair of parentheses,
 // like a S-expression.
-void ParseInputLine(
-    const string &line, uint32 *event_id, uint32 *session_id,
-    mozc::commands::Input *input);
-
+void ParseInputLine(const std::string &line, uint32_t *event_id,
+                    uint32_t *session_id, mozc::commands::Input *input);
 
 // Prints the content of a protocol buffer in S-expression.
 // - 'message' and 'group' are mapped to alist (associative list)
@@ -80,41 +78,40 @@ void ParseInputLine(
 //
 // This function never outputs newlines except for ones in strings.
 void PrintMessage(const mozc::protobuf::Message &message,
-                  std::vector<string>* output);
-
+                  std::vector<std::string> *output);
 
 // Utilities
 
 // Normalizes a symbol with the following rule:
 // - all alphabets are converted to lowercase
 // - underscore('_') is converted to dash('-')
-string NormalizeSymbol(const string &symbol);
+std::string NormalizeSymbol(const std::string &symbol);
 
 // Returns a quoted string as a string literal in S-expression.
 // - double-quote is converted to backslash + double-quote
 // - backslash is converted to backslash + backslash
 //
 // Control characters, including newline('\n'), in a given string remain as is.
-string QuoteString(const string &str);
+std::string QuoteString(const std::string &str);
 
 // Unquotes and unescapes a double-quoted string.
 // The input string must begin and end with double quotes.
-bool UnquoteString(const string &input, string *output);
+bool UnquoteString(const std::string &input, std::string *output);
 
 // Tokenizes the given string as S expression.  Returns true if success.
 //
 // This function implements very simple tokenization and is NOT conforming to
 // the definition of S expression.  For example, this function does not return
 // an error for the input "\'".
-bool TokenizeSExpr(const string &input, std::vector<string> *output);
+bool TokenizeSExpr(const std::string &input, std::vector<std::string> *output);
 
 // Prints an error message in S-expression and terminates with status code 1.
-void ErrorExit(const string &error, const string &message);
+void ErrorExit(const std::string &error, const std::string &message);
 
 // Removes unused usage information from output protocol buffers.
 // Usage data may contain line breaks, which have not been supported yet for IPC
 // in S-expression. Only single line S-expressions are supported so far.
-// This function retuns true if usage data is removed.
+// This function returns true if usage data is removed.
 bool RemoveUsageData(mozc::commands::Output *output);
 
 }  // namespace emacs

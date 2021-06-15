@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,15 @@
 #endif  // OS_WIN
 
 #include "base/crash_report_handler.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/system_util.h"
 #ifdef OS_WIN
 #include "base/winmain.h"
 #endif  // OS_WIN
 #include "config/stats_config_util.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(mode, "", "mozc_broker mode");
+ABSL_FLAG(std::string, mode, "", "mozc_broker mode");
 
 #ifdef OS_WIN
 namespace mozc {
@@ -62,17 +62,17 @@ int main(int argc, char *argv[]) {
   if (mozc::config::StatsConfigUtil::IsEnabled()) {
     mozc::CrashReportHandler::Initialize(false);
   }
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   int result = 0;
 #ifdef OS_WIN
-  if (FLAGS_mode == "register_ime") {
+  if (absl::GetFlag(FLAGS_mode) == "register_ime") {
     result = mozc::win32::RunRegisterIME(argc, argv);
-  } else if (FLAGS_mode == "set_default") {
+  } else if (absl::GetFlag(FLAGS_mode) == "set_default") {
     result = mozc::win32::RunSetDefault(argc, argv);
-  } else if (FLAGS_mode == "unregister_ime") {
+  } else if (absl::GetFlag(FLAGS_mode) == "unregister_ime") {
     result = mozc::win32::RunUnregisterIME(argc, argv);
-  } else if (FLAGS_mode == "prelaunch_processes") {
+  } else if (absl::GetFlag(FLAGS_mode) == "prelaunch_processes") {
     result = mozc::win32::RunPrelaunchProcesses(argc, argv);
   }
 #endif  // OS_WIN

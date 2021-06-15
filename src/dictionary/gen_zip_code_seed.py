@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Zip code dictionary generator.
+r"""Zip code dictionary generator.
 
  The tool for generating zip code dictionary.
  Input files are shift-jis csv.
@@ -51,6 +51,7 @@
  "南三条西","１１丁目","0608612","060  ","札幌",0,0,0
 """
 
+from __future__ import print_function
 __author__ = "toshiyuki"
 
 import optparse
@@ -77,30 +78,38 @@ class ZipEntry(object):
     # XXX-XXXX format
     return '-'.join([zip_code[0:3], zip_code[3:]])
 
-  def Output(self):
-    """Output entry."""
+  def GetLine(self):
+    """Return the output line."""
     zip_code = self.FormatZip(self.zip_code)
     address = unicodedata.normalize('NFKC', self.address)
     line = '\t'.join([zip_code, '0', '0', str(ZIP_CODE_COST),
                       address, ZIP_CODE_LABEL])
-    print line.encode('utf-8')
+    return line
+
+  def Output(self):
+    """Outout line."""
+    print(self.GetLine())
 
 
 def ProcessZipCodeCSV(file_name):
   """Process zip code csv."""
   csv_lines = zip_code_util.ReadCSV(file_name)
   merged_csv_lines = zip_code_util.MergeCSV(csv_lines)
+  output = []
   for tokens in merged_csv_lines:
     for entry in ReadZipCodeEntries(tokens[2], tokens[6], tokens[7], tokens[8]):
-      entry.Output()
+      output.append(entry.GetLine())
+  return output
 
 
 def ProcessJigyosyoCSV(file_name):
   """Process jigyosyo csv."""
+  output = []
   for tokens in zip_code_util.ReadCSV(file_name):
     entry = ReadJigyosyoEntry(tokens[7], tokens[3], tokens[4],
                               tokens[5], tokens[2])
-    entry.Output()
+    output.append(entry.GetLine())
+  return output
 
 
 def ReadZipCodeEntries(zip_code, level1, level2, level3):
@@ -124,7 +133,7 @@ def ParseTownName(level3):
                                    % level3.encode('utf-8'))
 
   # We ignore additional information here.
-  level3 = re.sub(u'（.*）', u'', level3, re.U)
+  level3 = re.sub(u'（.*）', u'', level3, flags=re.U)
 
   # For 地割, we have these cases.
   #  XX1地割
@@ -134,7 +143,7 @@ def ParseTownName(level3):
   #  XX第1地割、XX第2地割、
   #  XX第1地割〜XX第2地割、
   # We simply use XX for them.
-  chiwari_match = re.match(u'(\D*?)第?\d+地割.*', level3, re.U)
+  chiwari_match = re.match(u'(\\D*?)第?\\d+地割.*', level3, re.U)
   if chiwari_match:
     town = chiwari_match.group(1)
     return [town]
@@ -170,6 +179,9 @@ def ParseOptions():
   parser.add_option('--jigyosyo', dest='jigyosyo',
                     action='store', default='',
                     help='specify zip code csv file path.')
+  parser.add_option('--output', dest='output',
+                    action='store', default=None,
+                    help='specify output file path.')
   (options, unused_args) = parser.parse_args()
   return options
 
@@ -177,12 +189,19 @@ def ParseOptions():
 def main():
   options = ParseOptions()
 
+  lines = []
   if options.zip_code:
-    ProcessZipCodeCSV(options.zip_code)
+    lines += ProcessZipCodeCSV(options.zip_code)
 
   if options.jigyosyo:
-    ProcessJigyosyoCSV(options.jigyosyo)
+    lines += ProcessJigyosyoCSV(options.jigyosyo)
 
+  if options.output:
+    with open(options.output, 'w', encoding='utf-8') as output:
+      if lines:
+        output.write('\n'.join(lines) + '\n')
+  else:
+    print('\n'.join(lines))
   return 0
 
 

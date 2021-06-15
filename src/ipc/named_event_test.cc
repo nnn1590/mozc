@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #include "ipc/named_event.h"
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -38,9 +39,10 @@
 #include "base/system_util.h"
 #include "base/thread.h"
 #include "base/util.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace {
@@ -49,10 +51,8 @@ const char kName[] = "named_event_test";
 
 class NamedEventListenerThread : public Thread {
  public:
-  NamedEventListenerThread(const string &name,
-                           uint32 initial_wait_msec,
-                           uint32 wait_msec,
-                           size_t max_num_wait)
+  NamedEventListenerThread(const std::string &name, uint32_t initial_wait_msec,
+                           uint32_t wait_msec, size_t max_num_wait)
       : listener_(name.c_str()),
         initial_wait_msec_(initial_wait_msec),
         wait_msec_(wait_msec),
@@ -65,7 +65,7 @@ class NamedEventListenerThread : public Thread {
     Util::Sleep(initial_wait_msec_);
     for (size_t i = 0; i < max_num_wait_; ++i) {
       const bool result = listener_.Wait(wait_msec_);
-      const uint64 ticks = Clock::GetTicks();
+      const uint64_t ticks = Clock::GetTicks();
       if (result) {
         first_triggered_ticks_ = ticks;
         return;
@@ -73,26 +73,22 @@ class NamedEventListenerThread : public Thread {
     }
   }
 
-  uint64 first_triggered_ticks() const {
-    return first_triggered_ticks_;
-  }
+  uint64_t first_triggered_ticks() const { return first_triggered_ticks_; }
 
-  bool IsTriggered() const {
-    return first_triggered_ticks() > 0;
-  }
+  bool IsTriggered() const { return first_triggered_ticks() > 0; }
 
  private:
   NamedEventListener listener_;
-  const uint32 initial_wait_msec_;
-  const uint32 wait_msec_;
+  const uint32_t initial_wait_msec_;
+  const uint32_t wait_msec_;
   const size_t max_num_wait_;
-  std::atomic<uint64> first_triggered_ticks_;
+  std::atomic<uint64_t> first_triggered_ticks_;
 };
 
 class NamedEventTest : public testing::Test {
   void SetUp() override {
     original_user_profile_directory_ = SystemUtil::GetUserProfileDirectory();
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
   }
 
   void TearDown() override {
@@ -100,22 +96,22 @@ class NamedEventTest : public testing::Test {
   }
 
  private:
-  string original_user_profile_directory_;
+  std::string original_user_profile_directory_;
 };
 
 TEST_F(NamedEventTest, NamedEventBasicTest) {
-  NamedEventListenerThread listner(kName, 0, 50, 100);
-  listner.Start("NamedEventBasicTest");
+  NamedEventListenerThread listener(kName, 0, 50, 100);
+  listener.Start("NamedEventBasicTest");
   Util::Sleep(200);
   NamedEventNotifier notifier(kName);
   ASSERT_TRUE(notifier.IsAvailable());
-  const uint64 notify_ticks = Clock::GetTicks();
+  const uint64_t notify_ticks = Clock::GetTicks();
   notifier.Notify();
-  listner.Join();
+  listener.Join();
 
-  // There is a chance that |listner| is not triggered.
-  if (listner.IsTriggered()) {
-    EXPECT_LT(notify_ticks, listner.first_triggered_ticks());
+  // There is a chance that |listener| is not triggered.
+  if (listener.IsTriggered()) {
+    EXPECT_LT(notify_ticks, listener.first_triggered_ticks());
   }
 }
 
@@ -127,7 +123,7 @@ TEST_F(NamedEventTest, IsAvailableTest) {
     EXPECT_TRUE(n.IsAvailable());
   }
 
-  // no listner
+  // no listener
   {
     NamedEventNotifier n(kName);
     EXPECT_FALSE(n.IsAvailable());
@@ -139,7 +135,7 @@ TEST_F(NamedEventTest, IsOwnerTest) {
   EXPECT_TRUE(l1.IsOwner());
   EXPECT_TRUE(l1.IsAvailable());
   NamedEventListener l2(kName);
-  EXPECT_FALSE(l2.IsOwner());   // the instance is owneded by l1
+  EXPECT_FALSE(l2.IsOwner());  // the instance is owneded by l1
   EXPECT_TRUE(l2.IsAvailable());
 }
 
@@ -151,7 +147,8 @@ TEST_F(NamedEventTest, NamedEventMultipleListenerTest) {
   std::vector<std::unique_ptr<NamedEventListenerThread>> listeners(
       kNumRequests);
   for (size_t i = 0; i < kNumRequests; ++i) {
-    listeners[i].reset(new NamedEventListenerThread(kName, 33 * i, 50, 100));
+    listeners[i] =
+        absl::make_unique<NamedEventListenerThread>(kName, 33 * i, 50, 100);
     listeners[i]->Start("NamedEventMultipleListenerTest");
   }
 
@@ -161,7 +158,7 @@ TEST_F(NamedEventTest, NamedEventMultipleListenerTest) {
   // at once with single notifier event
   NamedEventNotifier notifier(kName);
   ASSERT_TRUE(notifier.IsAvailable());
-  const uint64 notify_ticks = Clock::GetTicks();
+  const uint64_t notify_ticks = Clock::GetTicks();
   ASSERT_TRUE(notifier.Notify());
 
   for (size_t i = 0; i < kNumRequests; ++i) {
@@ -178,7 +175,7 @@ TEST_F(NamedEventTest, NamedEventMultipleListenerTest) {
 
 TEST_F(NamedEventTest, NamedEventPathLengthTest) {
 #ifndef OS_WIN
-  const string name_path = NamedEventUtil::GetEventPath(kName);
+  const std::string name_path = NamedEventUtil::GetEventPath(kName);
   // length should be less than 14 not includeing terminating null.
   EXPECT_EQ(13, strlen(name_path.c_str()));
 #endif  // OS_WIN

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <iostream>  // NOLINT
 #include <iterator>
 #include <string>
 #include <vector>
 
 #include "base/file_stream.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/port.h"
@@ -46,16 +46,17 @@
 #include "config/config_handler.h"
 #include "protocol/commands.pb.h"
 #include "session/random_keyevents_generator.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(server_path, "", "specify server path");
-DEFINE_string(log_path, "", "specify log output file path");
+ABSL_FLAG(std::string, server_path, "", "specify server path");
+ABSL_FLAG(std::string, log_path, "", "specify log output file path");
 
 namespace mozc {
 namespace {
 
 struct Result {
-  string test_name;
-  std::vector<uint32> operations_times;
+  std::string test_name;
+  std::vector<uint32_t> operations_times;
 };
 
 class TestSentenceGenerator {
@@ -72,7 +73,7 @@ class TestSentenceGenerator {
     size = std::min(static_cast<size_t>(200), size);
 
     for (size_t i = 0; i < size; ++i) {
-      string output;
+      std::string output;
       Util::HiraganaToRomanji(sentences[i], &output);
       std::vector<commands::KeyEvent> tmp;
       for (ConstChar32Iterator iter(output); !iter.Done(); iter.Next()) {
@@ -99,8 +100,8 @@ class TestScenarioInterface {
   virtual void Run(Result *result) = 0;
 
   TestScenarioInterface() {
-    if (!FLAGS_server_path.empty()) {
-      client_.set_server_program(FLAGS_server_path);
+    if (!absl::GetFlag(FLAGS_server_path).empty()) {
+      client_.set_server_program(absl::GetFlag(FLAGS_server_path));
     }
     CHECK(client_.IsValidRunLevel()) << "IsValidRunLevel failed";
     CHECK(client_.EnsureSession()) << "EnsureSession failed";
@@ -148,13 +149,13 @@ class TestScenarioInterface {
   commands::Output output_;
 };
 
-string GetBasicStats(const std::vector<uint32> times) {
-  uint32 total_time = 0;
-  uint32 avg_time = 0;
-  uint32 max_time = 0;
-  uint32 min_time = 0;
-  uint32 sd_time = 0;  // Standard Deviation
-  uint32 med_time = 0;
+std::string GetBasicStats(const std::vector<uint32_t> times) {
+  uint32_t total_time = 0;
+  uint32_t avg_time = 0;
+  uint32_t max_time = 0;
+  uint32_t min_time = 0;
+  uint32_t sd_time = 0;  // Standard Deviation
+  uint32_t med_time = 0;
 
   min_time = INT_MAX;
   max_time = 0;
@@ -164,7 +165,7 @@ string GetBasicStats(const std::vector<uint32> times) {
     max_time = std::max(times[i], max_time);
   }
 
-  avg_time = static_cast<uint32>(1.0 * total_time / times.size());
+  avg_time = static_cast<uint32_t>(1.0 * total_time / times.size());
 
   if (times.size() >= 2) {
     double dsd_time = 0;
@@ -172,24 +173,19 @@ string GetBasicStats(const std::vector<uint32> times) {
       dsd_time += (avg_time - times[i]) * (avg_time - times[i]);
     }
     dsd_time = sqrt(dsd_time / (times.size() - 1));
-    sd_time = static_cast<uint32>(dsd_time);
+    sd_time = static_cast<uint32_t>(dsd_time);
   }
 
   if (!times.empty()) {
-    std::vector<uint32> tmp(times);
+    std::vector<uint32_t> tmp(times);
     std::sort(tmp.begin(), tmp.end());
     med_time = tmp[tmp.size() / 2];
   }
 
   return Util::StringPrintf(
       "size=%d total=%d avg=%d max=%d min=%d st=%d med=%d",
-      static_cast<int>(times.size()),
-      total_time,
-      avg_time,
-      max_time,
-      min_time,
-      sd_time,
-      med_time);
+      static_cast<int>(times.size()), total_time, avg_time, max_time, min_time,
+      sd_time, med_time);
 }
 
 class PreeditCommon : public TestScenarioInterface {
@@ -212,9 +208,9 @@ class PreeditCommon : public TestScenarioInterface {
   }
 };
 
-class PreeditWithoutSuggestion : public  PreeditCommon {
+class PreeditWithoutSuggestion : public PreeditCommon {
  public:
-  virtual void Run(Result *result) {
+  void Run(Result *result) override {
     result->test_name = "preedit_without_suggestion";
     ResetConfig();
     IMEOn();
@@ -227,7 +223,7 @@ class PreeditWithoutSuggestion : public  PreeditCommon {
 
 class PreeditWithSuggestion : public PreeditCommon {
  public:
-  virtual void Run(Result *result) {
+  void Run(Result *result) override {
     result->test_name = "preedit_with_suggestion";
     ResetConfig();
     IMEOn();
@@ -238,31 +234,27 @@ class PreeditWithSuggestion : public PreeditCommon {
   }
 };
 
-enum PredictionRequestType {
-  ONE_CHAR,
-  TWO_CHARS
-};
+enum PredictionRequestType { ONE_CHAR, TWO_CHARS };
 
 void CreatePredictionKeys(PredictionRequestType type,
-                          std::vector <string> *request_keys) {
+                          std::vector<std::string> *request_keys) {
   CHECK(request_keys);
   request_keys->clear();
 
-  const char *kVoels[] = { "a", "i", "u", "e", "o" };
-  const char *kConsonant[] = { "k", "s", "t", "n", "h",
-                               "m", "y", "r", "w" };
-  std::vector<string> one_chars;
+  const char *kVoels[] = {"a", "i", "u", "e", "o"};
+  const char *kConsonant[] = {"k", "s", "t", "n", "h", "m", "y", "r", "w"};
+  std::vector<std::string> one_chars;
   for (size_t i = 0; i < arraysize(kVoels); ++i) {
     one_chars.push_back(kVoels[i]);
   }
 
   for (size_t i = 0; i < arraysize(kConsonant); ++i) {
     for (size_t j = 0; j < arraysize(kVoels); ++j) {
-      one_chars.push_back(string(kConsonant[i]) + string(kVoels[j]));
+      one_chars.push_back(std::string(kConsonant[i]) + std::string(kVoels[j]));
     }
   }
 
-  std::vector<string> two_chars;
+  std::vector<std::string> two_chars;
   for (size_t i = 0; i < one_chars.size(); ++i) {
     for (size_t j = 0; j < one_chars.size(); ++j) {
       two_chars.push_back(one_chars[i] + one_chars[j]);
@@ -271,11 +263,11 @@ void CreatePredictionKeys(PredictionRequestType type,
   switch (type) {
     case ONE_CHAR:
       std::copy(one_chars.begin(), one_chars.end(),
-                back_inserter(*request_keys));
+                std::back_inserter(*request_keys));
       break;
     case TWO_CHARS:
       std::copy(two_chars.begin(), two_chars.end(),
-                back_inserter(*request_keys));
+                std::back_inserter(*request_keys));
       break;
     default:
       break;
@@ -284,16 +276,16 @@ void CreatePredictionKeys(PredictionRequestType type,
   CHECK(!request_keys->empty());
 }
 
-class PredictionCommon: public TestScenarioInterface {
+class PredictionCommon : public TestScenarioInterface {
  protected:
   void RunTest(PredictionRequestType type, Result *result) {
     IMEOn();
     ResetConfig();
     DisableSuggestion();
-    std::vector<string> request_keys;
+    std::vector<std::string> request_keys;
     CreatePredictionKeys(type, &request_keys);
     for (size_t i = 0; i < request_keys.size(); ++i) {
-      const string &keys = request_keys[i];
+      const std::string &keys = request_keys[i];
       for (size_t j = 0; j < keys.size(); ++j) {
         commands::KeyEvent key;
         key.set_key_code(static_cast<int>(keys[j]));
@@ -317,7 +309,7 @@ class PredictionCommon: public TestScenarioInterface {
 
 class PredictionWithOneChar : public PredictionCommon {
  public:
-  virtual void Run(Result *result) {
+  void Run(Result *result) override {
     result->test_name = "prediction_one_char";
     RunTest(ONE_CHAR, result);
   }
@@ -325,7 +317,7 @@ class PredictionWithOneChar : public PredictionCommon {
 
 class PredictionWithTwoChars : public PredictionCommon {
  public:
-  virtual void Run(Result *result) {
+  void Run(Result *result) override {
     result->test_name = "prediction_two_chars";
     RunTest(TWO_CHARS, result);
   }
@@ -333,7 +325,7 @@ class PredictionWithTwoChars : public PredictionCommon {
 
 class Conversion : public TestScenarioInterface {
  public:
-  virtual void Run(Result *result) {
+  void Run(Result *result) override {
     result->test_name = "conversion";
     ResetConfig();
     DisableSuggestion();
@@ -366,7 +358,7 @@ class Conversion : public TestScenarioInterface {
 }  // namespace mozc
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   std::vector<mozc::TestScenarioInterface *> tests;
   std::vector<mozc::Result *> results;
@@ -386,8 +378,8 @@ int main(int argc, char **argv) {
   CHECK_EQ(results.size(), tests.size());
 
   std::ostream *ofs = &std::cout;
-  if (!FLAGS_log_path.empty()) {
-    ofs = new mozc::OutputFileStream(FLAGS_log_path.c_str());
+  if (!absl::GetFlag(FLAGS_log_path).empty()) {
+    ofs = new mozc::OutputFileStream(absl::GetFlag(FLAGS_log_path).c_str());
   }
 
   // TODO(taku): generate histogram with ChartAPI

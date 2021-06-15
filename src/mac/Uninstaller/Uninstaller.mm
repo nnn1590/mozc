@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -156,7 +156,7 @@ bool RunReboot(const AuthorizationRef &auth) {
 }
 
 + (void)initializeUninstaller {
-  string url;
+  std::string url;
   mozc::URL::GetUninstallationSurveyURL(mozc::Version::GetMozcVersion(), &url);
   NSString *uninstallUrl = [[NSString alloc] initWithBytes:url.data()
                                                     length:url.size()

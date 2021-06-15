@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,8 @@
 
 """Utilitis for copying dependent files for Windows build."""
 
-__author__ = "yukawa"
+from __future__ import absolute_import
+from __future__ import print_function
 
 import datetime
 import logging
@@ -81,12 +82,13 @@ def DeployMain(full_filename, src_paths, target_absdir):
     Args:
       filepath: A string which represents the filename to be checked.
 
-      Returns:
-        A Datetime object which represents the last modified time of the
-        specified filename. If the file does not exist, returns epoch time.
+    Returns:
+      A Datetime object which represents the last modified time of the
+      specified filename. If the file does not exist, returns epoch time +1 day.
     """
     if not os.path.isfile(filepath):
-      return datetime.datetime.fromtimestamp(0)
+      # The epoch time doesn't work in some timezones. 86400 = 24 * 60 * 60.
+      return datetime.datetime.fromtimestamp(86400)
     return datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
 
   target_file_mtime = _GetLastModifiedTime(target_file_abspath)
@@ -98,7 +100,7 @@ def DeployMain(full_filename, src_paths, target_absdir):
     if _GetLastModifiedTime(src) <= target_file_mtime:
       # Older file found. Ignore.
       continue
-    print 'Copying %s to %s' % (src, target_file_abspath)
+    print('Copying %s to %s' % (src, target_file_abspath))
     shutil.copy2(src, target_file_abspath)
     break
 

@@ -1,4 +1,4 @@
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
     'relative_dir': 'mac',
     'gen_out_dir': '<(SHARED_INTERMEDIATE_DIR)/<(relative_dir)',
     'build_type': 'stable',
+    'domain_prefix%': 'org.mozc',
     'mac_auto_updater_dir%': '',
   },
   # Add a dummy target because at least one target is needed in a gyp file.
@@ -113,7 +114,7 @@
             '<(output_file)',
           ],
           'action': [
-            'python', '../build_tools/redirect.py',
+            '<(python)', '../build_tools/redirect.py',
             '<(output_file)',
             'generate_mapping.py',
             '--mapname=KanaMap',
@@ -134,7 +135,7 @@
             '<(output_file)',
           ],
           'action': [
-            'python', '../build_tools/redirect.py',
+            '<(python)', '../build_tools/redirect.py',
             '<(output_file)',
             'generate_mapping.py',
             '--mapname=SpecialKeyMap',
@@ -155,7 +156,7 @@
             '<(output_file)',
           ],
           'action': [
-            'python', '../build_tools/redirect.py',
+            '<(python)', '../build_tools/redirect.py',
             '<(output_file)',
             'generate_mapping.py',
             '--mapname=SpecialCharMap',
@@ -193,7 +194,10 @@
             '<(gen_out_dir)/ActivatePane/Japanese.lproj/Localizable.strings',
           ],
           'xcode_settings': {
-            'INFOPLIST_FILE': '<(gen_out_dir)/ActivatePane/Info.plist',
+            'CURRENT_PROJECT_VERSION': '<(version)',
+            'MARKETING_VERSION': '<(short_version)',
+            'PRODUCT_BUNDLE_IDENTIFIER': '<(domain_prefix).ActivatePane',
+            'INFOPLIST_FILE': 'ActivatePane/Info.plist',
           },
           'link_settings': {
             'libraries': [
@@ -215,6 +219,7 @@
             'DevConfirmPane/Japanese.lproj/Localizable.strings',
           ],
           'xcode_settings': {
+            'PRODUCT_BUNDLE_IDENTIFIER': '<(domain_prefix).DevConfirmPane',
             'INFOPLIST_FILE': 'DevConfirmPane/Info.plist',
           },
           'link_settings': {
@@ -247,7 +252,9 @@
             'Uninstaller/Japanese.lproj/InfoPlist.strings',
           ],
           'xcode_settings': {
-            'INFOPLIST_FILE': '<(gen_out_dir)/Uninstaller/Info.plist',
+            'CURRENT_PROJECT_VERSION': '<(version)',
+            'PRODUCT_BUNDLE_IDENTIFIER': '<(domain_prefix).Uninstall<(branding)',
+            'INFOPLIST_FILE': 'Uninstaller/Info.plist',
           },
           'link_settings': {
             'libraries': [
@@ -272,11 +279,9 @@
             '../client/client.gyp:client',
             '../config/config.gyp:stats_config_util',
             '../gui/gui.gyp:about_dialog_mac',
-            '../gui/gui.gyp:character_palette_mac',
             '../gui/gui.gyp:config_dialog_mac',
             '../gui/gui.gyp:dictionary_tool_mac',
             '../gui/gui.gyp:error_message_dialog_mac',
-            '../gui/gui.gyp:hand_writing_mac',
             '../gui/gui.gyp:prelauncher_mac',
             '../gui/gui.gyp:word_register_dialog_mac',
             '../renderer/renderer.gyp:mozc_renderer',
@@ -301,6 +306,9 @@
             '<(gen_out_dir)/Japanese.lproj/InfoPlist.strings',
           ],
           'xcode_settings': {
+            'CURRENT_PROJECT_VERSION': '<(version)',
+            'MARKETING_VERSION': '<(short_version)',
+            'PRODUCT_BUNDLE_IDENTIFIER': '<(domain_prefix).inputmethod.Japanese',
             'INFOPLIST_FILE': '<(gen_out_dir)/Info.plist',
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
           },
@@ -313,11 +321,9 @@
                 '<(PRODUCT_DIR)/<(branding)Prelauncher.app',
                 '<(PRODUCT_DIR)/<(branding)Renderer.app',
                 '<(PRODUCT_DIR)/AboutDialog.app',
-                '<(PRODUCT_DIR)/CharacterPalette.app',
                 '<(PRODUCT_DIR)/ConfigDialog.app',
                 '<(PRODUCT_DIR)/DictionaryTool.app',
                 '<(PRODUCT_DIR)/ErrorMessageDialog.app',
-                '<(PRODUCT_DIR)/HandWriting.app',
                 '<(PRODUCT_DIR)/WordRegisterDialog.app',
               ],
               'destination': '<(PRODUCT_DIR)/<(branding).app/Contents/Resources',
@@ -350,41 +356,9 @@
                 '<(gen_out_dir)/Info.plist',
               ],
               'action': [
-                'python', '../build_tools/tweak_info_plist.py',
+                '<(python)', '../build_tools/tweak_info_plist.py',
                 '--output', '<(gen_out_dir)/Info.plist',
                 '--input', 'Info.plist',
-                '--version_file', '../mozc_version.txt',
-                '--branding', '<(branding)',
-              ],
-            },
-            {
-              'action_name': 'generateActivatePaneInfoPlist',
-              'inputs': [
-                'ActivatePane/Info.plist',
-              ],
-              'outputs': [
-                '<(gen_out_dir)/ActivatePane/Info.plist',
-              ],
-              'action': [
-                'python', '../build_tools/tweak_info_plist.py',
-                '--output', '<(gen_out_dir)/ActivatePane/Info.plist',
-                '--input', 'ActivatePane/Info.plist',
-                '--version_file', '../mozc_version.txt',
-                '--branding', '<(branding)',
-              ],
-            },
-            {
-              'action_name': 'generateUninstallerInfoPlist',
-              'inputs': [
-                'Uninstaller/Info.plist',
-              ],
-              'outputs': [
-                '<(gen_out_dir)/Uninstaller/Info.plist',
-              ],
-              'action': [
-                'python', '../build_tools/tweak_info_plist.py',
-                '--output', '<(gen_out_dir)/Uninstaller/Info.plist',
-                '--input', 'Uninstaller/Info.plist',
                 '--version_file', '../mozc_version.txt',
                 '--branding', '<(branding)',
               ],
@@ -398,7 +372,7 @@
                 '<(gen_out_dir)/ActivatePane/English.lproj/Localizable.strings',
               ],
               'action': [
-                'python', '../build_tools/tweak_info_plist_strings.py',
+                '<(python)', '../build_tools/tweak_info_plist_strings.py',
                 '--output',
                 '<(gen_out_dir)/ActivatePane/English.lproj/Localizable.strings',
                 '--input',
@@ -415,7 +389,7 @@
                 '<(gen_out_dir)/ActivatePane/Japanese.lproj/Localizable.strings',
               ],
               'action': [
-                'python', '../build_tools/tweak_info_plist_strings.py',
+                '<(python)', '../build_tools/tweak_info_plist_strings.py',
                 '--output',
                 '<(gen_out_dir)/ActivatePane/Japanese.lproj/Localizable.strings',
                 '--input',
@@ -432,7 +406,7 @@
                 '<(gen_out_dir)/English.lproj/InfoPlist.strings',
               ],
               'action': [
-                'python', '../build_tools/tweak_info_plist_strings.py',
+                '<(python)', '../build_tools/tweak_info_plist_strings.py',
                 '--output', '<(gen_out_dir)/English.lproj/InfoPlist.strings',
                 '--input', 'English.lproj/InfoPlist.strings',
                 '--branding', '<(branding)',
@@ -447,54 +421,12 @@
                 '<(gen_out_dir)/Japanese.lproj/InfoPlist.strings',
               ],
               'action': [
-                'python', '../build_tools/tweak_info_plist_strings.py',
+                '<(python)', '../build_tools/tweak_info_plist_strings.py',
                 '--output', '<(gen_out_dir)/Japanese.lproj/InfoPlist.strings',
                 '--input', 'Japanese.lproj/InfoPlist.strings',
                 '--branding', '<(branding)',
               ],
             },
-          ],
-        },
-        {
-          'target_name': 'gen_launchd_confs',
-          'type': 'none',
-          'actions': [
-            {
-              'action_name': 'tweak_converter_launchd_conf',
-              'inputs': [ '../data/mac/com.google.inputmethod.Japanese.Converter.plist', ],
-              'outputs': [ '<(gen_out_dir)/<(domain_prefix).inputmethod.Japanese.Converter.plist' ],
-              'action': [
-                'python', '../build_tools/tweak_info_plist.py',
-                '--output', '<(gen_out_dir)/<(domain_prefix).inputmethod.Japanese.Converter.plist',
-                '--input', '../data/mac/com.google.inputmethod.Japanese.Converter.plist',
-                '--version_file', '../mozc_version.txt',
-                '--branding', '<(branding)',
-              ],
-            },
-            {
-              'action_name': 'tweak_renderer_launchd_conf',
-              'inputs': [ '../data/mac/com.google.inputmethod.Japanese.Renderer.plist', ],
-              'outputs': [ '<(gen_out_dir)/<(domain_prefix).inputmethod.Japanese.Renderer.plist' ],
-              'action': [
-                'python', '../build_tools/tweak_info_plist.py',
-                '--output', '<(gen_out_dir)/<(domain_prefix).inputmethod.Japanese.Renderer.plist',
-                '--input', '../data/mac/com.google.inputmethod.Japanese.Renderer.plist',
-                '--version_file', '../mozc_version.txt',
-                '--branding', '<(branding)',
-              ],
-            },
-          ],
-          'conditions': [
-            ['branding=="GoogleJapaneseInput"', {
-              'variables': {
-                'domain_prefix': 'com.google',
-              },
-            }, # else
-            {
-              'variables': {
-                'domain_prefix': 'org.mozc',
-              },
-            }],
           ],
         },
         {
@@ -506,7 +438,7 @@
               'inputs': [ 'installer/preflight_template.sh', ],
               'outputs': [ '<(gen_out_dir)/preflight.sh' ],
               'action': [
-                'python', '../build_tools/tweak_macinstaller_script.py',
+                '<(python)', '../build_tools/tweak_macinstaller_script.py',
                 '--output', '<(gen_out_dir)/preflight.sh',
                 '--input', 'installer/preflight_template.sh',
                 '--version_file', '../mozc_version.txt',
@@ -518,7 +450,7 @@
               'inputs': [ 'installer/postflight_template.sh', ],
               'outputs': [ '<(gen_out_dir)/postflight.sh' ],
               'action': [
-                'python', '../build_tools/tweak_macinstaller_script.py',
+                '<(python)', '../build_tools/tweak_macinstaller_script.py',
                 '--output', '<(gen_out_dir)/postflight.sh',
                 '--input', 'installer/postflight_template.sh',
                 '--version_file', '../mozc_version.txt',
@@ -530,13 +462,15 @@
               'inputs': [ 'installer/<(branding)_template.pkgproj', ],
               'outputs': [ '<(gen_out_dir)/<(branding).pkgproj' ],
               'action': [
-                'python', '../build_tools/tweak_pkgproj.py',
+                '<(python)', '../build_tools/tweak_pkgproj.py',
                 '--output', '<(gen_out_dir)/<(branding).pkgproj',
                 '--input', 'installer/<(branding)_template.pkgproj',
                 '--version_file', '../mozc_version.txt',
                 '--gen_out_dir', '<(gen_out_dir)',
                 '--build_dir', '<(PRODUCT_DIR)',
                 '--auto_updater_dir', '<(mac_auto_updater_dir)',
+                '--launch_agent_dir',
+                '<(DEPTH)/mac/installer/LaunchAgents',
                 '--build_type', '<(build_type)',
               ],
             },
@@ -559,8 +493,9 @@
                 '<(PRODUCT_DIR)/<(branding).pkg',
               ],
               'action': [
-                'python', '../build_tools/build_and_sign_pkg_mac.py',
+                '<(python)', '../build_tools/build_and_sign_pkg_mac.py',
                 '--pkgproj', '<(gen_out_dir)/<(branding).pkgproj',
+                '--product_dir', '<(PRODUCT_DIR)',
               ],
               'conditions': [
                 ['branding=="GoogleJapaneseInput"', {
@@ -579,7 +514,6 @@
             'GoogleJapaneseInput',
             'UninstallGoogleJapaneseInput',
             'gen_packproj_files',
-            'gen_launchd_confs',
           ],
           'conditions': [
             ['branding=="GoogleJapaneseInput"', {

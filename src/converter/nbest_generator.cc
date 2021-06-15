@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #include "converter/nbest_generator.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -50,7 +51,7 @@ namespace mozc {
 namespace {
 
 const int kFreeListSize = 512;
-const int kCostDiff = 3453;   // log prob of 1/1000
+const int kCostDiff = 3453;  // log prob of 1/1000
 
 }  // namespace
 
@@ -59,21 +60,17 @@ using converter::CandidateFilter;
 struct NBestGenerator::QueueElement {
   const Node *node;
   const QueueElement *next;
-  int32 fx;  // f(x) = h(x) + g(x): cost function for A* search
-  int32 gx;  // g(x)
+  int32_t fx;  // f(x) = h(x) + g(x): cost function for A* search
+  int32_t gx;  // g(x)
   // transition cost part of g(x).
   // Do not take the transition costs to edge nodes.
-  int32 structure_gx;
-  int32 w_gx;
+  int32_t structure_gx;
+  int32_t w_gx;
 };
 
 const NBestGenerator::QueueElement *NBestGenerator::CreateNewElement(
-    const Node *node,
-    const QueueElement *next,
-    int32 fx,
-    int32 gx,
-    int32 structure_gx,
-    int32 w_gx) {
+    const Node *node, const QueueElement *next, int32_t fx, int32_t gx,
+    int32_t structure_gx, int32_t w_gx) {
   QueueElement *elm = freelist_.Alloc();
   DCHECK(elm);
   elm->node = node;
@@ -114,20 +111,23 @@ NBestGenerator::NBestGenerator(const SuppressionDictionary *suppression_dic,
                                const SuggestionFilter *suggestion_filter,
                                bool apply_suggestion_filter_for_exact_match)
     : suppression_dictionary_(suppression_dic),
-      segmenter_(segmenter), connector_(connector), pos_matcher_(pos_matcher),
+      segmenter_(segmenter),
+      connector_(connector),
+      pos_matcher_(pos_matcher),
       lattice_(lattice),
-      begin_node_(NULL), end_node_(NULL),
+      begin_node_(nullptr),
+      end_node_(nullptr),
       freelist_(kFreeListSize),
-      filter_(new CandidateFilter(
-          suppression_dic, pos_matcher, suggestion_filter,
-          apply_suggestion_filter_for_exact_match)),
+      filter_(new CandidateFilter(suppression_dic, pos_matcher,
+                                  suggestion_filter,
+                                  apply_suggestion_filter_for_exact_match)),
       viterbi_result_checked_(false),
       check_mode_(STRICT),
-      boundary_checker_(NULL) {
+      boundary_checker_(nullptr) {
   DCHECK(suppression_dictionary_);
   DCHECK(segmenter);
   DCHECK(connector);
-  if (lattice_ == NULL || !lattice_->has_lattice()) {
+  if (lattice_ == nullptr || !lattice_->has_lattice()) {
     LOG(ERROR) << "lattice is not available";
     return;
   }
@@ -135,8 +135,7 @@ NBestGenerator::NBestGenerator(const SuppressionDictionary *suppression_dic,
   agenda_.Reserve(kFreeListSize);
 }
 
-NBestGenerator::~NBestGenerator() {
-}
+NBestGenerator::~NBestGenerator() {}
 
 void NBestGenerator::Reset(const Node *begin_node, const Node *end_node,
                            const BoundaryCheckMode mode) {
@@ -150,13 +149,12 @@ void NBestGenerator::Reset(const Node *begin_node, const Node *end_node,
   end_node_ = end_node;
 
   for (Node *node = lattice_->begin_nodes(end_node_->begin_pos);
-       node != NULL; node = node->bnext) {
-    if (node == end_node_ ||
-        (node->lid != end_node_->lid &&
-         node->cost - end_node_->cost <= kCostDiff &&
-         node->prev != end_node_->prev)) {
+       node != nullptr; node = node->bnext) {
+    if (node == end_node_ || (node->lid != end_node_->lid &&
+                              node->cost - end_node_->cost <= kCostDiff &&
+                              node->prev != end_node_->prev)) {
       // Push "EOS" nodes.
-      agenda_.Push(CreateNewElement(node, NULL, node->cost, 0, 0, 0));
+      agenda_.Push(CreateNewElement(node, nullptr, node->cost, 0, 0, 0));
     }
   }
 
@@ -177,8 +175,8 @@ void NBestGenerator::Reset(const Node *begin_node, const Node *end_node,
 }
 
 void NBestGenerator::MakeCandidate(
-    Segment::Candidate *candidate, int32 cost, int32 structure_cost,
-    int32 wcost, const std::vector<const Node *> &nodes) const {
+    Segment::Candidate *candidate, int32_t cost, int32_t structure_cost,
+    int32_t wcost, const std::vector<const Node *> &nodes) const {
   CHECK(!nodes.empty());
 
   candidate->Init();
@@ -191,7 +189,7 @@ void NBestGenerator::MakeCandidate(
   bool is_functional = false;
   for (size_t i = 0; i < nodes.size(); ++i) {
     const Node *node = nodes[i];
-    DCHECK(node != NULL);
+    DCHECK(node != nullptr);
     if (!is_functional && !pos_matcher_->IsFunctional(node->lid)) {
       candidate->content_value += node->value;
       candidate->content_key += node->key;
@@ -201,8 +199,8 @@ void NBestGenerator::MakeCandidate(
     candidate->key += node->key;
     candidate->value += node->value;
 
-    if (node->constrained_prev != NULL ||
-        (node->next != NULL && node->next->constrained_prev == node)) {
+    if (node->constrained_prev != nullptr ||
+        (node->next != nullptr && node->next->constrained_prev == node)) {
       // If result has constrained_node, set CONTEXT_SENSITIVE.
       // If a node has constrained node, the node is generated by
       //  a) compound node and resegmented via personal name resegmentation
@@ -217,6 +215,9 @@ void NBestGenerator::MakeCandidate(
     }
     if (node->attributes & Node::USER_DICTIONARY) {
       candidate->attributes |= Segment::Candidate::USER_DICTIONARY;
+    }
+    if (node->attributes & Node::SUFFIX_DICTIONARY) {
+      candidate->attributes |= Segment::Candidate::SUFFIX_DICTIONARY;
     }
   }
 
@@ -268,19 +269,19 @@ void NBestGenerator::MakeCandidate(
         content_value_len += rnode->value.size();
       }
     }
-    candidate->PushBackInnerSegmentBoundary(
-        key_len, value_len, content_key_len, content_value_len);
+    candidate->PushBackInnerSegmentBoundary(key_len, value_len, content_key_len,
+                                            content_value_len);
   }
 }
 
-bool NBestGenerator::Next(const string &original_key,
+bool NBestGenerator::Next(const std::string &original_key,
                           Segment::Candidate *candidate,
                           Segments::RequestType request_type) {
   DCHECK(begin_node_);
   DCHECK(end_node_);
 
   DCHECK(candidate);
-  if (lattice_ == NULL || !lattice_->has_lattice()) {
+  if (lattice_ == nullptr || !lattice_->has_lattice()) {
     LOG(ERROR) << "Must create lattice in advance";
     return false;
   }
@@ -289,7 +290,7 @@ bool NBestGenerator::Next(const string &original_key,
   //
   // Example:
   // |left_node| => |node1| => |node2| => |node3| => |right_node|.
-  // |node1| .. |node2| consists of a candidate.
+  // |node1| .. |node3| consists of a candidate.
   //
   // cost = (left_node->cost - begin_node_->cost) +
   //        trans(left_node, node1) + node1->wcost +
@@ -313,7 +314,7 @@ bool NBestGenerator::Next(const string &original_key,
   // Insert Viterbi best result here to make sure that
   // the top result is Viterbi best result.
   if (!viterbi_result_checked_) {
-    // Use CandiadteFilter so that filter is initialized with the
+    // Use CandidateFilter so that filter is initialized with the
     // Viterbi-best path.
     switch (InsertTopResult(original_key, candidate, request_type)) {
       case CandidateFilter::GOOD_CANDIDATE:
@@ -338,25 +339,23 @@ bool NBestGenerator::Next(const string &original_key,
     const Node *rnode = top->node;
     CHECK(rnode);
 
-    if (num_trials++ > KMaxTrial) {   // too many trials
-      VLOG(2) <<  "too many trials: " << num_trials;
+    if (num_trials++ > KMaxTrial) {  // too many trials
+      VLOG(2) << "too many trials: " << num_trials;
       return false;
     }
 
     // reached to the goal.
     if (rnode->end_pos == begin_node_->end_pos) {
       nodes_.clear();
-      for (const QueueElement *elm = top->next;
-           elm->next != NULL; elm = elm->next) {
+      for (const QueueElement *elm = top->next; elm->next != nullptr;
+           elm = elm->next) {
         nodes_.push_back(elm->node);
       }
       CHECK(!nodes_.empty());
 
       MakeCandidate(candidate, top->gx, top->structure_gx, top->w_gx, nodes_);
-      const int filter_result = filter_->FilterCandidate(original_key,
-                                                         candidate,
-                                                         nodes_,
-                                                         request_type);
+      const int filter_result = filter_->FilterCandidate(
+          original_key, candidate, nodes_, request_type);
       nodes_.clear();
 
       switch (filter_result) {
@@ -370,7 +369,7 @@ bool NBestGenerator::Next(const string &original_key,
           // do nothing
       }
     } else {
-      const QueueElement *best_left_elm = NULL;
+      const QueueElement *best_left_elm = nullptr;
       const bool is_right_edge = rnode->begin_pos == end_node_->begin_pos;
       const bool is_left_edge = rnode->begin_pos == begin_node_->end_pos;
       DCHECK(!(is_right_edge && is_left_edge));
@@ -380,7 +379,7 @@ bool NBestGenerator::Next(const string &original_key,
       const bool is_edge = (is_right_edge || is_left_edge);
 
       for (Node *lnode = lattice_->end_nodes(rnode->begin_pos);
-           lnode != NULL; lnode = lnode->enext) {
+           lnode != nullptr; lnode = lnode->enext) {
         // is_invalid_position is true if the lnode's location is invalid
         //  1.   |<-- begin_node_-->|
         //                    |<--lnode-->|  <== overlapped.
@@ -417,9 +416,9 @@ bool NBestGenerator::Next(const string &original_key,
           continue;
         }
 
-        DCHECK(this->boundary_checker_ != NULL);
-        BoundaryCheckResult boundary_result = (this->*boundary_checker_)(
-            lnode, rnode, is_edge);
+        DCHECK(this->boundary_checker_ != nullptr);
+        BoundaryCheckResult boundary_result =
+            (this->*boundary_checker_)(lnode, rnode, is_edge);
         if (boundary_result == INVALID) {
           continue;
         }
@@ -442,7 +441,7 @@ bool NBestGenerator::Next(const string &original_key,
           // use |lnode->cost - begin_node_->cost| is an approximation
           // of marginalized word cost.
           cost_diff = transition_cost + rnode->wcost +
-              (lnode->cost - begin_node_->cost);
+                      (lnode->cost - begin_node_->cost);
           structure_cost_diff = 0;
           wcost_diff = rnode->wcost;
         } else {
@@ -453,34 +452,34 @@ bool NBestGenerator::Next(const string &original_key,
         }
 
         if (boundary_result == VALID_WEAK_CONNECTED) {
-          const int kWeakConnectedPenalty = 3453;   // log prob of 1/1000
+          const int kWeakConnectedPenalty = 3453;  // log prob of 1/1000
           cost_diff += kWeakConnectedPenalty;
           structure_cost_diff += kWeakConnectedPenalty / 2;
           wcost_diff += kWeakConnectedPenalty / 2;
         }
 
-        const int32 gx = cost_diff + top->gx;
+        const int32_t gx = cost_diff + top->gx;
         // |lnode->cost| is heuristics function of A* search, h(x).
         // After Viterbi search, we already know an exact value of h(x).
-        const int32 fx = lnode->cost + gx;
-        const int32 structure_gx = structure_cost_diff + top->structure_gx;
-        const int32 w_gx = wcost_diff + top->w_gx;
+        const int32_t fx = lnode->cost + gx;
+        const int32_t structure_gx = structure_cost_diff + top->structure_gx;
+        const int32_t w_gx = wcost_diff + top->w_gx;
         if (is_left_edge) {
           // We only need to only 1 left node here.
           // Even if expand all left nodes, all the |value| part should
           // be identical. Here, we simply use the best left edge node.
           // This hack reduces the number of redundant calls of pop().
-          if (best_left_elm == NULL || best_left_elm->fx > fx) {
-            best_left_elm = CreateNewElement(
-                lnode, top, fx, gx, structure_gx, w_gx);
+          if (best_left_elm == nullptr || best_left_elm->fx > fx) {
+            best_left_elm =
+                CreateNewElement(lnode, top, fx, gx, structure_gx, w_gx);
           }
         } else {
-          agenda_.Push(CreateNewElement(
-              lnode, top, fx, gx, structure_gx, w_gx));
+          agenda_.Push(
+              CreateNewElement(lnode, top, fx, gx, structure_gx, w_gx));
         }
       }
 
-      if (best_left_elm != NULL) {
+      if (best_left_elm != nullptr) {
         agenda_.Push(best_left_elm);
       }
     }
@@ -497,7 +496,7 @@ NBestGenerator::BoundaryCheckResult NBestGenerator::CheckOnlyMid(
     return VALID;
   }
 
-  // is_boundary is true if there is a grammer-based boundary
+  // is_boundary is true if there is a grammar-based boundary
   // between lnode and rnode
   const bool is_boundary = (lnode->node_type == Node::HIS_NODE ||
                             segmenter_->IsBoundary(*lnode, *rnode, false));
@@ -523,11 +522,10 @@ NBestGenerator::BoundaryCheckResult NBestGenerator::CheckOnlyEdge(
     return VALID;
   }
 
-  // is_boundary is true if there is a grammer-based boundary
+  // is_boundary is true if there is a grammar-based boundary
   // between lnode and rnode
-  const bool is_boundary = (
-      lnode->node_type == Node::HIS_NODE ||
-      segmenter_->IsBoundary(*lnode, *rnode, true));
+  const bool is_boundary = (lnode->node_type == Node::HIS_NODE ||
+                            segmenter_->IsBoundary(*lnode, *rnode, true));
   if (is_edge != is_boundary) {
     // on the edge, have a boudnary.
     // not on the edge, not the case.
@@ -545,11 +543,10 @@ NBestGenerator::BoundaryCheckResult NBestGenerator::CheckStrict(
     return VALID;
   }
 
-  // is_boundary is true if there is a grammer-based boundary
+  // is_boundary is true if there is a grammar-based boundary
   // between lnode and rnode
-  const bool is_boundary = (
-      lnode->node_type == Node::HIS_NODE ||
-      segmenter_->IsBoundary(*lnode, *rnode, false));
+  const bool is_boundary = (lnode->node_type == Node::HIS_NODE ||
+                            segmenter_->IsBoundary(*lnode, *rnode, false));
 
   if (is_edge != is_boundary) {
     // on the edge, have a boudnary.
@@ -560,13 +557,13 @@ NBestGenerator::BoundaryCheckResult NBestGenerator::CheckStrict(
   }
 }
 
-int NBestGenerator::InsertTopResult(const string &original_key,
+int NBestGenerator::InsertTopResult(const std::string &original_key,
                                     Segment::Candidate *candidate,
                                     Segments::RequestType request_type) {
   nodes_.clear();
   int total_wcost = 0;
-  for (const Node *node = begin_node_->next;
-       node != end_node_; node = node->next) {
+  for (const Node *node = begin_node_->next; node != end_node_;
+       node = node->next) {
     nodes_.push_back(node);
     if (node != begin_node_->next) {
       total_wcost += node->wcost;
@@ -574,12 +571,11 @@ int NBestGenerator::InsertTopResult(const string &original_key,
   }
   DCHECK(!nodes_.empty());
 
-  const int cost = end_node_->cost -
-      begin_node_->cost - end_node_->wcost;
-  const int structure_cost = end_node_->prev->cost -
-      begin_node_->next->cost - total_wcost;
-  const int wcost = end_node_->prev->cost -
-      begin_node_->next->cost + begin_node_->next->wcost;
+  const int cost = end_node_->cost - begin_node_->cost - end_node_->wcost;
+  const int structure_cost =
+      end_node_->prev->cost - begin_node_->next->cost - total_wcost;
+  const int wcost = end_node_->prev->cost - begin_node_->next->cost +
+                    begin_node_->next->wcost;
 
   MakeCandidate(candidate, cost, structure_cost, wcost, nodes_);
 
@@ -588,8 +584,8 @@ int NBestGenerator::InsertTopResult(const string &original_key,
   }
 
   viterbi_result_checked_ = true;
-  const int result = filter_->FilterCandidate(
-      original_key, candidate, nodes_, request_type);
+  const int result =
+      filter_->FilterCandidate(original_key, candidate, nodes_, request_type);
   nodes_.clear();
   return result;
 }
@@ -597,7 +593,7 @@ int NBestGenerator::InsertTopResult(const string &original_key,
 int NBestGenerator::GetTransitionCost(const Node *lnode,
                                       const Node *rnode) const {
   const int kInvalidPenaltyCost = 100000;
-  if (rnode->constrained_prev != NULL && lnode != rnode->constrained_prev) {
+  if (rnode->constrained_prev != nullptr && lnode != rnode->constrained_prev) {
     return kInvalidPenaltyCost;
   }
   return connector_->GetTransitionCost(lnode->rid, rnode->lid);

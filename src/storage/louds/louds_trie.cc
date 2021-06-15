@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,24 +29,26 @@
 
 #include "storage/louds/louds_trie.h"
 
+#include <cstdint>
+
 #include "base/logging.h"
 #include "base/port.h"
 #include "storage/louds/louds.h"
 #include "storage/louds/simple_succinct_bit_vector_index.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace storage {
 namespace louds {
 
 namespace {
-inline int32 ReadInt32(const uint8 *data) {
+inline int32_t ReadInt32(const uint8_t *data) {
   // TODO(noriyukit): static assertion for the endian.
-  return *reinterpret_cast<const int32*>(data);
+  return *reinterpret_cast<const int32_t *>(data);
 }
 }  // namespace
 
-bool LoudsTrie::Open(const uint8 *image,
-                     size_t louds_lb0_cache_size,
+bool LoudsTrie::Open(const uint8_t *image, size_t louds_lb0_cache_size,
                      size_t louds_lb1_cache_size,
                      size_t louds_select0_cache_size,
                      size_t louds_select1_cache_size,
@@ -80,17 +82,17 @@ bool LoudsTrie::Open(const uint8 *image,
   CHECK_EQ(num_character_bits, 8);
   CHECK_GT(edge_character_size, 0);
 
-  const uint8 *louds_image = image + 16;
-  const uint8 *terminal_image = louds_image + louds_size;
-  const uint8 *edge_character = terminal_image + terminal_size;
+  const uint8_t *louds_image = image + 16;
+  const uint8_t *terminal_image = louds_image + louds_size;
+  const uint8_t *edge_character = terminal_image + terminal_size;
 
-  louds_.Init(louds_image, louds_size,
-              louds_lb0_cache_size, louds_lb1_cache_size,
-              louds_select0_cache_size, louds_select1_cache_size);
+  louds_.Init(louds_image, louds_size, louds_lb0_cache_size,
+              louds_lb1_cache_size, louds_select0_cache_size,
+              louds_select1_cache_size);
   terminal_bit_vector_.Init(terminal_image, terminal_size,
                             0,  // Select0 is not carried out.
                             termvec_lb1_cache_size);
-  edge_character_ = reinterpret_cast<const char*>(edge_character);
+  edge_character_ = reinterpret_cast<const char *>(edge_character);
 
   return true;
 }
@@ -112,7 +114,7 @@ bool LoudsTrie::MoveToChildByLabel(char label, Node *node) const {
   return false;
 }
 
-bool LoudsTrie::Traverse(StringPiece key, Node *node) const {
+bool LoudsTrie::Traverse(absl::string_view key, Node *node) const {
   for (auto iter = key.begin(); iter != key.end(); ++iter) {
     if (!MoveToChildByLabel(*iter, node)) {
       return false;
@@ -121,7 +123,7 @@ bool LoudsTrie::Traverse(StringPiece key, Node *node) const {
   return true;
 }
 
-int LoudsTrie::ExactSearch(StringPiece key) const {
+int LoudsTrie::ExactSearch(absl::string_view key) const {
   Node node;  // Root
   if (Traverse(key, &node) && IsTerminalNode(node)) {
     return GetKeyIdOfTerminalNode(node);
@@ -129,8 +131,8 @@ int LoudsTrie::ExactSearch(StringPiece key) const {
   return -1;
 }
 
-StringPiece LoudsTrie::RestoreKeyString(Node node, char *buf) const {
-  // Ensure the returned StringPiece is null-terminated.
+absl::string_view LoudsTrie::RestoreKeyString(Node node, char *buf) const {
+  // Ensure the returned string view is null-terminated.
   char *const buf_end = buf + kMaxDepth;
   *buf_end = '\0';
 
@@ -139,7 +141,7 @@ StringPiece LoudsTrie::RestoreKeyString(Node node, char *buf) const {
   for (; !louds_.IsRoot(node); louds_.MoveToParent(&node)) {
     *--ptr = GetEdgeLabelToParentNode(node);
   }
-  return StringPiece(ptr, buf_end - ptr);
+  return absl::string_view(ptr, buf_end - ptr);
 }
 
 }  // namespace louds

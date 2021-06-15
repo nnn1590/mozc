@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,46 +33,48 @@
 #include "base/port.h"
 #include "base/util.h"
 #include "storage/lru_storage.h"
+#include "absl/flags/flag.h"
 
-DEFINE_bool(create_db, false, "initialize database");
-DEFINE_string(file, "test.db", "");
-DEFINE_int32(size, 10, "size");
+ABSL_FLAG(bool, create_db, false, "initialize database");
+ABSL_FLAG(std::string, file, "test.db", "");
+ABSL_FLAG(int32, size, 10, "size");
 
 using mozc::storage::LRUStorage;
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  if (FLAGS_create_db) {
-    CHECK(LRUStorage::CreateStorageFile(
-        FLAGS_file.c_str(), static_cast<uint32>(4), FLAGS_size, 0xff02));
+  if (absl::GetFlag(FLAGS_create_db)) {
+    CHECK(LRUStorage::CreateStorageFile(FLAGS_file.c_str(),
+                                        static_cast<uint32>(4),
+                                        absl::GetFlag(FLAGS_size), 0xff02));
   }
 
   LRUStorage s;
-  CHECK(s.Open(FLAGS_file.c_str()));
+  CHECK(s.Open(absl::GetFlag(FLAGS_file).c_str()));
 
   LOG(INFO) << "size=" << s.size();
   LOG(INFO) << "used_size=" << s.used_size();
   LOG(INFO) << "usage=" << 100.0 * s.used_size() / s.size() << "%";
   LOG(INFO) << "value_size=" << s.value_size();
 
-  string line;
-  std::vector<string> fields;
+  std::string line;
+  std::vector<std::string> fields;
   while (getline(cin, line)) {
     fields.clear();
     mozc::Util::SplitStringUsing(line, "\t ", &fields);
-    if (fields.size() >=2 && fields[0] == "g") {
+    if (fields.size() >= 2 && fields[0] == "g") {
       uint32 lat;
       const char *v = s.Lookup(fields[1], &lat);
       if (v != NULL) {
-        cout << "found " << fields[1] << "\t"
-             << lat << "\t" << *reinterpret_cast<const uint32 *>(v) << endl;
+        std::cout << "found " << fields[1] << "\t" << lat << "\t"
+                  << *reinterpret_cast<const uint32 *>(v) << std::endl;
       } else {
-        cout << "not found " << fields[1] << endl;
+        std::cout << "not found " << fields[1] << std::endl;
       }
     } else if (fields.size() >= 3 && fields[0] == "i") {
       uint32 value = atoi32(fields[2].c_str());
-      s.Insert(fields[1], reinterpret_cast<const char*>(&value));
+      s.Insert(fields[1], reinterpret_cast<const char *>(&value));
     } else {
       LOG(INFO) << "unknown command: " << line;
     }

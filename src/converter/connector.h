@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,35 @@
 #ifndef MOZC_CONVERTER_CONNECTOR_H_
 #define MOZC_CONVERTER_CONNECTOR_H_
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 
 #include "base/port.h"
+#include "base/status.h"
+#include "base/statusor.h"
 
 namespace mozc {
 
 class DataManagerInterface;
 
-class Connector {
+class Connector final {
  public:
-  static const int16 kInvalidCost = 30000;
+  static constexpr int16_t kInvalidCost = 30000;
 
-  static Connector *CreateFromDataManager(
+  static mozc::StatusOr<std::unique_ptr<Connector>> CreateFromDataManager(
       const DataManagerInterface &data_manager);
 
-  Connector(const char *connection_data, size_t connection_size,
-            int cache_size);
+  static mozc::StatusOr<std::unique_ptr<Connector>> Create(
+      const char *connection_data, size_t connection_size, int cache_size);
+
+  Connector();
   ~Connector();
 
-  int GetTransitionCost(uint16 rid, uint16 lid) const;
+  Connector(const Connector &) = delete;
+  Connector &operator=(const Connector &) = delete;
+
+  int GetTransitionCost(uint16_t rid, uint16_t lid) const;
   int GetResolution() const;
 
   void ClearCache();
@@ -58,18 +66,18 @@ class Connector {
  private:
   class Row;
 
-  int LookupCost(uint16 rid, uint16 lid) const;
+  mozc::Status Init(const char *connection_data, size_t connection_size,
+                    int cache_size);
 
-  std::vector<Row *> rows_;
-  const uint16 *default_cost_;
-  int resolution_;
+  int LookupCost(uint16_t rid, uint16_t lid) const;
 
-  const int cache_size_;
-  const uint32 cache_hash_mask_;
-  mutable std::unique_ptr<uint32[]> cache_key_;
+  std::vector<std::unique_ptr<Row>> rows_;
+  const uint16_t *default_cost_ = nullptr;
+  int resolution_ = 0;
+  int cache_size_ = 0;
+  uint32_t cache_hash_mask_ = 0;
+  mutable std::unique_ptr<uint32_t[]> cache_key_;
   mutable std::unique_ptr<int[]> cache_value_;
-
-  DISALLOW_COPY_AND_ASSIGN(Connector);
 };
 
 }  // namespace mozc

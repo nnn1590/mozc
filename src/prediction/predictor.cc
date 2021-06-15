@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,15 @@
 
 #include <algorithm>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "base/flags.h"
 #include "base/logging.h"
 #include "converter/segments.h"
 #include "protocol/commands.pb.h"
 #include "protocol/config.pb.h"
-
-DECLARE_bool(enable_expansion_for_dictionary_predictor);
-DECLARE_bool(enable_expansion_for_user_history_predictor);
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace {
@@ -64,18 +63,30 @@ bool IsZeroQuery(const ConversionRequest &request) {
   return request.request().zero_query_suggestion();
 }
 
+size_t GetHistoryPredictionSizeFromRequest(const ConversionRequest &request) {
+  if (!IsZeroQuery(request)) {
+    return 2;
+  }
+  if (request.request().has_decoder_experiment_params() &&
+      request.request()
+          .decoder_experiment_params()
+          .has_mobile_history_prediction_size()) {
+    return request.request()
+        .decoder_experiment_params()
+        .mobile_history_prediction_size();
+  }
+  return 3;
+}
+
 }  // namespace
 
-BasePredictor::BasePredictor(PredictorInterface *dictionary_predictor,
-                             PredictorInterface *user_history_predictor)
-    : dictionary_predictor_(dictionary_predictor),
-      user_history_predictor_(user_history_predictor) {
-  DCHECK(dictionary_predictor_.get());
-  DCHECK(user_history_predictor_.get());
-  // TODO(noriyukit): Now the following features are stable, so remove these
-  // flags.
-  FLAGS_enable_expansion_for_dictionary_predictor = true;
-  FLAGS_enable_expansion_for_user_history_predictor = true;
+BasePredictor::BasePredictor(
+    std::unique_ptr<PredictorInterface> dictionary_predictor,
+    std::unique_ptr<PredictorInterface> user_history_predictor)
+    : dictionary_predictor_(std::move(dictionary_predictor)),
+      user_history_predictor_(std::move(user_history_predictor)) {
+  DCHECK(dictionary_predictor_);
+  DCHECK(user_history_predictor_);
 }
 
 BasePredictor::~BasePredictor() {}
@@ -114,36 +125,34 @@ bool BasePredictor::ClearUnusedHistory() {
   return user_history_predictor_->ClearUnusedHistory();
 }
 
-bool BasePredictor::ClearHistoryEntry(const string &key, const string &value) {
+bool BasePredictor::ClearHistoryEntry(const std::string &key,
+                                      const std::string &value) {
   return user_history_predictor_->ClearHistoryEntry(key, value);
 }
 
-bool BasePredictor::Wait() {
-  return user_history_predictor_->Wait();
-}
+bool BasePredictor::Wait() { return user_history_predictor_->Wait(); }
 
-bool BasePredictor::Sync() {
-  return user_history_predictor_->Sync();
-}
+bool BasePredictor::Sync() { return user_history_predictor_->Sync(); }
 
-bool BasePredictor::Reload() {
-  return user_history_predictor_->Reload();
-}
+bool BasePredictor::Reload() { return user_history_predictor_->Reload(); }
 
 // static
-PredictorInterface *DefaultPredictor::CreateDefaultPredictor(
-    PredictorInterface *dictionary_predictor,
-    PredictorInterface *user_history_predictor) {
-  return new DefaultPredictor(dictionary_predictor, user_history_predictor);
+std::unique_ptr<PredictorInterface> DefaultPredictor::CreateDefaultPredictor(
+    std::unique_ptr<PredictorInterface> dictionary_predictor,
+    std::unique_ptr<PredictorInterface> user_history_predictor) {
+  return absl::make_unique<DefaultPredictor>(std::move(dictionary_predictor),
+                                             std::move(user_history_predictor));
 }
 
-DefaultPredictor::DefaultPredictor(PredictorInterface *dictionary_predictor,
-                                   PredictorInterface *user_history_predictor)
-    : BasePredictor(dictionary_predictor, user_history_predictor),
+DefaultPredictor::DefaultPredictor(
+    std::unique_ptr<PredictorInterface> dictionary_predictor,
+    std::unique_ptr<PredictorInterface> user_history_predictor)
+    : BasePredictor(std::move(dictionary_predictor),
+                    std::move(user_history_predictor)),
       empty_request_(),
       predictor_name_("DefaultPredictor") {}
 
-DefaultPredictor::~DefaultPredictor() {}
+DefaultPredictor::~DefaultPredictor() = default;
 
 bool DefaultPredictor::PredictForRequest(const ConversionRequest &request,
                                          Segments *segments) const {
@@ -176,27 +185,22 @@ bool DefaultPredictor::PredictForRequest(const ConversionRequest &request,
 
   segments->set_max_prediction_candidates_size(remained_size);
   result |= dictionary_predictor_->PredictForRequest(request, segments);
-  remained_size = size - static_cast<size_t>(GetCandidatesSize(*segments));
-
-  // Do not call extra_predictor if the size of candidates get
-  // >= suggestions_size.
-  if (remained_size <= 0) {
-    return result;
-  }
-
   return result;
 }
 
 // static
-PredictorInterface *MobilePredictor::CreateMobilePredictor(
-    PredictorInterface *dictionary_predictor,
-    PredictorInterface *user_history_predictor) {
-  return new MobilePredictor(dictionary_predictor, user_history_predictor);
+std::unique_ptr<PredictorInterface> MobilePredictor::CreateMobilePredictor(
+    std::unique_ptr<PredictorInterface> dictionary_predictor,
+    std::unique_ptr<PredictorInterface> user_history_predictor) {
+  return absl::make_unique<MobilePredictor>(std::move(dictionary_predictor),
+                                            std::move(user_history_predictor));
 }
 
-MobilePredictor::MobilePredictor(PredictorInterface *dictionary_predictor,
-                                 PredictorInterface *user_history_predictor)
-    : BasePredictor(dictionary_predictor, user_history_predictor),
+MobilePredictor::MobilePredictor(
+    std::unique_ptr<PredictorInterface> dictionary_predictor,
+    std::unique_ptr<PredictorInterface> user_history_predictor)
+    : BasePredictor(std::move(dictionary_predictor),
+                    std::move(user_history_predictor)),
       empty_request_(),
       predictor_name_("MobilePredictor") {}
 
@@ -217,21 +221,20 @@ bool MobilePredictor::PredictForRequest(const ConversionRequest &request,
 
   bool result = false;
   size_t size = 0;
-  size_t history_suggestion_size = IsZeroQuery(request) ? 3 : 2;
+  size_t history_prediction_size = GetHistoryPredictionSizeFromRequest(request);
 
   // TODO(taku,toshiyuki): Must rewrite the logic.
   switch (segments->request_type()) {
     case Segments::SUGGESTION: {
       // Suggestion is triggered at every character insertion.
       // So here we should use slow predictors.
-      size = GetCandidatesSize(*segments) + history_suggestion_size;
+      size = GetCandidatesSize(*segments) + history_prediction_size;
       segments->set_max_prediction_candidates_size(size);
       result |= user_history_predictor_->PredictForRequest(request, segments);
 
       size = GetCandidatesSize(*segments) + 20;
       segments->set_max_prediction_candidates_size(size);
       result |= dictionary_predictor_->PredictForRequest(request, segments);
-
       break;
     }
     case Segments::PARTIAL_SUGGESTION: {
@@ -240,7 +243,6 @@ bool MobilePredictor::PredictForRequest(const ConversionRequest &request,
       size = GetCandidatesSize(*segments) + 20;
       segments->set_max_prediction_candidates_size(size);
       result |= dictionary_predictor_->PredictForRequest(request, segments);
-
       break;
     }
     case Segments::PARTIAL_PREDICTION: {
@@ -249,7 +251,7 @@ bool MobilePredictor::PredictForRequest(const ConversionRequest &request,
       break;
     }
     case Segments::PREDICTION: {
-      size = GetCandidatesSize(*segments) + history_suggestion_size;
+      size = GetCandidatesSize(*segments) + history_prediction_size;
       segments->set_max_prediction_candidates_size(size);
       result |= user_history_predictor_->PredictForRequest(request, segments);
 

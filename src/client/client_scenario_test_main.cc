@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,14 @@
 // events specified by FLAGS_input file or interactive standard input.  Input
 // file format is same as one of session/session_client_main.
 
+#include <cstdint>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "base/file_stream.h"
 #include "base/file_util.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/port.h"
@@ -49,31 +50,34 @@
 #include "protocol/commands.pb.h"
 #include "protocol/renderer_command.pb.h"
 #include "renderer/renderer_client.h"
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
+#include "absl/strings/match.h"
 
-DEFINE_string(input, "", "Input file");
-DEFINE_int32(key_duration, 10, "Key duration (msec)");
-DEFINE_string(profile_dir, "", "Profile dir");
-DEFINE_bool(sentence_mode, false, "Use input as sentences");
-DEFINE_string(server_path, "", "Specify server path");
-DEFINE_bool(test_renderer, false, "Test renderer");
-DEFINE_bool(test_testsendkey, true, "Test TestSendKey");
+ABSL_FLAG(std::string, input, "", "Input file");
+ABSL_FLAG(int32_t, key_duration, 10, "Key duration (msec)");
+ABSL_FLAG(std::string, profile_dir, "", "Profile dir");
+ABSL_FLAG(bool, sentence_mode, false, "Use input as sentences");
+ABSL_FLAG(std::string, server_path, "", "Specify server path");
+ABSL_FLAG(bool, test_renderer, false, "Test renderer");
+ABSL_FLAG(bool, test_testsendkey, true, "Test TestSendKey");
 
 namespace mozc {
 namespace {
 
 // Parses key events.  If |input| gets EOF, returns false.
 bool ReadKeys(std::istream *input, std::vector<commands::KeyEvent> *keys,
-              string *answer) {
+              std::string *answer) {
   keys->clear();
   answer->clear();
 
-  string line;
-  while (getline(*input, line)) {
+  std::string line;
+  while (std::getline(*input, line)) {
     Util::ChopReturns(&line);
     if (line.size() > 1 && line[0] == '#' && line[1] == '#') {
       continue;
     }
-    if (line.find(">> ") == 0) {
+    if (absl::StartsWith(line, ">> ")) {
       // Answer line
       answer->assign(line, 3, line.size() - 3);
       continue;
@@ -93,8 +97,8 @@ bool ReadKeys(std::istream *input, std::vector<commands::KeyEvent> *keys,
 
 int Loop(std::istream *input) {
   mozc::client::Client client;
-  if (!FLAGS_server_path.empty()) {
-    client.set_server_program(FLAGS_server_path);
+  if (!absl::GetFlag(FLAGS_server_path).empty()) {
+    client.set_server_program(absl::GetFlag(FLAGS_server_path));
   }
 
   CHECK(client.IsValidRunLevel()) << "IsValidRunLevel failed";
@@ -104,29 +108,29 @@ int Loop(std::istream *input) {
   std::unique_ptr<mozc::renderer::RendererClient> renderer_client;
   mozc::commands::RendererCommand renderer_command;
 
-  if (FLAGS_test_renderer) {
-#if defined(OS_WIN) || defined(OS_MACOSX)
+  if (absl::GetFlag(FLAGS_test_renderer)) {
 #ifdef OS_WIN
-    renderer_command.mutable_application_info()->set_process_id
-        (::GetCurrentProcessId());
-    renderer_command.mutable_application_info()->set_thread_id
-        (::GetCurrentThreadId());
+    renderer_command.mutable_application_info()->set_process_id(
+        ::GetCurrentProcessId());
+    renderer_command.mutable_application_info()->set_thread_id(
+        ::GetCurrentThreadId());
 #endif
+#if defined(OS_WIN) || defined(__APPLE__)
     renderer_command.mutable_preedit_rectangle()->set_left(10);
     renderer_command.mutable_preedit_rectangle()->set_top(10);
     renderer_command.mutable_preedit_rectangle()->set_right(200);
     renderer_command.mutable_preedit_rectangle()->set_bottom(30);
+    renderer_client = absl::make_unique<renderer::RendererClient>();
+    CHECK(renderer_client->Activate());
 #else
     LOG(FATAL) << "test_renderer is only supported on Windows and Mac";
 #endif
-    renderer_client.reset(new renderer::RendererClient);
-    CHECK(renderer_client->Activate());
   }
 
   commands::Command command;
   commands::Output output;
   std::vector<commands::KeyEvent> keys;
-  string answer;
+  std::string answer;
 
   // TODO(tok): Stop the test if server is crashed.  Currently, we cannot
   // detect the server crash out of client library, as client automatically
@@ -135,9 +139,9 @@ int Loop(std::istream *input) {
   while (ReadKeys(input, &keys, &answer)) {
     CHECK(client.NoOperation()) << "Server is not responding";
     for (size_t i = 0; i < keys.size(); ++i) {
-      Util::Sleep(FLAGS_key_duration);
+      Util::Sleep(absl::GetFlag(FLAGS_key_duration));
 
-      if (FLAGS_test_testsendkey) {
+      if (absl::GetFlag(FLAGS_test_testsendkey)) {
         VLOG(2) << "Sending to Server: " << keys[i].DebugString();
         client.TestSendKey(keys[i], &output);
         VLOG(2) << "Output of TestSendKey: " << output.DebugString();
@@ -148,10 +152,10 @@ int Loop(std::istream *input) {
       client.SendKey(keys[i], &output);
       VLOG(2) << "Output of SendKey: " << output.DebugString();
 
-      if (renderer_client.get() != NULL) {
+      if (renderer_client != nullptr) {
         renderer_command.set_type(commands::RendererCommand::UPDATE);
         renderer_command.set_visible(output.has_candidates());
-        renderer_command.mutable_output()->CopyFrom(output);
+        *renderer_command.mutable_output() = output;
         VLOG(2) << "Sending to Renderer: " << renderer_command.DebugString();
         renderer_client->ExecCommand(renderer_command);
       }
@@ -169,21 +173,22 @@ int Loop(std::istream *input) {
 }  // namespace mozc
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  if (!FLAGS_profile_dir.empty()) {
-    mozc::FileUtil::CreateDirectory(FLAGS_profile_dir);
-    mozc::SystemUtil::SetUserProfileDirectory(FLAGS_profile_dir);
+  if (!absl::GetFlag(FLAGS_profile_dir).empty()) {
+    mozc::FileUtil::CreateDirectory(absl::GetFlag(FLAGS_profile_dir));
+    mozc::SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_profile_dir));
   }
 
   std::unique_ptr<mozc::InputFileStream> input_file;
-  std::istream *input = NULL;
+  std::istream *input = nullptr;
 
-  if (!FLAGS_input.empty()) {
+  if (!absl::GetFlag(FLAGS_input).empty()) {
     // Batch mode loading the input file.
-    input_file.reset(new mozc::InputFileStream(FLAGS_input.c_str()));
+    input_file = absl::make_unique<mozc::InputFileStream>(
+        absl::GetFlag(FLAGS_input).c_str());
     if (input_file->fail()) {
-      LOG(ERROR) << "File not opened: " << FLAGS_input;
+      LOG(ERROR) << "File not opened: " << absl::GetFlag(FLAGS_input);
       return 1;
     }
     input = input_file.get();

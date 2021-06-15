@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,53 +30,56 @@
 #ifndef MOZC_BASE_HASH_H_
 #define MOZC_BASE_HASH_H_
 
+#include <cstdint>
 #include <type_traits>
 
 #include "base/port.h"
-#include "base/string_piece.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 
 class Hash {
  public:
   // Calculates 64-bit fingerprint.
-  static uint64 Fingerprint(StringPiece str);
-  static uint64 FingerprintWithSeed(StringPiece str, uint32 seed);
+  static uint64_t Fingerprint(absl::string_view str);
+  static uint64_t FingerprintWithSeed(absl::string_view str, uint32_t seed);
 
   // Calculates 32-bit fingerprint.
-  static uint32 Fingerprint32(StringPiece str);
-  static uint32 Fingerprint32WithSeed(StringPiece str, uint32 seed);
+  static uint32_t Fingerprint32(absl::string_view str);
+  static uint32_t Fingerprint32WithSeed(absl::string_view str, uint32_t seed);
 
   // Calculates 64-bit fingerprint for integral types.
   // Note: This function depends on endian.
   template <typename T>
-  static typename std::enable_if<std::is_integral<T>::value, uint64>::type
+  static typename std::enable_if<std::is_integral<T>::value, uint64_t>::type
   Fingerprint(T num) {
     return Fingerprint(
-        StringPiece(reinterpret_cast<const char*>(&num), sizeof(num)));
+        absl::string_view(reinterpret_cast<const char*>(&num), sizeof(num)));
   }
 
   template <typename T>
-  static typename std::enable_if<std::is_integral<T>::value, uint64>::type
-  FingerprintWithSeed(T num, uint32 seed) {
+  static typename std::enable_if<std::is_integral<T>::value, uint64_t>::type
+  FingerprintWithSeed(T num, uint32_t seed) {
     return FingerprintWithSeed(
-        StringPiece(reinterpret_cast<const char*>(&num), sizeof(num)), seed);
+        absl::string_view(reinterpret_cast<const char*>(&num), sizeof(num)),
+        seed);
   }
 
   // Calculates 32-bit fingerprint for integral types.
   // Note: This function depends on endian.
   template <typename T>
-  static typename std::enable_if<std::is_integral<T>::value, uint32>::type
+  static typename std::enable_if<std::is_integral<T>::value, uint32_t>::type
   Fingerprint32(T num) {
     return Fingerprint32(
-        StringPiece(reinterpret_cast<const char*>(&num), sizeof(num)));
+        absl::string_view(reinterpret_cast<const char*>(&num), sizeof(num)));
   }
 
   template <typename T>
-  static typename std::enable_if<std::is_integral<T>::value, uint32>::type
-  Fingerprint32WithSeed(T num, uint32 seed) {
+  static typename std::enable_if<std::is_integral<T>::value, uint32_t>::type
+  Fingerprint32WithSeed(T num, uint32_t seed) {
     return Fingerprint32WithSeed(
-        StringPiece(reinterpret_cast<const char*>(&num), sizeof(num)), seed);
+        absl::string_view(reinterpret_cast<const char*>(&num), sizeof(num)),
+        seed);
   }
 
  private:

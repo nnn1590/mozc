@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
 #include "base/thread.h"
 
 #ifdef OS_WIN
-#include <windows.h>
 #include <process.h>  // for _beginthreadex
+#include <windows.h>
 #else
 #include <pthread.h>
 #endif  // OS_WIN
@@ -58,23 +58,21 @@ unsigned __stdcall WrapperForWindows(void *ptr) {
 
 struct ThreadInternalState {
  public:
-  ThreadInternalState()
-    : handle(nullptr),
-      joinable(true) {}
+  ThreadInternalState() : handle(nullptr), joinable(true) {}
 
   HANDLE handle;
   bool joinable;
 };
 
-void Thread::Start(const string &thread_name) {
+void Thread::Start(const std::string &thread_name) {
   // TODO(mozc-dev): Set thread name.
   if (IsRunning()) {
     return;
   }
 
   Detach();
-  state_->handle = reinterpret_cast<HANDLE>(_beginthreadex(
-      nullptr, 0, WrapperForWindows, this, 0, nullptr));
+  state_->handle = reinterpret_cast<HANDLE>(
+      _beginthreadex(nullptr, 0, WrapperForWindows, this, 0, nullptr));
 }
 
 bool Thread::IsRunning() const {
@@ -129,7 +127,7 @@ struct ThreadInternalState {
   bool joinable;
 };
 
-void Thread::Start(const string &thread_name) {
+void Thread::Start(const std::string &thread_name) {
   if (IsRunning()) {
     return;
   }
@@ -143,19 +141,17 @@ void Thread::Start(const string &thread_name) {
     state_->is_running = false;
     state_->handle.reset();
   } else {
-#if defined(OS_NACL)
-    // NaCl doesn't support setname.
-#elif defined(OS_MACOSX)
+#if defined(OS_WASM)
+    // WASM doesn't support setname?
+#elif defined(__APPLE__)  // !OS_WASM
     pthread_setname_np(thread_name.c_str());
-#else  // !(OS_NACL | OS_MACOSX)
+#else                     // !(OS_WASM | __APPLE__)
     pthread_setname_np(*state_->handle, thread_name.c_str());
-#endif  // !(OS_NACL | OS_MACOSX)
+#endif                    // !(OS_WASM | __APPLE__)
   }
 }
 
-bool Thread::IsRunning() const {
-  return state_->is_running;
-}
+bool Thread::IsRunning() const { return state_->is_running; }
 
 void Thread::Detach() {
   if (state_->handle != nullptr) {
@@ -179,9 +175,7 @@ namespace {
 
 #ifdef OS_ANDROID
 
-void ExitThread(int sig) {
-  pthread_exit(0);
-}
+void ExitThread(int sig) { pthread_exit(0); }
 
 // We don't have pthread_cancel for Android, so we'll use SIGUSR1 as
 // work around.
@@ -201,18 +195,8 @@ void PThreadCancel(pthread_t thread_id) {
     //  EINVAL: in case that the specified handle is invalid
     //  ESRCH: in case that the thread is already terminated
     LOG(ERROR) << "Failed to kill a thread. error = " << pthread_kill_result
-                << "(" << strerror(pthread_kill_result) << ")";
+               << "(" << strerror(pthread_kill_result) << ")";
   }
-}
-
-#elif defined(OS_NACL)
-
-void InitPThreadCancel() {
-  // Nothing is required.
-}
-
-void PThreadCancel(pthread_t thread_id) {
-  LOG(ERROR) << "In NaCl we have no way to cancel a thread.";
 }
 
 #else
@@ -221,11 +205,9 @@ void InitPThreadCancel() {
   // Nothing is required.
 }
 
-void PThreadCancel(pthread_t thread_id) {
-  pthread_cancel(thread_id);
-}
+void PThreadCancel(pthread_t thread_id) { pthread_cancel(thread_id); }
 
-#endif  // OS_ANDROID or OS_NACL or others
+#endif  // OS_ANDROID or others
 
 void PThreadCleanupRoutine(void *ptr) {
   auto *is_running = static_cast<std::atomic<bool> *>(ptr);
@@ -262,12 +244,8 @@ void Thread::Terminate() {
 
 Thread::Thread() : state_(new ThreadInternalState) {}
 
-Thread::~Thread() {
-  Detach();
-}
+Thread::~Thread() { Detach(); }
 
-void Thread::SetJoinable(bool joinable) {
-  state_->joinable = joinable;
-}
+void Thread::SetJoinable(bool joinable) { state_->joinable = joinable; }
 
 }  // namespace mozc

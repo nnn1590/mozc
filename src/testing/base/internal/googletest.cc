@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,17 +40,18 @@
 #include <string>
 
 #include "base/file_util.h"
-#include "base/flags.h"
 #include "base/logging.h"
 #include "base/util.h"
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(test_srcdir, "",
-              "A directory that contains the input data files for a test.");
+ABSL_FLAG(std::string, test_srcdir, "",
+          "A directory that contains the input data files for a test.");
 
-DEFINE_string(test_tmpdir, "",
-              "Directory for all temporary testing files.");
+ABSL_FLAG(std::string, test_tmpdir, "",
+          "Directory for all temporary testing files.");
 
-DECLARE_string(program_invocation_name);
+ABSL_DECLARE_FLAG(std::string, program_invocation_name);
 
 namespace mozc {
 namespace {
@@ -58,9 +59,10 @@ namespace {
 #include "testing/mozc_data_dir.h"
 
 #ifdef OS_WIN
-string GetProgramPath() {
+std::string GetProgramPath() {
   wchar_t w_path[MAX_PATH];
-  const DWORD char_size = GetModuleFileNameW(NULL, w_path, arraysize(w_path));
+  const DWORD char_size =
+      GetModuleFileNameW(nullptr, w_path, arraysize(w_path));
   if (char_size == 0) {
     LOG(ERROR) << "GetModuleFileNameW failed.  error = " << ::GetLastError();
     return "";
@@ -68,19 +70,19 @@ string GetProgramPath() {
     LOG(ERROR) << "The result of GetModuleFileNameW was truncated.";
     return "";
   }
-  string path;
+  std::string path;
   Util::WideToUTF8(w_path, &path);
   return path;
 }
 
-string GetTestSrcdir() {
-  const string srcdir(kMozcDataDir);
+std::string GetTestSrcdir() {
+  const std::string srcdir(kMozcDataDir);
   CHECK(FileUtil::DirectoryExists(srcdir)) << srcdir << " is not a directory.";
   return srcdir;
 }
 
-string GetTestTmpdir() {
-  const string tmpdir = GetProgramPath() + ".tmp";
+std::string GetTestTmpdir() {
+  const std::string tmpdir = GetProgramPath() + ".tmp";
 
   if (!FileUtil::DirectoryExists(tmpdir)) {
     CHECK(FileUtil::CreateDirectory(tmpdir));
@@ -90,63 +92,64 @@ string GetTestTmpdir() {
 
 #else  // OS_WIN
 
-#ifndef MOZC_USE_PEPPER_FILE_IO
 // Get absolute path to this executable. Corresponds to argv[0] plus
 // directory information. E.g like "/spam/eggs/foo_unittest".
-string GetProgramPath() {
-  const string &program_invocation_name = FLAGS_program_invocation_name;
+std::string GetProgramPath() {
+  const std::string& program_invocation_name =
+      absl::GetFlag(FLAGS_program_invocation_name);
   if (program_invocation_name.empty() || program_invocation_name[0] == '/') {
     return program_invocation_name;
   }
 
   // Turn relative filename into absolute
-  char cwd_buf[PATH_MAX+1];
+  char cwd_buf[PATH_MAX + 1];
   CHECK_NE(getcwd(cwd_buf, PATH_MAX), nullptr);
   cwd_buf[PATH_MAX] = '\0';  // make sure it's terminated
   return FileUtil::JoinPath(cwd_buf, program_invocation_name);
 }
-#endif  // MOZC_USE_PEPPER_FILE_IO
 
-string GetTestSrcdir() {
-  const string srcdir(kMozcDataDir);
+std::string GetTestSrcdir() {
+  const char* srcdir_env = getenv("TEST_SRCDIR");
+  if (srcdir_env && srcdir_env[0]) {
+    return srcdir_env;
+  }
 
-#ifndef MOZC_USE_PEPPER_FILE_IO
-  // TestSrcdir is not supported in NaCl.
-  // TODO(horo): Consider how to implement TestSrcdir in NaCl.
+  const std::string srcdir(kMozcDataDir);
+
+#if !defined(OS_ANDROID)
+  // TestSrcdir is not supported in Android.
   // FIXME(komatsu): We should implement "genrule" and "exports_files"
   // in build.py to install the data files into srcdir.
-  CHECK_EQ(access(srcdir.c_str(), R_OK|X_OK), 0)
+  CHECK_EQ(access(srcdir.c_str(), R_OK | X_OK), 0)
       << "Access failure: " << srcdir;
-#endif  // MOZC_USE_PEPPER_FILE_IO
+#endif  // !defined(OS_ANDROID)
   return srcdir;
 }
 
-#ifndef MOZC_USE_PEPPER_FILE_IO
-string GetTestTmpdir() {
-  const string tmpdir = GetProgramPath() + ".tmp";
+std::string GetTestTmpdir() {
+  std::string tmpdir;
+  const char* value = getenv("TEST_TMPDIR");
+  if (value && value[0]) {
+    tmpdir = value;
+  } else {
+    tmpdir = GetProgramPath() + ".tmp";
+  }
 
-  // GetTestTmpdir is not supported in NaCl.
-  // TODO(horo): Consider how to implement TestTmpdir in NaCl.
-  if (access(tmpdir.c_str(), R_OK|X_OK) != 0) {
+  if (access(tmpdir.c_str(), R_OK | X_OK) != 0) {
     CHECK(FileUtil::CreateDirectory(tmpdir));
   }
   return tmpdir;
 }
-#endif  // MOZC_USE_PEPPER_FILE_IO
 #endif  // OS_WIN
 
 }  // namespace
 
 void InitTestFlags() {
-  if (FLAGS_test_srcdir.empty()) {
-    FLAGS_test_srcdir = GetTestSrcdir();
+  if (absl::GetFlag(FLAGS_test_srcdir).empty()) {
+    absl::SetFlag(&FLAGS_test_srcdir, GetTestSrcdir());
   }
-  if (FLAGS_test_tmpdir.empty()) {
-#ifndef MOZC_USE_PEPPER_FILE_IO
-    FLAGS_test_tmpdir = GetTestTmpdir();
-#else  // MOZC_USE_PEPPER_FILE_IO
-    FLAGS_test_tmpdir = "/";
-#endif  // MOZC_USE_PEPPER_FILE_IO
+  if (absl::GetFlag(FLAGS_test_tmpdir).empty()) {
+    absl::SetFlag(&FLAGS_test_tmpdir, GetTestTmpdir());
   }
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,11 @@ class KeyMapManager;
 
 class KeyMapFactory {
  public:
-  typedef std::map<config::Config::SessionKeymap, KeyMapManager *>
-      KeyMapManagerMap;
+  using KeyMapManagerMap =
+      std::map<config::Config::SessionKeymap, KeyMapManager *>;
+
+  KeyMapFactory() = delete;
+  ~KeyMapFactory() = delete;
 
   // Returns KeyMapManager corresponding keymap and custom rule stored in
   // config.  Note, keymap might be different from config.session_keymap.
@@ -53,15 +56,11 @@ class KeyMapFactory {
   // Reload the custom keymap.
   static void ReloadConfig(const config::Config &config);
 
-
  private:
   friend class TestKeyMapFactoryProxy;
 
-  KeyMapFactory() {}
-  ~KeyMapFactory() {}
-
-  static ObjectPool<KeyMapManager> pool_;
-  static KeyMapManagerMap keymaps_;
+  static KeyMapManagerMap *GetKeyMaps();
+  static ObjectPool<KeyMapManager> *GetPool();
 };
 
 }  // namespace keymap

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,34 @@
 
 #include <string>
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/port.h"
 #include "base/util.h"
 #include "ipc/ipc_path_manager.h"
+#include "absl/flags/flag.h"
 
-DEFINE_bool(client, false, "client mode");
-DEFINE_bool(server, false, "server mode");
-DEFINE_string(name, "test", "ipc name");
+ABSL_FLAG(bool, client, false, "client mode");
+ABSL_FLAG(bool, server, false, "server mode");
+ABSL_FLAG(std::string, name, "test", "ipc name");
 
 // command line tool to check the behavior of IPCPathManager
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   mozc::IPCPathManager *manager =
-      mozc::IPCPathManager::GetIPCPathManager(FLAGS_name);
+      mozc::IPCPathManager::GetIPCPathManager(absl::GetFlag(FLAGS_name));
   CHECK(manager);
 
-  string path;
+  std::string path;
 
-  if (FLAGS_client) {
+  if (absl::GetFlag(FLAGS_client)) {
     CHECK(manager->GetPathName(&path));
     LOG(INFO) << "PathName: " << path;
     return 0;
   }
 
-  if (FLAGS_server) {
+  if (absl::GetFlag(FLAGS_server)) {
     CHECK(manager->CreateNewPathName());
     CHECK(manager->SavePathName());
     CHECK(manager->GetPathName(&path));

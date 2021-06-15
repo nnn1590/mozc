@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,62 +32,67 @@
 
 #include <map>
 #include <string>
+
+#include "base/mutex.h"
 #include "client/client_interface.h"
 #include "protocol/commands.pb.h"
+#include "protocol/config.pb.h"
 
 namespace mozc {
 namespace client {
 
 class ClientMock : public client::ClientInterface {
  public:
-  void SetIPCClientFactory(IPCClientFactoryInterface *client_factory);
-  void SetServerLauncher(ServerLauncherInterface *server_launcher);
-  bool IsValidRunLevel() const;
-  bool EnsureConnection();
-  bool EnsureSession();
-  bool CheckVersionOrRestartServer();
+  void SetIPCClientFactory(IPCClientFactoryInterface *client_factory) override;
+  void SetServerLauncher(ServerLauncherInterface *server_launcher) override;
+  bool IsValidRunLevel() const override;
+  bool EnsureConnection() override;
+  bool EnsureSession() override;
+  bool CheckVersionOrRestartServer() override;
   bool SendKeyWithContext(const commands::KeyEvent &key,
                           const commands::Context &context,
-                          commands::Output *output);
+                          commands::Output *output) override;
   bool TestSendKeyWithContext(const commands::KeyEvent &key,
                               const commands::Context &context,
-                              commands::Output *output);
+                              commands::Output *output) override;
   bool SendCommandWithContext(const commands::SessionCommand &command,
                               const commands::Context &context,
-                              commands::Output *output);
-  bool GetConfig(config::Config *config);
-  bool SetConfig(const config::Config &config);
-  bool ClearUserHistory();
-  bool ClearUserPrediction();
-  bool ClearUnusedUserPrediction();
-  bool Shutdown();
-  bool SyncData();
-  bool Reload();
-  virtual bool Cleanup();
-  virtual void Reset();
-  bool PingServer() const;
-  bool NoOperation();
-  virtual void EnableCascadingWindow(bool enable);
-  virtual void set_timeout(int timeout);
-  virtual void set_restricted(bool restricted);
-  virtual void set_server_program(const string &program_path);
-  virtual void set_suppress_error_dialog(bool suppress);
-  virtual void set_client_capability(const commands::Capability &capability);
-  bool LaunchTool(const string &mode, const string &extra_arg);
-  bool LaunchToolWithProtoBuf(const commands::Output &output);
-  bool OpenBrowser(const string &url);
+                              commands::Output *output) override;
+  bool GetConfig(config::Config *config) override;
+  bool SetConfig(const config::Config &config) override;
+  bool ClearUserHistory() override;
+  bool ClearUserPrediction() override;
+  bool ClearUnusedUserPrediction() override;
+  bool Shutdown() override;
+  bool SyncData() override;
+  bool Reload() override;
+  bool Cleanup() override;
+  void Reset() override;
+  bool PingServer() const override;
+  bool NoOperation() override;
+  void EnableCascadingWindow(bool enable) override;
+  void set_timeout(int timeout) override;
+  void set_restricted(bool restricted) override;
+  void set_server_program(const std::string &program_path) override;
+  void set_suppress_error_dialog(bool suppress) override;
+  void set_client_capability(const commands::Capability &capability) override;
+  bool LaunchTool(const std::string &mode,
+                  const std::string &extra_arg) override;
+  bool LaunchToolWithProtoBuf(const commands::Output &output) override;
+  bool OpenBrowser(const std::string &url) override;
 
   void ClearFunctionCounter();
-  void SetBoolFunctionReturn(string func_name, bool value);
-  int GetFunctionCallCount(string key);
+  void SetBoolFunctionReturn(std::string func_name, bool value);
+  int GetFunctionCallCount(std::string key);
 
-#define TEST_METHODS(method_name, arg_type)                             \
- private:                                                               \
-  arg_type called_##method_name##_;                                     \
- public:                                                                \
+#define TEST_METHODS(method_name, arg_type)                                 \
+ private:                                                                   \
+  arg_type called_##method_name##_;                                         \
+                                                                            \
+ public:                                                                    \
   arg_type called_##method_name() const { return called_##method_name##_; } \
-  void set_output_##method_name(const commands::Output &output) {       \
-    outputs_[#method_name].CopyFrom(output);                            \
+  void set_output_##method_name(const commands::Output &output) {           \
+    outputs_[#method_name].CopyFrom(output);                                \
   }
   TEST_METHODS(SendKeyWithContext, commands::KeyEvent);
   TEST_METHODS(TestSendKeyWithContext, commands::KeyEvent);
@@ -98,14 +103,18 @@ class ClientMock : public client::ClientInterface {
   // Counter increments each time the function called.  This method is
   // marked as 'mutable' because it has to accumulate the counter even
   // with const methods.
-  mutable std::map<string, int> function_counter_;
+  mutable std::map<std::string, int> function_counter_;
 
   // Stores return values when corresponding function is called.
-  std::map<string, bool> return_bool_values_;
+  std::map<std::string, bool> return_bool_values_;
 
-  std::map<string, commands::Output> outputs_;
+  std::map<std::string, commands::Output> outputs_;
 
   config::Config called_config_;
+
+  // ClientMock is called from a thread in SessionWatchDog, and
+  // SessionWatchDogTest. So a mutex lock is required.
+  mutable Mutex mutex_;
 };
 }  // namespace client
 }  // namespace mozc

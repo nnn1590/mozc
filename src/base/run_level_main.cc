@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,23 @@
 #include <string>
 #include <vector>
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/run_level.h"
+#include "absl/flags/flag.h"
 
-DEFINE_bool(server, false, "server mode");
-DEFINE_bool(client, false, "client mode");
+ABSL_FLAG(bool, server, false, "server mode");
+ABSL_FLAG(bool, client, false, "client mode");
 
 // This is a simple command line tool
 // too check RunLevel class
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   mozc::RunLevel::RequestType type = mozc::RunLevel::SERVER;
 
-  if (FLAGS_client) {
+  if (absl::GetFlag(FLAGS_client)) {
     type = mozc::RunLevel::CLIENT;
-  } else if (FLAGS_server) {
+  } else if (absl::GetFlag(FLAGS_server)) {
     type = mozc::RunLevel::SERVER;
   }
 

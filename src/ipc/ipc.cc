@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,14 @@
 
 #include "ipc/ipc.h"
 
+#include <cstdint>
+
 #ifdef OS_WIN
 #include <windows.h>
 #else
-#include <sys/types.h>
-#include <signal.h>
 #include <errno.h>
+#include <signal.h>
+#include <sys/types.h>
 #endif
 
 #include <cstdlib>
@@ -44,6 +46,7 @@
 #include "base/singleton.h"
 #include "base/thread.h"
 #include "ipc/ipc_path_manager.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 
@@ -51,11 +54,10 @@ namespace {
 
 class IPCServerThread : public Thread {
  public:
-  explicit IPCServerThread(IPCServer *server)
-      : server_(server) {}
-  virtual ~IPCServerThread() {}
-  virtual void Run() {
-    if (server_ != NULL) {
+  explicit IPCServerThread(IPCServer *server) : server_(server) {}
+  ~IPCServerThread() override {}
+  void Run() override {
+    if (server_ != nullptr) {
       server_->Loop();
     }
   }
@@ -69,8 +71,8 @@ class IPCServerThread : public Thread {
 }  // namespace
 
 void IPCServer::LoopAndReturn() {
-  if (server_thread_.get() == NULL) {
-    server_thread_.reset(new IPCServerThread(this));
+  if (server_thread_ == nullptr) {
+    server_thread_ = absl::make_unique<IPCServerThread>(this);
     server_thread_->SetJoinable(true);
     server_thread_->Start("IPCServer");
   } else {
@@ -79,27 +81,24 @@ void IPCServer::LoopAndReturn() {
 }
 
 void IPCServer::Wait() {
-  if (server_thread_.get() != NULL) {
+  if (server_thread_ != nullptr) {
     server_thread_->Join();
     server_thread_.reset();
   }
 }
 
-IPCClientInterface::~IPCClientInterface() {
-}
+IPCClientInterface::~IPCClientInterface() {}
 
-IPCClientFactoryInterface::~IPCClientFactoryInterface() {
-}
+IPCClientFactoryInterface::~IPCClientFactoryInterface() {}
 
-IPCClientFactory::~IPCClientFactory() {
-}
+IPCClientFactory::~IPCClientFactory() {}
 
-IPCClientInterface *IPCClientFactory::NewClient(const string &name,
-                                                const string &path_name) {
+IPCClientInterface *IPCClientFactory::NewClient(const std::string &name,
+                                                const std::string &path_name) {
   return new IPCClient(name, path_name);
 }
 
-IPCClientInterface *IPCClientFactory::NewClient(const string &name) {
+IPCClientInterface *IPCClientFactory::NewClient(const std::string &name) {
   return new IPCClient(name);
 }
 
@@ -108,23 +107,23 @@ IPCClientFactory *IPCClientFactory::GetIPCClientFactory() {
   return Singleton<IPCClientFactory>::get();
 }
 
-uint32 IPCClient::GetServerProtocolVersion() const {
+uint32_t IPCClient::GetServerProtocolVersion() const {
   DCHECK(ipc_path_manager_);
   return ipc_path_manager_->GetServerProtocolVersion();
 }
 
-const string &IPCClient::GetServerProductVersion() const {
+const std::string &IPCClient::GetServerProductVersion() const {
   DCHECK(ipc_path_manager_);
   return ipc_path_manager_->GetServerProductVersion();
 }
 
-uint32 IPCClient::GetServerProcessId() const {
+uint32_t IPCClient::GetServerProcessId() const {
   DCHECK(ipc_path_manager_);
   return ipc_path_manager_->GetServerProcessId();
 }
 
 // static
-bool IPCClient::TerminateServer(const string &name) {
+bool IPCClient::TerminateServer(const std::string &name) {
   IPCClient client(name);
 
   if (!client.Connected()) {
@@ -132,16 +131,16 @@ bool IPCClient::TerminateServer(const string &name) {
     return true;
   }
 
-  const uint32 pid = client.GetServerProcessId();
+  const uint32_t pid = client.GetServerProcessId();
   if (pid == 0) {
     LOG(ERROR) << "pid is not a valid value: " << pid;
     return false;
   }
 
 #ifdef OS_WIN
-  HANDLE handle = ::OpenProcess(PROCESS_TERMINATE,
-                                false, static_cast<DWORD>(pid));
-  if (NULL == handle) {
+  HANDLE handle =
+      ::OpenProcess(PROCESS_TERMINATE, false, static_cast<DWORD>(pid));
+  if (nullptr == handle) {
     LOG(ERROR) << "OpenProcess failed: " << ::GetLastError();
     return false;
   }

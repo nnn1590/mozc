@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,33 +31,35 @@
 #include <string>
 #include <vector>
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
+#include "base/number_util.h"
 #include "base/port.h"
 #include "base/util.h"
 #include "ipc/process_watch_dog.h"
+#include "absl/flags/flag.h"
 
-DEFINE_int32(timeout, -1, "set timeout");
+ABSL_FLAG(int32, timeout, -1, "set timeout");
 
 namespace mozc {
 class TestProcessWatchDog : public ProcessWatchDog {
  public:
   void Signaled(ProcessWatchDog::SignalType type) {
-    cout << "Signaled: " << static_cast<int>(type) << endl;
+    std::cout << "Signaled: " << static_cast<int>(type) << std::endl;
   }
 };
 }  // namespace mozc
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   mozc::TestProcessWatchDog dog;
+  dog.StartWatchDog();
 
-  string line;
-  std::vector<string> fields;
+  std::string line;
+  std::vector<std::string> fields;
 
-  while (getline(cin, line)) {
+  while (std::getline(std::cin, line)) {
     fields.clear();
     mozc::Util::SplitStringUsing(line, "\t ", &fields);
     if (line == "exit") {
@@ -68,15 +70,15 @@ int main(int argc, char **argv) {
       continue;
     }
 
-    const int32 process_id = atoi32(fields[0].c_str());
-    const int32 thread_id = atoi32(fields[1].c_str());
+    const int32 process_id = mozc::NumberUtil::SimpleAtoi(fields[0]);
+    const int32 thread_id = mozc::NumberUtil::SimpleAtoi(fields[1]);
 
     if (!dog.SetID(static_cast<mozc::ProcessWatchDog::ProcessID>(process_id),
                    static_cast<mozc::ProcessWatchDog::ThreadID>(thread_id),
-                   FLAGS_timeout)) {
-      cout << "Error" << endl;
+                   absl::GetFlag(FLAGS_timeout))) {
+      std::cout << "Error" << std::endl;
     } else {
-      cout << "OK" << endl;
+      std::cout << "OK" << std::endl;
     }
   }
 

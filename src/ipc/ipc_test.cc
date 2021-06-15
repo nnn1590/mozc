@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@
 #include "ipc/ipc.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <vector>
 
-#include "base/flags.h"
 #include "base/port.h"
 #include "base/system_util.h"
 #include "base/thread.h"
@@ -40,8 +40,7 @@
 #include "ipc/ipc_test_util.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace {
 
@@ -57,61 +56,56 @@ static const int kNumThreads = 5;
 #endif
 static const int kNumRequests = 2000;
 
-string GenRandomString(size_t size) {
-  string result;
+std::string GenRandomString(size_t size) {
+  std::string result;
   while (result.length() < size) {
     result += static_cast<char>(mozc::Util::Random(256));
   }
   return result;
 }
 
-class MultiConnections: public mozc::Thread {
+class MultiConnections : public mozc::Thread {
  public:
-#ifdef OS_MACOSX
-  MultiConnections()
-      : mach_port_manager_(NULL) {}
+#ifdef __APPLE__
+  MultiConnections() : mach_port_manager_(nullptr) {}
 
   void SetMachPortManager(mozc::MachPortManagerInterface *manager) {
     mach_port_manager_ = manager;
   }
 #endif
 
-  void Run() {
+  void Run() override {
     char buf[8192];
     mozc::Util::Sleep(2000);
     for (int i = 0; i < kNumRequests; ++i) {
       mozc::IPCClient con(kServerAddress, "");
-#ifdef OS_MACOSX
+#ifdef __APPLE__
       con.SetMachPortManager(mach_port_manager_);
 #endif
       ASSERT_TRUE(con.Connected());
       const int size = std::max(mozc::Util::Random(8000), 1);
-      string input = "test";
+      std::string input = "test";
       input += GenRandomString(size);
       size_t length = sizeof(buf);
       ASSERT_TRUE(con.Call(input.data(), input.size(), buf, &length, 1000));
-      string output(buf, length);
+      std::string output(buf, length);
       EXPECT_EQ(input.size(), output.size());
       EXPECT_EQ(input, output);
     }
   }
 
  private:
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   mozc::MachPortManagerInterface *mach_port_manager_;
 #endif
 };
 
-class EchoServer: public mozc::IPCServer {
+class EchoServer : public mozc::IPCServer {
  public:
-  EchoServer(const string &path,
-             int32 num_connections,
-             int32 timeout) :
-      IPCServer(path, num_connections, timeout) {}
-  virtual bool Process(const char *input_buffer,
-                       size_t input_length,
-                       char *output_buffer,
-                       size_t *output_length) {
+  EchoServer(const std::string &path, int32_t num_connections, int32_t timeout)
+      : IPCServer(path, num_connections, timeout) {}
+  bool Process(const char *input_buffer, size_t input_length,
+               char *output_buffer, size_t *output_length) override {
     if (::memcmp("kill", input_buffer, 4) == 0) {
       *output_length = 0;
       return false;
@@ -124,13 +118,13 @@ class EchoServer: public mozc::IPCServer {
 }  // namespace
 
 TEST(IPCTest, IPCTest) {
-  mozc::SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
-#ifdef OS_MACOSX
+  mozc::SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
+#ifdef __APPLE__
   mozc::TestMachPortManager manager;
 #endif
 
   EchoServer con(kServerAddress, 10, 1000);
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   con.SetMachPortManager(&manager);
 #endif
   con.LoopAndReturn();
@@ -140,7 +134,7 @@ TEST(IPCTest, IPCTest) {
   std::vector<MultiConnections *> cons(kNumThreads);
   for (size_t i = 0; i < cons.size(); ++i) {
     cons[i] = new MultiConnections;
-#ifdef OS_MACOSX
+#ifdef __APPLE__
     cons[i]->SetMachPortManager(&manager);
 #endif
     cons[i]->SetJoinable(true);
@@ -149,14 +143,14 @@ TEST(IPCTest, IPCTest) {
   for (size_t i = 0; i < cons.size(); ++i) {
     cons[i]->Join();
     delete cons[i];
-    cons[i] = NULL;
+    cons[i] = nullptr;
   }
 
   mozc::IPCClient kill(kServerAddress, "");
   const char kill_cmd[32] = "kill";
   char output[32];
   size_t output_size = sizeof(output);
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   kill.SetMachPortManager(&manager);
 #endif
   // We don't care the return value of this Call() because the return

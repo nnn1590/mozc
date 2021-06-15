@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ class UnixServer : public RendererServer {
 
   virtual void AsyncHide();
   virtual void AsyncQuit();
-  virtual bool AsyncExecCommand(string *proto_message);
+  virtual bool AsyncExecCommand(std::string *proto_message);
   virtual int StartMessageLoop();
 
   virtual bool Render();
@@ -63,13 +63,13 @@ class UnixServer : public RendererServer {
   void OpenPipe();
 
  private:
-  string message_;
+  std::string message_;
   Mutex mutex_;
   std::unique_ptr<GtkWrapperInterface> gtk_;
 
-  // Following pipe is used to communicate IPC recieving thread and
+  // Following pipe is used to communicate IPC receiving thread and
   // rendering(gtk-main) thread. The gtk-main loop polls following pipe and IPC
-  // recieving thread writes small data to notify gtk-main thread to update when
+  // receiving thread writes small data to notify gtk-main thread to update when
   // new packet is arrived.
   int pipefd_[2];
 

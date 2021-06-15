@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,14 @@
 
 #include "data_manager/dataset_reader.h"
 
+#include <cstdint>
+
 #include "base/logging.h"
 #include "base/port.h"
 #include "base/unverified_sha1.h"
 #include "base/util.h"
 #include "data_manager/dataset.pb.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace {
@@ -46,7 +49,7 @@ const size_t kFooterSize = 36;
 DataSetReader::DataSetReader() = default;
 DataSetReader::~DataSetReader() = default;
 
-bool DataSetReader::Init(StringPiece memblock, StringPiece magic) {
+bool DataSetReader::Init(absl::string_view memblock, absl::string_view magic) {
   name_to_data_map_.clear();
 
   // Initializes |name_to_data_map_| from |memblock|.  For binary data format,
@@ -55,8 +58,7 @@ bool DataSetReader::Init(StringPiece memblock, StringPiece magic) {
   // Check the file magic string.
   if (!Util::StartsWith(memblock, magic)) {
     LOG(ERROR) << "Invalid format: magic number doesn't match: "
-               << Util::Escape(memblock.substr(0, magic.size()))
-               << " vs "
+               << Util::Escape(memblock.substr(0, magic.size())) << " vs "
                << Util::Escape(magic);
     return false;
   }
@@ -68,9 +70,9 @@ bool DataSetReader::Init(StringPiece memblock, StringPiece magic) {
   }
 
   // Check the file size.
-  uint64 filesize = 0;
-  if (!Util::DeserializeUint64(ClippedSubstr(memblock, memblock.size() - 8, 8),
-                               &filesize)) {
+  uint64_t filesize = 0;
+  if (!Util::DeserializeUint64(
+          absl::ClippedSubstr(memblock, memblock.size() - 8, 8), &filesize)) {
     LOG(ERROR) << "Broken: failed to read filesize";
     return false;
   }
@@ -83,16 +85,16 @@ bool DataSetReader::Init(StringPiece memblock, StringPiece magic) {
   // Checksum is not checked.
 
   // Read the metadata size.
-  uint64 metadata_size = 0;
+  uint64_t metadata_size = 0;
   if (!Util::DeserializeUint64(
-          ClippedSubstr(memblock, memblock.size() - kFooterSize, 8),
+          absl::ClippedSubstr(memblock, memblock.size() - kFooterSize, 8),
           &metadata_size)) {
     LOG(ERROR) << "Broken: failed to read metadata size";
     return false;
   }
 
   // Note: This subtraction doesn't cause underflow by the above check.
-  const uint64 content_and_metadta_size =
+  const uint64_t content_and_metadta_size =
       memblock.size() - magic.size() - kFooterSize;
   if (metadata_size == 0 || content_and_metadta_size < metadata_size) {
     LOG(ERROR) << "Broken: metadata size is broken or metadata is broken";
@@ -100,19 +102,20 @@ bool DataSetReader::Init(StringPiece memblock, StringPiece magic) {
   }
 
   // Note: This subtraction doesn't cause underflow by the above check.
-  const uint64 metadata_offset = memblock.size() - kFooterSize - metadata_size;
+  const uint64_t metadata_offset =
+      memblock.size() - kFooterSize - metadata_size;
 
   // Open metadata.
   DataSetMetadata metadata;
-  const StringPiece metadata_chunk =
-      ClippedSubstr(memblock, metadata_offset, metadata_size);
+  const absl::string_view metadata_chunk =
+      absl::ClippedSubstr(memblock, metadata_offset, metadata_size);
   if (!metadata.ParseFromArray(metadata_chunk.data(), metadata_chunk.size())) {
     LOG(ERROR) << "Broken: Failed to parse metadata";
     return false;
   }
 
   // Construct a mapping from name to data chunk.
-  uint64 prev_chunk_end = magic.size();
+  uint64_t prev_chunk_end = magic.size();
   for (int i = 0; i < metadata.entries_size(); ++i) {
     const auto& e = metadata.entries(i);
     if (e.offset() < prev_chunk_end || e.offset() >= metadata_offset) {
@@ -128,14 +131,16 @@ bool DataSetReader::Init(StringPiece memblock, StringPiece magic) {
                  << ", metadata offset = " << metadata_offset;
       return false;
     }
-    name_to_data_map_[e.name()] = ClippedSubstr(memblock, e.offset(), e.size());
+    name_to_data_map_[e.name()] =
+        absl::ClippedSubstr(memblock, e.offset(), e.size());
     prev_chunk_end = e.offset() + e.size();
   }
 
   return true;
 }
 
-bool DataSetReader::Get(const string& name, StringPiece* data) const {
+bool DataSetReader::Get(const std::string& name,
+                        absl::string_view* data) const {
   auto iter = name_to_data_map_.find(name);
   if (iter == name_to_data_map_.end()) {
     return false;
@@ -144,18 +149,18 @@ bool DataSetReader::Get(const string& name, StringPiece* data) const {
   return true;
 }
 
-bool DataSetReader::VerifyChecksum(StringPiece memblock) {
+bool DataSetReader::VerifyChecksum(absl::string_view memblock) {
   if (memblock.size() < kFooterSize) {
     return false;
   }
   // Checksum is computed for all but last 28 bytes.
-  const string &actual_checksum = internal::UnverifiedSHA1::MakeDigest(
+  const std::string& actual_checksum = internal::UnverifiedSHA1::MakeDigest(
       memblock.substr(0, memblock.size() - 28));
 
   // Extract the stored SHA1; see dataset.proto for file format.
   const std::size_t kSHA1Length = 20;
-  StringPiece expected_checksum =
-      ClippedSubstr(memblock, memblock.size() - 28, kSHA1Length);
+  absl::string_view expected_checksum =
+      absl::ClippedSubstr(memblock, memblock.size() - 28, kSHA1Length);
 
   return actual_checksum == expected_checksum;
 }

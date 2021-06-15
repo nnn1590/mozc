@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 #include <Cocoa/Cocoa.h>
 
-#include "base/scoped_nsobject.h"
+#include "base/port.h"
 
 namespace mozc {
 namespace renderer {
@@ -51,8 +51,8 @@ class RendererBaseWindow {
   RendererBaseWindow();
   virtual ~RendererBaseWindow();
 
-  scoped_nsobject<NSPanel> window_;
-  scoped_nsobject<NSView> view_;
+  NSPanel *window_;
+  NSView *view_;
   virtual void InitWindow();
 
  private:

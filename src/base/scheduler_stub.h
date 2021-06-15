@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,10 @@
 //   ... (Do something)
 //   scheduler_stub.PutClockForward(60*1000);
 //   ... (Do something)
-//   Scheduler::SetSchedulerHandler(NULL);
+//   Scheduler::SetSchedulerHandler(nullptr);
 // }
 
+#include <cstdint>
 #include <map>
 #include <string>
 
@@ -53,32 +54,32 @@ namespace mozc {
 class SchedulerStub : public Scheduler::SchedulerInterface {
  public:
   SchedulerStub();
-  virtual ~SchedulerStub();
+  ~SchedulerStub() override;
 
   // |random_delay| will be ignored.
-  virtual bool AddJob(const Scheduler::JobSetting &job_setting);
-  virtual bool RemoveJob(const string &name);
-  virtual void RemoveAllJobs();
-  virtual bool HasJob(const string &name) const;
+  bool AddJob(const Scheduler::JobSetting &job_setting) override;
+  bool RemoveJob(const std::string &name) override;
+  void RemoveAllJobs() override;
+  bool HasJob(const std::string &name) const override;
 
   // Puts stub internal clock forward.
   // Jobs will be executed according to forwarded time.
   // Note that jobs will be executed individually for making
   // implementation simple. Interactions between dirrefent jobs will
   // not be simulated.
-  void PutClockForward(uint64 delta_usec);
+  void PutClockForward(uint64_t delta_usec);
 
  private:
   struct JobForStub {
     const Scheduler::JobSetting job;
-    uint32 remaining_usec;
+    uint32_t remaining_usec;
     int backoff_count;
 
-    explicit JobForStub(const Scheduler::JobSetting &job) :
-        job(job), remaining_usec(job.delay_start()), backoff_count(0) {}
+    explicit JobForStub(const Scheduler::JobSetting &job)
+        : job(job), remaining_usec(job.delay_start()), backoff_count(0) {}
   };
 
-  std::map<string, JobForStub> jobs_;
+  std::map<std::string, JobForStub> jobs_;
 };
 }  // namespace mozc
 #endif  // MOZC_BASE_SCHEDULER_STUB_H_

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,34 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <string>
 
 #include "base/codegen_bytearray_stream.h"
 #include "base/file_stream.h"
-#include "base/flags.h"
 #include "base/hash.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/util.h"
 #include "storage/existence_filter.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(input, "", "per-line suggestion filter list");
-DEFINE_string(output, "", "output bloom filter");
-DEFINE_bool(header, true,
-            "make header file instead of raw bloom filter");
-DEFINE_string(name, "SuggestionFilterData",
-              "name for variable name in the header file");
+ABSL_FLAG(std::string, input, "", "per-line suggestion filter list");
+ABSL_FLAG(std::string, output, "", "output bloom filter");
+ABSL_FLAG(bool, header, true, "make header file instead of raw bloom filter");
+ABSL_FLAG(std::string, name, "SuggestionFilterData",
+          "name for variable name in the header file");
 
 namespace {
-void ReadWords(const string &name, std::vector<uint64> *words) {
-  string line;
+void ReadWords(const std::string &name, std::vector<uint64_t> *words) {
+  std::string line;
   mozc::InputFileStream input(name.c_str());
-  while (getline(input, line)) {
+  while (std::getline(input, line)) {
     if (line.empty() || line[0] == '#') {
       continue;
     }
-    string lower_value = line;
+    std::string lower_value = line;
     mozc::Util::LowerString(&lower_value);
     words->push_back(mozc::Hash::Fingerprint(lower_value));
   }
@@ -69,17 +69,17 @@ using mozc::storage::ExistenceFilter;
 // read per-line word list and generate
 // bloom filter in raw byte array or header file format
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, true);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  if ((FLAGS_input.empty() ||
-       FLAGS_output.empty()) && argc > 2) {
-    FLAGS_input = argv[1];
-    FLAGS_output = argv[2];
+  if ((absl::GetFlag(FLAGS_input).empty() ||
+       absl::GetFlag(FLAGS_output).empty()) && argc > 2) {
+    absl::SetFlag(&FLAGS_input, argv[1]);
+    absl::SetFlag(&FLAGS_output, argv[2]);
   }
 
-  std::vector<uint64> words;
+  std::vector<uint64_t> words;
 
-  ReadWords(FLAGS_input, &words);
+  ReadWords(absl::GetFlag(FLAGS_input), &words);
 
   LOG(INFO) << words.size() << " words found";
 
@@ -97,27 +97,27 @@ int main(int argc, char **argv) {
     filter->Insert(words[i]);
   }
 
-  char *buf = NULL;
+  char *buf = nullptr;
   size_t size = 0;
 
-  LOG(INFO) << "writing bloomfilter: " << FLAGS_output;
+  LOG(INFO) << "writing bloomfilter: " << absl::GetFlag(FLAGS_output);
   filter->Write(&buf, &size);
 
-  if (FLAGS_header) {
-    mozc::OutputFileStream ofs(FLAGS_output.c_str());
+  if (absl::GetFlag(FLAGS_header)) {
+    mozc::OutputFileStream ofs(absl::GetFlag(FLAGS_output).c_str());
     mozc::CodeGenByteArrayOutputStream codegen_stream(
         &ofs, mozc::codegenstream::NOT_OWN_STREAM);
-    codegen_stream.OpenVarDef(FLAGS_name);
+    codegen_stream.OpenVarDef(absl::GetFlag(FLAGS_name));
     codegen_stream.write(buf, size);
     codegen_stream.CloseVarDef();
   } else {
     mozc::OutputFileStream ofs(
-        FLAGS_output.c_str(),
+        absl::GetFlag(FLAGS_output).c_str(),
         std::ios::out | std::ios::trunc | std::ios::binary);
     ofs.write(buf, size);
   }
 
-  delete [] buf;
+  delete[] buf;
 
   return 0;
 }

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,17 @@
 #include <memory>
 
 #include "base/file_stream.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/port.h"
 #include "base/util.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(src, "", "path to the input PNG file");
-DEFINE_string(dest, "", "path to the output BMP file");
+ABSL_FLAG(std::string, src, "", "path to the input PNG file");
+ABSL_FLAG(std::string, dest, "", "path to the output BMP file");
 
-using ::std::min;
 using ::std::max;
+using ::std::min;
 
 // gdiplus.h must be placed here because it internally depends on
 // global min/max functions.
@@ -61,7 +61,7 @@ const uint32 kMaxBitmapHeight = 16384;
 
 bool ConvertMain() {
   std::wstring wide_src;
-  mozc::Util::UTF8ToWide(FLAGS_src, &wide_src);
+  mozc::Util::UTF8ToWide(absl::GetFlag(FLAGS_src), &wide_src);
   std::unique_ptr<Gdiplus::Bitmap> image(
       Gdiplus::Bitmap::FromFile(wide_src.c_str()));
 
@@ -86,24 +86,24 @@ bool ConvertMain() {
   // which uses 2 byte packing.  Include <poppack.h> to restore the
   // current packing mode.
   // c.f. https://msdn.microsoft.com/en-us/library/2e70t5y1.aspx
-#include <pshpack2.h>    // NOLINT
+#include <pshpack2.h>  // NOLINT
   struct PBGR32Bitmap {
-    uint16   file_signature;
-    uint32   file_size;
-    uint16   reserved1;
-    uint16   reserved2;
-    uint32   pixel_data_offset;
-    uint32   header_size;
-    int32    width;
-    int32    height;
-    uint16   num_planes;
-    uint16   bit_count;
-    uint32   compression;
-    uint32   pixel_data_size;
-    int32    pixel_per_meter_x;
-    int32    pixel_per_meter_y;
-    uint32   num_pallete;
-    uint32   important_color;
+    uint16 file_signature;
+    uint32 file_size;
+    uint16 reserved1;
+    uint16 reserved2;
+    uint32 pixel_data_offset;
+    uint32 header_size;
+    int32 width;
+    int32 height;
+    uint16 num_planes;
+    uint16 bit_count;
+    uint32 compression;
+    uint32 pixel_data_size;
+    int32 pixel_per_meter_x;
+    int32 pixel_per_meter_y;
+    uint32 num_pallete;
+    uint32 important_color;
   };
 #include <poppack.h>  // NOLINT
 
@@ -119,7 +119,8 @@ bool ConvertMain() {
   header.pixel_data_size = pixel_data_bytes;
 
   mozc::OutputFileStream output_file(
-      FLAGS_dest.c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
+      absl::GetFlag(FLAGS_dest).c_str(),
+      std::ios::out | std::ios::binary | std::ios::trunc);
   if (!output_file.good()) {
     return false;
   }
@@ -142,13 +143,13 @@ bool ConvertMain() {
 }  // namespace
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  if (FLAGS_src.empty()) {
+  if (absl::GetFlag(FLAGS_src).empty()) {
     std::cout << "Specify --src option";
     return kErrorLevelFail;
   }
-  if (FLAGS_dest.empty()) {
+  if (absl::GetFlag(FLAGS_dest).empty()) {
     std::cout << "Specify --dest option";
     return kErrorLevelFail;
   }

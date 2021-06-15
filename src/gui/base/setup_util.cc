@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 
 #include "gui/base/setup_util.h"
 
+#include <cstdint>
+
 #ifdef OS_WIN
 #include <algorithm>
 #endif  // OS_WIN
@@ -49,7 +51,7 @@ namespace gui {
 
 SetupUtil::SetupUtil()
     : storage_(new UserDictionaryStorage(
-        UserDictionaryUtil::GetUserDictionaryFileName())),
+          UserDictionaryUtil::GetUserDictionaryFileName())),
       is_userdictionary_locked_(false) {}
 
 SetupUtil::~SetupUtil() {}
@@ -63,7 +65,7 @@ bool SetupUtil::IsUserDictionaryLocked() const {
   return is_userdictionary_locked_;
 }
 
-void SetupUtil::SetDefaultProperty(uint32 flags) {
+void SetupUtil::SetDefaultProperty(uint32_t flags) {
 #ifdef OS_WIN
   if (flags & IME_DEFAULT) {
     mozc::usage_stats::UsageStats::IncrementCount("PostInstallSetDefault");
@@ -100,7 +102,7 @@ bool SetupUtil::MigrateDictionaryFromMSIME() {
 
   // create UserDictionary if the current user dictionary is empty
   if (!storage_->Exists()) {
-    const string kUserdictionaryName = "User Dictionary 1";
+    const std::string kUserdictionaryName = "User Dictionary 1";
     uint64 dic_id = 0;
     if (!storage_->CreateDictionary(kUserdictionaryName, &dic_id)) {
       LOG(ERROR) << "Failed to create a new dictionary.";
@@ -111,10 +113,9 @@ bool SetupUtil::MigrateDictionaryFromMSIME() {
   // Import MS-IME's dictionary to a unique dictionary labeled
   // as "MS-IME"
   uint64 dic_id = 0;
-  const string kMsimeUserdictionaryName = "MS-IME User Dictionary";
+  const std::string kMsimeUserdictionaryName = "MS-IME User Dictionary";
   for (size_t i = 0; i < storage_->dictionaries_size(); ++i) {
-    if (storage_->dictionaries(i).name() ==
-        kMsimeUserdictionaryName) {
+    if (storage_->dictionaries(i).name() == kMsimeUserdictionaryName) {
       dic_id = storage_->dictionaries(i).id();
       break;
     }
@@ -129,8 +130,8 @@ bool SetupUtil::MigrateDictionaryFromMSIME() {
 
   UserDictionaryStorage::UserDictionary *dic =
       storage_->GetUserDictionary(dic_id);
-  if (dic == NULL) {
-    LOG(ERROR) << "GetUserDictionary returned NULL";
+  if (dic == nullptr) {
+    LOG(ERROR) << "GetUserDictionary returned nullptr";
     return false;
   }
 
@@ -142,7 +143,7 @@ bool SetupUtil::MigrateDictionaryFromMSIME() {
   }
 
   if (UserDictionaryImporter::ImportFromIterator(iter.get(), dic) !=
-    UserDictionaryImporter::IMPORT_NO_ERROR) {
+      UserDictionaryImporter::IMPORT_NO_ERROR) {
     LOG(ERROR) << "ImportFromMSIME failed";
     return false;
   }

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -75,13 +75,13 @@ using mozc::MacProcess;
 
 namespace {
 // set of bundle IDs of applications on which Mozc should not open urls.
-const std::set<string> *gNoOpenLinkApps = nullptr;
+const std::set<std::string> *gNoOpenLinkApps = nullptr;
 // The mapping from the CompositionMode enum to the actual id string
 // of composition modes.
 const std::map<CompositionMode, NSString *> *gModeIdMap = nullptr;
-const std::set<string> *gNoSelectedRangeApps = nullptr;
-const std::set<string> *gNoDisplayModeSwitchApps = nullptr;
-const std::set<string> *gNoSurroundingTextApps = nullptr;
+const std::set<std::string> *gNoSelectedRangeApps = nullptr;
+const std::set<std::string> *gNoDisplayModeSwitchApps = nullptr;
+const std::set<std::string> *gNoSurroundingTextApps = nullptr;
 
 // TODO(horo): This value should be get from system configuration.
 //  DoubleClickInterval can be get from NSEvent (MacOSX ver >= 10.6)
@@ -92,9 +92,9 @@ const int kMaxSurroundingLength = 20;
 // surrounding text takes too much time. So we set this limitation.
 const int kGetSurroundingTextClientLengthLimit = 1000;
 
-NSString *GetLabelForSuffix(const string &suffix) {
-  string label = mozc::MacUtil::GetLabelForSuffix(suffix);
-  return [[NSString stringWithUTF8String:label.c_str()] retain];
+NSString *GetLabelForSuffix(const std::string &suffix) {
+  std::string label = mozc::MacUtil::GetLabelForSuffix(suffix);
+  return [NSString stringWithUTF8String:label.c_str()];
 }
 
 CompositionMode GetCompositionMode(NSString *modeID) {
@@ -144,8 +144,8 @@ CompositionMode GetCompositionMode(NSString *modeID) {
   return mozc::commands::DIRECT;
 }
 
-bool IsBannedApplication(const std::set<string>* bundleIdSet,
-                         const string& bundleId) {
+bool IsBannedApplication(const std::set<std::string>* bundleIdSet,
+                         const std::string& bundleId) {
   return bundleIdSet == nullptr || bundleId.empty() ||
       bundleIdSet->find(bundleId) != bundleIdSet->end();
 }
@@ -188,7 +188,7 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
     return self;
   }
   keyCodeMap_ = [[KeyCodeMap alloc] init];
-  clientBundle_ = new(std::nothrow) string;
+  clientBundle_ = new(std::nothrow) std::string;
   replacementRange_ = NSMakeRange(NSNotFound, 0);
   originalString_ = [[NSMutableString alloc] init];
   composedString_ = [[NSMutableAttributedString alloc] init];
@@ -209,7 +209,6 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
   [NSBundle loadNibNamed:@"Config" owner:self];
   if (!originalString_ || !composedString_ || !candidateController_ ||
       !rendererCommand_ || !mozcClient_ || !clientBundle_) {
-    [self release];
     self = nil;
   } else {
     DLOG(INFO) << [[NSString stringWithFormat:@"initWithServer: %@ %@ %@",
@@ -234,16 +233,15 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
 }
 
 - (void)dealloc {
-  [keyCodeMap_ release];
-  [originalString_ release];
-  [composedString_ release];
-  [imkClientForTest_ release];
+  keyCodeMap_ = nil;
+  originalString_ = nil;
+  composedString_ = nil;
+  imkClientForTest_ = nil;
   delete clientBundle_;
   delete candidateController_;
   delete mozcClient_;
   delete rendererCommand_;
   DLOG(INFO) << "dealloc server";
-  [super dealloc];
 }
 
 - (id)client {
@@ -258,7 +256,7 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
 }
 
 + (void)initializeConstants {
-  std::set<string> *noOpenlinkApps = new(std::nothrow) std::set<string>;
+  std::set<std::string> *noOpenlinkApps = new(std::nothrow) std::set<std::string>;
   if (noOpenlinkApps) {
     // should not open links during screensaver.
     noOpenlinkApps->insert("com.apple.securityagent");
@@ -278,7 +276,7 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
     gModeIdMap = newMap;
   }
 
-  std::set<string> *noSelectedRangeApps = new(std::nothrow) std::set<string>;
+  std::set<std::string> *noSelectedRangeApps = new(std::nothrow) std::set<std::string>;
   if (noSelectedRangeApps) {
     // Do not call selectedRange: method for the following
     // applications because it could lead to application crash.
@@ -295,14 +293,14 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
   // mode.  When the first composition character is alphanumeric (such
   // like pressing Shift-A at first), that character is directly
   // inserted into application instead of composition starting "A".
-  std::set<string> *noDisplayModeSwitchApps =
-      new(std::nothrow) std::set<string>;
+  std::set<std::string> *noDisplayModeSwitchApps =
+      new(std::nothrow) std::set<std::string>;
   if (noDisplayModeSwitchApps) {
     noDisplayModeSwitchApps->insert("com.microsoft.Word");
     gNoDisplayModeSwitchApps = noDisplayModeSwitchApps;
   }
 
-  std::set<string> *noSurroundingTextApps = new(std::nothrow) std::set<string>;
+  std::set<std::string> *noSurroundingTextApps = new(std::nothrow) std::set<std::string>;
   if (noSurroundingTextApps) {
     // Disables the surrounding text feature for the following application
     // because calling attributedSubstringFromRange to it is very heavy.
@@ -319,6 +317,7 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
 
 - (void)activateServer:(id)sender {
   [super activateServer:sender];
+  [self setupClientBundle:sender];
   checkInputMode_ = YES;
   if (rendererCommand_->visible() && candidateController_) {
     candidateController_->ExecCommand(*rendererCommand_);
@@ -326,7 +325,7 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
   [self handleConfig];
   [imkServer_ setCurrentController:self];
 
-  string window_name, window_owner;
+  std::string window_name, window_owner;
   if (mozc::MacUtil::GetFrontmostWindowNameAndOwner(&window_name,
                                                     &window_owner)) {
     DLOG(INFO) << "frontmost window name: \"" << window_name << "\" "
@@ -680,7 +679,6 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
 
 #pragma mark Mozc Server methods
 
-
 #pragma mark IMKServerInput Protocol
 // Currently GoogleJapaneseInputController uses handleEvent:client:
 // method to handle key events.  It does not support inputText:client:
@@ -722,9 +720,8 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
       NSString *seg_string =
           [NSString stringWithUTF8String:seg.value().c_str()];
       NSAttributedString *seg_attributed_string =
-          [[[NSAttributedString alloc]
-             initWithString:seg_string attributes:attr]
-            autorelease];
+          [[NSAttributedString alloc]
+            initWithString:seg_string attributes:attr];
       [composedString_ appendAttributedString:seg_attributed_string];
     }
   }
@@ -1016,14 +1013,6 @@ bool IsBannedApplication(const std::set<string>* bundleIdSet,
 
 - (IBAction)registerWordClicked:(id)sender {
   [self launchWordRegisterTool:[self client]];
-}
-
-- (IBAction)characterPaletteClicked:(id)sender {
-  MacProcess::LaunchMozcTool("character_palette");
-}
-
-- (IBAction)handWritingClicked:(id)sender {
-  MacProcess::LaunchMozcTool("hand_writing");
 }
 
 - (IBAction)aboutDialogClicked:(id)sender {

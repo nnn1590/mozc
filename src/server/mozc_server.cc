@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@
 #include <string>
 
 #include "base/crash_report_handler.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/process_mutex.h"
@@ -48,19 +47,19 @@
 #include "base/util.h"
 #include "config/stats_config_util.h"
 #include "session/session_server.h"
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 
-DECLARE_bool(restricted);   // in SessionHandler
+ABSL_DECLARE_FLAG(bool, restricted);  // in SessionHandler
 
 namespace {
-mozc::SessionServer *g_session_server = NULL;
+mozc::SessionServer *g_session_server = nullptr;
 }
 
 namespace mozc {
 namespace server {
 
-void InitMozcAndMozcServer(const char *arg0,
-                           int *argc,
-                           char ***argv,
+void InitMozcAndMozcServer(const char *arg0, int *argc, char ***argv,
                            bool remove_flags) {
   mozc::SystemUtil::DisableIME();
 
@@ -88,18 +87,16 @@ void InitMozcAndMozcServer(const char *arg0,
   if (mozc::config::StatsConfigUtil::IsEnabled()) {
     mozc::CrashReportHandler::Initialize(false);
   }
-  mozc::InitMozc(arg0, argc, argv, remove_flags);
+  mozc::InitMozc(arg0, argc, argv);
 
   if (run_level == mozc::RunLevel::RESTRICTED) {
     VLOG(1) << "Mozc server starts with timeout mode";
-    FLAGS_restricted = true;
+    absl::SetFlag(&FLAGS_restricted, true);
   }
-
-  return;
 }
 
 int MozcServer::Run() {
-  string mutex_name = "server";
+  std::string mutex_name = "server";
   mozc::ProcessMutex mutex(mutex_name.c_str());
   if (!mutex.Lock()) {
     LOG(INFO) << "Mozc Server is already running";

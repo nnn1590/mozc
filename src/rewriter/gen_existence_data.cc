@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 #include "rewriter/gen_existence_data.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -47,20 +48,19 @@ using mozc::storage::ExistenceFilter;
 namespace mozc {
 namespace {
 
-void GenExistenceData(const std::vector<string> &entries,
-                      double error_rate,
-                      char **existence_data,
+void GenExistenceData(const std::vector<std::string> &entries,
+                      double error_rate, char **existence_data,
                       size_t *existence_data_size) {
   const int n = entries.size();
-  const int m =  ExistenceFilter::MinFilterSizeInBytesForErrorRate(
-      error_rate, n);
+  const int m =
+      ExistenceFilter::MinFilterSizeInBytesForErrorRate(error_rate, n);
   LOG(INFO) << "entry: " << n << " err: " << error_rate << " bytes: " << m;
 
   std::unique_ptr<ExistenceFilter> filter(ExistenceFilter::CreateOptimal(m, n));
   DCHECK(filter.get());
 
   for (size_t i = 0; i < entries.size(); ++i) {
-    const uint64 id = Hash::Fingerprint(entries[i]);
+    const uint64_t id = Hash::Fingerprint(entries[i]);
     filter->Insert(id);
   }
   filter->Write(existence_data, existence_data_size);
@@ -68,10 +68,10 @@ void GenExistenceData(const std::vector<string> &entries,
 
 }  // namespace
 
-void OutputExistenceHeader(const std::vector<string> &entries,
-                           const string &data_namespace, std::ostream *ofs,
+void OutputExistenceHeader(const std::vector<std::string> &entries,
+                           const std::string &data_namespace, std::ostream *ofs,
                            double error_rate) {
-  char *existence_data = NULL;
+  char *existence_data = nullptr;
   size_t existence_data_size = 0;
   GenExistenceData(entries, error_rate, &existence_data, &existence_data_size);
 
@@ -80,17 +80,17 @@ void OutputExistenceHeader(const std::vector<string> &entries,
 
   *ofs << "namespace " << data_namespace << "{" << std::endl;
 
-  CodeGenByteArrayOutputStream codegen_stream(
-      ofs, codegenstream::NOT_OWN_STREAM);
+  CodeGenByteArrayOutputStream codegen_stream(ofs,
+                                              codegenstream::NOT_OWN_STREAM);
   codegen_stream.OpenVarDef("ExistenceFilter");
   codegen_stream.write(existence_data, existence_data_size);
   codegen_stream.CloseVarDef();
   *ofs << "}  // namespace " << data_namespace << std::endl;
 }
 
-void OutputExistenceBinary(const std::vector<string> &entries,
+void OutputExistenceBinary(const std::vector<std::string> &entries,
                            std::ostream *ofs, double error_rate) {
-  char *existence_data = NULL;
+  char *existence_data = nullptr;
   size_t existence_data_size = 0;
   GenExistenceData(entries, error_rate, &existence_data, &existence_data_size);
   ofs->write(existence_data, existence_data_size);

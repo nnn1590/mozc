@@ -35,7 +35,7 @@
 {
   'ninja_use_console': 1,
   'action': [
-    'python',
+    'python3',
     '<(abs_depth)/build_tools/android_ant.py',
     '<(CONFIGURATION_NAME)',
     '-Dgyp.build_type=<(CONFIGURATION_NAME)',

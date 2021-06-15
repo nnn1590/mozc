@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,13 @@ namespace mozc {
 class ConversionRequest;
 class Segments;
 
-class FortuneRewriter : public RewriterInterface  {
+class FortuneRewriter : public RewriterInterface {
  public:
   FortuneRewriter();
-  virtual ~FortuneRewriter();
+  ~FortuneRewriter() override;
 
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
 };
 
 }  // namespace mozc

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_DICTIONARY_USER_DICTIONARY_SESSION_HANDLER_H_
 #define MOZC_DICTIONARY_USER_DICTIONARY_SESSION_HANDLER_H_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -105,23 +106,23 @@ class UserDictionarySessionHandler {
   void GetStorage(const UserDictionaryCommand &command,
                   UserDictionaryCommandStatus *status);
 
-  void set_dictionary_path(const string &dictionary_path) {
+  void set_dictionary_path(const std::string &dictionary_path) {
     dictionary_path_ = dictionary_path;
   }
 
  private:
-  static const uint64 kInvalidSessionId = 0;
+  static constexpr uint64_t kInvalidSessionId = 0;
 
   // As an interface, this class can hold multiple sessions,
   // but currently only one latest session is held.
   // (From the different point of view, this is LRU with max capacity '1'.)
-  uint64 session_id_;
+  uint64_t session_id_;
   std::unique_ptr<UserDictionarySession> session_;
-  string dictionary_path_;
+  std::string dictionary_path_;
 
   UserDictionarySession *GetSession(const UserDictionaryCommand &command,
                                     UserDictionaryCommandStatus *status);
-  uint64 CreateNewSessionId() const;
+  uint64_t CreateNewSessionId() const;
 
   DISALLOW_COPY_AND_ASSIGN(UserDictionarySessionHandler);
 };

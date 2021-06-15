@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,6 @@
 
 #import "mac/GoogleJapaneseInputServer.h"
 
-#import "mac/GoogleJapaneseInputController.h"
-
 #include <string>
 
 #include "base/const.h"
@@ -53,21 +51,15 @@ void InitializeServer() {
     return;
   }
 
-  g_imkServer = [[[GoogleJapaneseInputServer alloc]
+  g_imkServer = [[GoogleJapaneseInputServer alloc]
                    initWithName:connectionName
-               bundleIdentifier:[bundle bundleIdentifier]]
-                  autorelease];
+               bundleIdentifier:[bundle bundleIdentifier]];
   [g_imkServer registerRendererConnection];
 }
 mozc::once_t gOnceForServer = MOZC_ONCE_INIT;
 }
 
 @implementation GoogleJapaneseInputServer
-- (void)dealloc {
-  [renderer_conection_ release];
-  [super dealloc];
-}
-
 - (BOOL)registerRendererConnection {
   NSString *connectionName = @ kProductPrefix "_Renderer_Connection";
   renderer_conection_ = [[NSConnection alloc] init];

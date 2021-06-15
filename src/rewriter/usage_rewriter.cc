@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,10 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef NO_USAGE_REWRITER
+#include <cstdint>
 
-#include "rewriter/usage_rewriter.h"
+#include "absl/strings/string_view.h"
+#ifndef NO_USAGE_REWRITER
 
 #include <string>
 
@@ -43,9 +44,9 @@
 #include "dictionary/pos_matcher.h"
 #include "protocol/config.pb.h"
 #include "request/conversion_request.h"
+#include "rewriter/usage_rewriter.h"
 
 using mozc::dictionary::DictionaryInterface;
-using mozc::dictionary::POSMatcher;
 
 namespace mozc {
 
@@ -54,22 +55,20 @@ UsageRewriter::UsageRewriter(const DataManagerInterface *data_manager,
     : pos_matcher_(data_manager->GetPOSMatcherData()),
       dictionary_(dictionary),
       base_conjugation_suffix_(nullptr) {
-  StringPiece base_conjugation_suffix_data;
-  StringPiece conjugation_suffix_data;
-  StringPiece conjugation_suffix_index_data;
-  StringPiece usage_items_data;
-  StringPiece string_array_data;
-  data_manager->GetUsageRewriterData(&base_conjugation_suffix_data,
-                                     &conjugation_suffix_data,
-                                     &conjugation_suffix_index_data,
-                                     &usage_items_data,
-                                     &string_array_data);
+  absl::string_view base_conjugation_suffix_data;
+  absl::string_view conjugation_suffix_data;
+  absl::string_view conjugation_suffix_index_data;
+  absl::string_view usage_items_data;
+  absl::string_view string_array_data;
+  data_manager->GetUsageRewriterData(
+      &base_conjugation_suffix_data, &conjugation_suffix_data,
+      &conjugation_suffix_index_data, &usage_items_data, &string_array_data);
   base_conjugation_suffix_ =
-      reinterpret_cast<const uint32 *>(base_conjugation_suffix_data.data());
-  const uint32 *conjugation_suffix =
-      reinterpret_cast<const uint32 *>(conjugation_suffix_data.data());
-  const uint32 *conjugation_suffix_data_index =
-      reinterpret_cast<const uint32 *>(conjugation_suffix_index_data.data());
+      reinterpret_cast<const uint32_t *>(base_conjugation_suffix_data.data());
+  const uint32_t *conjugation_suffix =
+      reinterpret_cast<const uint32_t *>(conjugation_suffix_data.data());
+  const uint32_t *conjugation_suffix_data_index =
+      reinterpret_cast<const uint32_t *>(conjugation_suffix_index_data.data());
 
   DCHECK(SerializedStringArray::VerifyData(string_array_data));
   string_array_.Set(string_array_data);
@@ -81,13 +80,12 @@ UsageRewriter::UsageRewriter(const DataManagerInterface *data_manager,
   // binary search over the conjugation_suffix_data diretly.
   for (; begin != end; ++begin) {
     for (size_t i = conjugation_suffix_data_index[begin.conjugation_id()];
-         i < conjugation_suffix_data_index[begin.conjugation_id() + 1];
-         ++i) {
-      const StringPiece key = string_array_[begin.key_index()];
-      const StringPiece value = string_array_[begin.value_index()];
-      const StringPiece key_suffix =
+         i < conjugation_suffix_data_index[begin.conjugation_id() + 1]; ++i) {
+      const absl::string_view key = string_array_[begin.key_index()];
+      const absl::string_view value = string_array_[begin.value_index()];
+      const absl::string_view key_suffix =
           string_array_[conjugation_suffix[2 * i + 1]];
-      const StringPiece value_suffix =
+      const absl::string_view value_suffix =
           string_array_[conjugation_suffix[2 * i]];
       StrPair key_value1;
       Util::ConcatStrings(key, key_suffix, &key_value1.first);
@@ -100,14 +98,14 @@ UsageRewriter::UsageRewriter(const DataManagerInterface *data_manager,
   }
 }
 
-UsageRewriter::~UsageRewriter() {
-}
+UsageRewriter::~UsageRewriter() {}
 
 // static
 // "合いました" => "合い"
-string UsageRewriter::GetKanjiPrefixAndOneHiragana(const string &word) {
+std::string UsageRewriter::GetKanjiPrefixAndOneHiragana(
+    const std::string &word) {
   // TODO(hidehiko): Refactor more based on ConstChar32Iterator.
-  string result;
+  std::string result;
   int pos = 0;
   bool has_kanji = false;
   bool has_hiragana = false;
@@ -141,14 +139,15 @@ string UsageRewriter::GetKanjiPrefixAndOneHiragana(const string &word) {
 UsageRewriter::UsageDictItemIterator
 UsageRewriter::LookupUnmatchedUsageHeuristically(
     const Segment::Candidate &candidate) const {
-  // We check Unknwon POS ("名詞,サ変接続") as well, since
+  // We check Unknown POS ("名詞,サ変接続") as well, since
   // target verbs/adjectives may be in web dictionary.
   if (!pos_matcher_.IsContentWordWithConjugation(candidate.lid) &&
       !pos_matcher_.IsUnknown(candidate.lid)) {
     return UsageDictItemIterator();
   }
 
-  const string value = GetKanjiPrefixAndOneHiragana(candidate.content_value);
+  const std::string value =
+      GetKanjiPrefixAndOneHiragana(candidate.content_value);
   if (value.empty()) {
     return UsageDictItemIterator();
   }
@@ -160,7 +159,7 @@ UsageRewriter::LookupUnmatchedUsageHeuristically(
     return UsageDictItemIterator();
   }
   // Check result key part is a prefix of the content_key.
-  const StringPiece key = string_array_[itr->second.key_index()];
+  const absl::string_view key = string_array_[itr->second.key_index()];
   if (Util::StartsWith(candidate.content_key, key)) {
     return itr->second;
   }
@@ -170,8 +169,8 @@ UsageRewriter::LookupUnmatchedUsageHeuristically(
 
 UsageRewriter::UsageDictItemIterator UsageRewriter::LookupUsage(
     const Segment::Candidate &candidate) const {
-  const string &key = candidate.content_key;
-  const string &value = candidate.content_value;
+  const std::string &key = candidate.content_key;
+  const std::string &value = candidate.content_value;
   StrPair key_value(key, value);
   const auto itr = key_value_usageitem_map_.find(key_value);
   if (itr != key_value_usageitem_map_.end()) {
@@ -202,8 +201,8 @@ bool UsageRewriter::Rewrite(const ConversionRequest &request,
   // dictionary.  Since just the uniqueness in one Segments is sufficient, for
   // usage from the user dictionary, we simply assign sequential numbers larger
   // than the maximum ID of the embedded usage dictionary.
-  int32 usage_id_for_user_comment = key_value_usageitem_map_.size();
-  string comment;
+  int32_t usage_id_for_user_comment = key_value_usageitem_map_.size();
+  std::string comment;
   for (size_t i = 0; i < segments->conversion_segments_size(); ++i) {
     Segment *segment = segments->mutable_conversion_segment(i);
     DCHECK(segment);
@@ -211,11 +210,10 @@ bool UsageRewriter::Rewrite(const ConversionRequest &request,
       ++usage_id_for_user_comment;
 
       // First, search the user dictionary for comment.
-      if (dictionary_ != NULL) {
+      if (dictionary_ != nullptr) {
         if (dictionary_->LookupComment(segment->candidate(j).content_key,
                                        segment->candidate(j).content_value,
-                                       request,
-                                       &comment)) {
+                                       request, &comment)) {
           Segment::Candidate *candidate = segment->mutable_candidate(j);
           candidate->usage_id = usage_id_for_user_comment;
           candidate->usage_title = segment->candidate(j).content_value;
@@ -234,8 +232,8 @@ bool UsageRewriter::Rewrite(const ConversionRequest &request,
         DCHECK(candidate);
         candidate->usage_id = iter.usage_id();
 
-        const StringPiece value_suffix = string_array_[
-            base_conjugation_suffix_[2 * iter.conjugation_id()]];
+        const absl::string_view value_suffix =
+            string_array_[base_conjugation_suffix_[2 * iter.conjugation_id()]];
         candidate->usage_title.assign(string_array_[iter.value_index()].data(),
                                       string_array_[iter.value_index()].size());
         candidate->usage_title.append(value_suffix.data(), value_suffix.size());
@@ -244,13 +242,12 @@ bool UsageRewriter::Rewrite(const ConversionRequest &request,
             string_array_[iter.meaning_index()].data(),
             string_array_[iter.meaning_index()].size());
 
-        VLOG(2) << i << ":" << j
-                << ":" << candidate->content_key
-                << ":" << candidate->content_value
-                << ":" << string_array_[iter.key_index()]
-                << ":" << string_array_[iter.value_index()]
-                << ":" << iter.conjugation_id()
-                << ":" << string_array_[iter.meaning_index()];
+        VLOG(2) << i << ":" << j << ":" << candidate->content_key << ":"
+                << candidate->content_value << ":"
+                << string_array_[iter.key_index()] << ":"
+                << string_array_[iter.value_index()] << ":"
+                << iter.conjugation_id() << ":"
+                << string_array_[iter.meaning_index()];
         modified = true;
       }
     }

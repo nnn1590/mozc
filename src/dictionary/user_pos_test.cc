@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "dictionary/user_pos.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -38,6 +39,8 @@
 #include "data_manager/testing/mock_data_manager.h"
 #include "dictionary/user_pos_interface.h"
 #include "testing/base/public/gunit.h"
+#include "absl/memory/memory.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace dictionary {
@@ -46,9 +49,9 @@ namespace {
 class UserPOSTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    StringPiece token_array_data, string_array_data;
+    absl::string_view token_array_data, string_array_data;
     mock_data_manager_.GetUserPOSData(&token_array_data, &string_array_data);
-    user_pos_.reset(new UserPOS(token_array_data, string_array_data));
+    user_pos_ = absl::make_unique<UserPOS>(token_array_data, string_array_data);
     CHECK(user_pos_.get());
   }
 
@@ -59,11 +62,11 @@ class UserPOSTest : public ::testing::Test {
 };
 
 TEST_F(UserPOSTest, UserPOSBasicTest) {
-  std::vector<string> pos_list;
+  std::vector<std::string> pos_list;
   user_pos_->GetPOSList(&pos_list);
   EXPECT_FALSE(pos_list.empty());
 
-  uint16 id = 0;
+  uint16_t id = 0;
   for (size_t i = 0; i < pos_list.size(); ++i) {
     EXPECT_TRUE(user_pos_->IsValidPOS(pos_list[i]));
     EXPECT_TRUE(user_pos_->GetPOSIDs(pos_list[i], &id));
@@ -72,7 +75,7 @@ TEST_F(UserPOSTest, UserPOSBasicTest) {
 }
 
 TEST_F(UserPOSTest, UserPOSGetTokensTest) {
-  std::vector<string> pos_list;
+  std::vector<std::string> pos_list;
   user_pos_->GetPOSList(&pos_list);
 
   std::vector<UserPOS::Token> tokens;
@@ -86,6 +89,24 @@ TEST_F(UserPOSTest, UserPOSGetTokensTest) {
 
   for (size_t i = 0; i < pos_list.size(); ++i) {
     EXPECT_TRUE(user_pos_->GetTokens("test", "test", pos_list[i], &tokens));
+  }
+}
+
+TEST_F(UserPOSTest, UserPOSGetTokensWithLocaleTest) {
+  std::vector<std::string> pos_list;
+  user_pos_->GetPOSList(&pos_list);
+
+  std::vector<UserPOS::Token> tokens, tokens_ja, tokens_en;
+  EXPECT_TRUE(user_pos_->GetTokens("あか", "赤", "形容詞", "", &tokens));
+  EXPECT_TRUE(user_pos_->GetTokens("あか", "赤", "形容詞", "ja", &tokens_ja));
+  EXPECT_TRUE(user_pos_->GetTokens("あか", "赤", "形容詞", "en", &tokens_en));
+  EXPECT_EQ(tokens.size(), tokens_ja.size());
+  EXPECT_EQ(tokens.size(), tokens_en.size());
+
+  for (size_t i = 0; i < tokens.size(); ++i) {
+    EXPECT_EQ(tokens[i].cost, tokens_ja[i].cost);
+    EXPECT_GT(tokens_en[i].cost, tokens_ja[i].cost);
+    EXPECT_GT(tokens_en[i].cost, tokens[i].cost);
   }
 }
 

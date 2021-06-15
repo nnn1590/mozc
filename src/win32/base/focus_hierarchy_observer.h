@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -45,10 +45,10 @@ class FocusHierarchyObserver {
  public:
   struct WindowInfo {
     WindowInfo();
-    HWND   window_handle;
-    string title;         // utf8
-    string class_name;    // utf8
-    DWORD  process_id;
+    HWND window_handle;
+    std::string title;       // utf8
+    std::string class_name;  // utf8
+    DWORD process_id;
   };
 
   virtual ~FocusHierarchyObserver();
@@ -57,11 +57,10 @@ class FocusHierarchyObserver {
   virtual bool IsAbailable() const = 0;
   virtual std::vector<AccessibleObjectInfo> GetUIHierarchy() const = 0;
   virtual std::vector<WindowInfo> GetWindowHierarchy() const = 0;
-  virtual string GetRootWindowName() const = 0;
+  virtual std::string GetRootWindowName() const = 0;
 
   static FocusHierarchyObserver *Create();
-  static void OnDllProcessAttach(HINSTANCE module_handle,
-                                 bool static_loading);
+  static void OnDllProcessAttach(HINSTANCE module_handle, bool static_loading);
   static void OnDllProcessDetach(HINSTANCE module_handle,
                                  bool process_shutdown);
 };

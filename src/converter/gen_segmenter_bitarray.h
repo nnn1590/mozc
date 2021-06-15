@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_CONVERTER_GEN_SEGMENTER_BITARRAY_H_
 #define MOZC_CONVERTER_GEN_SEGMENTER_BITARRAY_H_
 
+#include <cstdint>
 #include <string>
 
 #include "base/port.h"
@@ -38,12 +39,12 @@ namespace mozc {
 
 class SegmenterBitarrayGenerator {
  public:
-  typedef bool (*IsBoundaryFunc)(uint16 rid, uint16 lid);
+  typedef bool (*IsBoundaryFunc)(uint16_t rid, uint16_t lid);
   static void GenerateBitarray(int lsize, int rsize, IsBoundaryFunc func,
-                               const string &output_size_info,
-                               const string &output_ltable,
-                               const string &output_rtable,
-                               const string &output_bitarray);
+                               const std::string &output_size_info,
+                               const std::string &output_ltable,
+                               const std::string &output_rtable,
+                               const std::string &output_bitarray);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(SegmenterBitarrayGenerator);

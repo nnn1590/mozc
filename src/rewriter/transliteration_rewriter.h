@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_REWRITER_TRANSLITERATION_REWRITER_H_
 #define MOZC_REWRITER_TRANSLITERATION_REWRITER_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -40,36 +41,33 @@
 
 namespace mozc {
 
-class TransliterationRewriter : public RewriterInterface  {
+class TransliterationRewriter : public RewriterInterface {
  public:
   explicit TransliterationRewriter(const dictionary::POSMatcher &pos_matcher);
-  virtual ~TransliterationRewriter();
+  ~TransliterationRewriter() override;
 
-  virtual int capability(const ConversionRequest &request) const;
+  int capability(const ConversionRequest &request) const override;
 
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
 
-  virtual void Finish(const ConversionRequest &request, Segments *segments) {}
+  void Finish(const ConversionRequest &request, Segments *segments) override {}
 
  private:
-  void InitT13nCandidate(const string &key,
-                         const string &value,
-                         uint16 lid,
-                         uint16 rid,
+  void InitT13nCandidate(const std::string &key, const std::string &value,
+                         uint16_t lid, uint16_t rid,
                          Segment::Candidate *cand) const;
   // Sets transliteration values into segment.  If t13ns is invalid,
   // false is returned.
-  bool SetTransliterations(const std::vector<string> &t13ns,
-                           const string &key,
-                           Segment *segment) const;
+  bool SetTransliterations(const std::vector<std::string> &t13ns,
+                           const std::string &key, Segment *segment) const;
   bool FillT13nsFromComposer(const ConversionRequest &request,
                              Segments *segments) const;
   bool FillT13nsFromKey(Segments *segments) const;
   bool AddRawNumberT13nCandidates(const ConversionRequest &request,
                                   Segments *segments) const;
 
-  const uint16 unknown_id_;
+  const uint16_t unknown_id_;
 
   DISALLOW_COPY_AND_ASSIGN(TransliterationRewriter);
 };

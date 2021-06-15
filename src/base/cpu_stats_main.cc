@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,29 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <string>
 
 #include "base/cpu_stats.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/port.h"
 #include "base/thread.h"
 #include "base/util.h"
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
-DEFINE_int32(iterations, 1000, "number of iterations");
-DEFINE_int32(polling_duration, 1000, "duration period in msec");
-DEFINE_int32(dummy_threads_size, 0, "number of dummy threads");
+ABSL_FLAG(int32_t, iterations, 1000, "number of iterations");
+ABSL_FLAG(int32_t, polling_duration, 1000, "duration period in msec");
+ABSL_FLAG(int32_t, dummy_threads_size, 0, "number of dummy threads");
 
 namespace {
 class DummyThread : public mozc::Thread {
  public:
   DummyThread() {}
-  void Run() {
-    volatile uint64 n = 0;
+  void Run() override {
+    volatile uint64_t n = 0;
     while (true) {
       ++n;
       --n;
@@ -60,13 +62,14 @@ class DummyThread : public mozc::Thread {
 }  // namespace
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   std::unique_ptr<DummyThread[]> threads;
 
-  if (FLAGS_dummy_threads_size > 0) {
-    threads.reset(new DummyThread[FLAGS_dummy_threads_size]);
-    for (int i = 0; i < FLAGS_dummy_threads_size; ++i) {
+  if (absl::GetFlag(FLAGS_dummy_threads_size) > 0) {
+    threads = absl::make_unique<DummyThread[]>(
+        absl::GetFlag(FLAGS_dummy_threads_size));
+    for (int i = 0; i < absl::GetFlag(FLAGS_dummy_threads_size); ++i) {
       threads[i].Start("CpuStatsMain");
     }
   }
@@ -74,10 +77,10 @@ int main(int argc, char **argv) {
   mozc::CPUStats stats;
   std::cout << "NumberOfProcessors: " << stats.GetNumberOfProcessors()
             << std::endl;
-  for (int i = 0; i < FLAGS_iterations; ++i) {
+  for (int i = 0; i < absl::GetFlag(FLAGS_iterations); ++i) {
     std::cout << "CPUStats: " << stats.GetSystemCPULoad() << " "
               << stats.GetCurrentProcessCPULoad() << std::endl;
-    mozc::Util::Sleep(FLAGS_polling_duration);
+    mozc::Util::Sleep(absl::GetFlag(FLAGS_polling_duration));
   }
 
   return 0;

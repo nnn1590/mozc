@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,22 +36,22 @@
 #include "base/port.h"
 #include "base/unverified_sha1.h"
 #include "base/util.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace {
 
-bool IsValidAlignment(int a) {
-  return a == 8 || a == 16 || a == 32 || a == 64;
-}
+bool IsValidAlignment(int a) { return a == 8 || a == 16 || a == 32 || a == 64; }
 
 }  // namespace
 
-DataSetWriter::DataSetWriter(StringPiece magic)
+DataSetWriter::DataSetWriter(absl::string_view magic)
     : image_(magic.data(), magic.size()) {}
 
 DataSetWriter::~DataSetWriter() = default;
 
-void DataSetWriter::Add(const string &name, int alignment, StringPiece data) {
+void DataSetWriter::Add(const std::string &name, int alignment,
+                        absl::string_view data) {
   CHECK(seen_names_.insert(name).second) << name << " was already added";
   AppendPadding(alignment);
   DataSetMetadata::Entry *entry = metadata_.add_entries();
@@ -61,8 +61,8 @@ void DataSetWriter::Add(const string &name, int alignment, StringPiece data) {
   image_.append(data.data(), data.size());
 }
 
-void DataSetWriter::AddFile(const string &name, int alignment,
-                            const string &filepath) {
+void DataSetWriter::AddFile(const std::string &name, int alignment,
+                            const std::string &filepath) {
   mozc::InputFileStream ifs(filepath.c_str(),
                             std::ios_base::in | std::ios_base::binary);
   CHECK(ifs.good()) << "Failed to open " << name;
@@ -70,8 +70,8 @@ void DataSetWriter::AddFile(const string &name, int alignment,
 }
 
 void DataSetWriter::Finish(std::ostream *output) {
-  const string s = metadata_.SerializeAsString();
-  image_.append(s);  // Metadata
+  const std::string s = metadata_.SerializeAsString();
+  image_.append(s);                                // Metadata
   image_.append(Util::SerializeUint64(s.size()));  // Metadata size
 
   // SHA1 checksum

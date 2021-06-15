@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,28 +30,27 @@
 #include <iostream>  // NOLINT
 #include <sstream>
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "composer/internal/composition.h"
 #include "composer/table.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(table, "system://romanji-hiragana.tsv",
-              "preedit conversion table file.");
-
+ABSL_FLAG(std::string, table, "system://romanji-hiragana.tsv",
+          "preedit conversion table file.");
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   mozc::composer::Table table;
-  table.LoadFromFile(FLAGS_table.c_str());
+  table.LoadFromFile(absl::GetFlag(FLAGS_table).c_str());
 
   mozc::composer::Composition composition(&table);
 
-  string command;
-  string result;
+  std::string command;
+  std::string result;
   size_t pos = 0;
 
-  while (getline(std::cin, command)) {
+  while (std::getline(std::cin, command)) {
     char initial = command[0];
     if (initial == '-' || (initial >= '0' && initial <= '9')) {
       std::stringstream ss;

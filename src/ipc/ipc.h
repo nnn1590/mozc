@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,15 +30,16 @@
 #ifndef MOZC_IPC_IPC_H_
 #define MOZC_IPC_IPC_H_
 
-#ifdef OS_MACOSX
+#include <cstdint>
+#ifdef __APPLE__
 #include <mach/mach.h>  // for mach_port_t
-#endif  // OS_OS_MACOSX
+#endif                  // OS_OS_MACOSX
 
 #include <memory>
 #include <string>
 
-#include "base/scoped_handle.h"
 #include "base/port.h"
+#include "base/scoped_handle.h"
 
 namespace mozc {
 
@@ -72,21 +73,18 @@ class IPCClientInterface {
   virtual ~IPCClientInterface();
 
   virtual bool Connected() const = 0;
-  virtual bool Call(const char *request,
-                    size_t request_size,
-                    char *response,
-                    size_t *response_size,
-                    int32 timeout) = 0;
+  virtual bool Call(const char *request, size_t request_size, char *response,
+                    size_t *response_size, int32_t timeout) = 0;
 
-  virtual uint32 GetServerProtocolVersion() const = 0;
-  virtual const string &GetServerProductVersion() const = 0;
-  virtual uint32 GetServerProcessId() const = 0;
+  virtual uint32_t GetServerProtocolVersion() const = 0;
+  virtual const std::string &GetServerProductVersion() const = 0;
+  virtual uint32_t GetServerProcessId() const = 0;
 
   // return last error
   virtual IPCErrorType GetLastIPCError() const = 0;
 };
 
-#ifdef OS_MACOSX
+#ifdef __APPLE__
 class MachPortManagerInterface {
  public:
   virtual ~MachPortManagerInterface() {}
@@ -94,13 +92,13 @@ class MachPortManagerInterface {
   // If the mach port can be obtained successfully, set the specified
   // "port" and returns true.  Otherwise port doesn't change and
   // returns false.
-  virtual bool GetMachPort(const string &name, mach_port_t *port) = 0;
+  virtual bool GetMachPort(const std::string &name, mach_port_t *port) = 0;
 
   // Returns true if the connecting server is running, checked via
   // OS-depended way.  This method can be defined differently for testing.
-  virtual bool IsServerRunning(const string &name) const = 0;
+  virtual bool IsServerRunning(const std::string &name) const = 0;
 };
-#endif  // OS_MACOSX
+#endif  // __APPLE__
 
 // Synchronous, Single-thread IPC Client
 // Usage:
@@ -120,24 +118,23 @@ class IPCClient : public IPCClientInterface {
   // the client is connecting a valid server.
   // If server_path is empty, no validation is executed.
   // Note: "server_path" will be ignored on Mac (MachIPC).
-  IPCClient(const string &name, const string &server_path);
+  IPCClient(const std::string &name, const std::string &server_path);
 
   // old interface
   // same as IPCClient(name, "");
-  explicit IPCClient(const string &name);
+  explicit IPCClient(const std::string &name);
 
-  virtual ~IPCClient();
+  ~IPCClient() override;
 
   // Return true if the connection is available
-  bool Connected() const;
+  bool Connected() const override;
 
   // Return server protocol version
-  uint32 GetServerProtocolVersion() const;
+  uint32_t GetServerProtocolVersion() const override;
 
-  const string &GetServerProductVersion() const;
+  const std::string &GetServerProductVersion() const override;
 
-  uint32 GetServerProcessId() const;
-
+  uint32_t GetServerProcessId() const override;
 
   // Synchronous IPC call:
   // Client request is encoded in 'request' whose size is request_size.
@@ -148,35 +145,31 @@ class IPCClient : public IPCClientInterface {
   // When timeout (in msec) is set -1, 'Call' waits forever.
   // Note that on Linux and Windows, Call() closes the socket_. This means you
   // cannot call the Call() function more than once.
-  bool Call(const char *request,
-            size_t request_size,
-            char *response,
+  bool Call(const char *request, size_t request_size, char *response,
             size_t *response_size,
-            int32 timeout);  // msec
+            int32_t timeout) override;  // msec
 
-  IPCErrorType GetLastIPCError() const {
-    return last_ipc_error_;
-  }
+  IPCErrorType GetLastIPCError() const override { return last_ipc_error_; }
 
   // terminate the server process named |name|
   // Do not use it unless version mismatch happens
-  static bool TerminateServer(const string &name);
+  static bool TerminateServer(const std::string &name);
 
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   void SetMachPortManager(MachPortManagerInterface *manager) {
     mach_port_manager_ = manager;
   }
 #endif
 
  private:
-  void Init(const string &name, const string &server_path);
+  void Init(const std::string &name, const std::string &server_path);
 
 #ifdef OS_WIN
   // Windows
   ScopedHandle pipe_handle_;
   ScopedHandle pipe_event_;
-#elif defined(OS_MACOSX)
-  string name_;
+#elif defined(__APPLE__)
+  std::string name_;
   MachPortManagerInterface *mach_port_manager_;
 #else
   int socket_;
@@ -189,26 +182,26 @@ class IPCClient : public IPCClientInterface {
 class IPCClientFactoryInterface {
  public:
   virtual ~IPCClientFactoryInterface();
-  virtual IPCClientInterface *NewClient(const string &name,
-                                        const string &path_name) = 0;
+  virtual IPCClientInterface *NewClient(const std::string &name,
+                                        const std::string &path_name) = 0;
 
-  // old interface for backward compatiblity.
+  // old interface for backward compatibility.
   // same as NewClient(name, "");
-  virtual IPCClientInterface *NewClient(const string &name) = 0;
+  virtual IPCClientInterface *NewClient(const std::string &name) = 0;
 };
 
 // Creates IPCClient object.
 class IPCClientFactory : public IPCClientFactoryInterface {
  public:
-  virtual ~IPCClientFactory();
+  ~IPCClientFactory() override;
 
-  // new inteface
-  virtual IPCClientInterface *NewClient(const string &name,
-                                        const string &path_name);
+  // new interface
+  IPCClientInterface *NewClient(const std::string &name,
+                                const std::string &path_name) override;
 
-  // old interface for backward compatiblity.
+  // old interface for backward compatibility.
   // same as NewClient(name, "");
-  virtual IPCClientInterface *NewClient(const string &name);
+  IPCClientInterface *NewClient(const std::string &name) override;
 
   // Return a singleton instance.
   static IPCClientFactory *GetIPCClientFactory();
@@ -237,19 +230,15 @@ class IPCServer {
   //          send a request within 'timeout'. If timeout is -1,
   //          IPCServer waits forever. Default setting is -1.
   // TODO(taku): timeout is not implemented properly
-  IPCServer(const string &name,
-            int32 num_connections,
-            int32 timeout);
+  IPCServer(const std::string &name, int32_t num_connections, int32_t timeout);
   virtual ~IPCServer();
 
-  // Return true if the connectoin is available
+  // Return true if the connection is available
   bool Connected() const;
 
   // Implement a server algorithm in subclass.
   // If 'Process' return false, server finishes select loop
-  virtual bool Process(const char *request,
-                       size_t request_size,
-                       char *response,
+  virtual bool Process(const char *request, size_t request_size, char *response,
                        size_t *response_size) = 0;
 
   // Start select loop. It goes into infinite loop.
@@ -268,7 +257,7 @@ class IPCServer {
   // call TerminateThread()
   void Terminate();
 
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   void SetMachPortManager(MachPortManagerInterface *manager) {
     mach_port_manager_ = manager;
   }
@@ -284,16 +273,16 @@ class IPCServer {
   ScopedHandle pipe_handle_;
   ScopedHandle pipe_event_;
   ScopedHandle quit_event_;
-#elif defined(OS_MACOSX)
-  string name_;
+#elif defined(__APPLE__)
+  std::string name_;
   MachPortManagerInterface *mach_port_manager_;
 #else
   int socket_;
-  string server_address_;
+  std::string server_address_;
 #endif
 
   int timeout_;
 };
 
-}   // namespace mozc
+}  // namespace mozc
 #endif  // MOZC_IPC_IPC_H_

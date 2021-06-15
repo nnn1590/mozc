@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 
 #include "client/client.h"
 
+#include <cstdint>
+
 #ifdef OS_WIN
 #include <Windows.h>
 #else
@@ -53,27 +55,30 @@
 #include "ipc/ipc.h"
 #include "protocol/commands.pb.h"
 #include "protocol/config.pb.h"
+#include "absl/memory/memory.h"
 
 #ifdef OS_WIN
 #include "base/win_util.h"
 #endif  // OS_WIN
 
-#ifdef OS_MACOSX
+#ifdef __APPLE__
 #include "base/mac_process.h"
-#endif  // OS_MACOSX
+#endif  // __APPLE__
+
+#include "absl/base/attributes.h"
 
 namespace mozc {
 namespace client {
 
 namespace {
-const char kServerAddress[]    = "session";  // name for the IPC connection.
-const int    kResultBufferSize = 8192 * 32;   // size of IPC buffer
-const size_t kMaxPlayBackSize  = 512;   // size of maximum history
+const char kServerAddress[] = "session";  // name for the IPC connection.
+const int kResultBufferSize = 8192 * 32;  // size of IPC buffer
+const size_t kMaxPlayBackSize = 512;      // size of maximum history
 
 #ifdef DEBUG
-const int kDefaultTimeout = 100000;   // 100 sec for dbg
+const int kDefaultTimeout = 100000;  // 100 sec for dbg
 #else
-const int kDefaultTimeout = 30000;    // 30 sec for opt
+const int kDefaultTimeout = 30000;  // 30 sec for opt
 #endif  // DEBUG
 
 // Delete Session is called inside the Destructor of Client class.
@@ -106,8 +111,7 @@ void Client::SetIPCClientFactory(IPCClientFactoryInterface *client_factory) {
   client_factory_ = client_factory;
 }
 
-void Client::SetServerLauncher(
-    ServerLauncherInterface *server_launcher) {
+void Client::SetServerLauncher(ServerLauncherInterface *server_launcher) {
   server_launcher_.reset(server_launcher);
 }
 
@@ -143,9 +147,10 @@ bool Client::EnsureConnection() {
     case SERVER_SHUTDOWN:
 #ifdef DEBUG
       OnFatal(ServerLauncherInterface::SERVER_SHUTDOWN);
+#endif  // DEBUG
       // don't break here as SERVER_SHUTDOWN and SERVER_UNKNOWN
       // have basically the same treatment.
-#endif  // DEBUG
+      ABSL_FALLTHROUGH_INTENDED;
     case SERVER_UNKNOWN:
       if (StartServer()) {
         server_status_ = SERVER_INVALID_SESSION;
@@ -193,9 +198,9 @@ void Client::DumpQueryOfDeath() {
   ResetHistory();
 }
 
-void Client::DumpHistorySnapshot(const string &filename,
-                                 const string &label) const {
-  const string snapshot_file =
+void Client::DumpHistorySnapshot(const std::string &filename,
+                                 const std::string &label) const {
+  const std::string snapshot_file =
       FileUtil::JoinPath(SystemUtil::GetUserProfileDirectory(), filename);
   // open with append mode
   OutputFileStream output(snapshot_file.c_str(), std::ios::app);
@@ -228,7 +233,7 @@ void Client::PlaybackHistory() {
 }
 
 void Client::PushHistory(const commands::Input &input,
-                          const commands::Output &output) {
+                         const commands::Output &output) {
   if (!output.has_consumed() || !output.consumed()) {
     // Do not remember unconsumed input.
     return;
@@ -248,8 +253,7 @@ void Client::PushHistory(const commands::Input &input,
   // found context boundary.
   // don't regard the empty output (output without preedit) as the context
   // boundary, as the IMEOn command make the empty output.
-  if (input.type() == commands::Input::SEND_KEY &&
-      output.has_result()) {
+  if (input.type() == commands::Input::SEND_KEY && output.has_result()) {
     ResetHistory();
   }
 }
@@ -257,7 +261,7 @@ void Client::PushHistory(const commands::Input &input,
 // Clear the history and push IMEOn command for initialize session.
 void Client::ResetHistory() {
   history_inputs_.clear();
-#if defined(OS_MACOSX)
+#if defined(__APPLE__)
   // On Mac, we should send ON key at the first of each input session
   // excepting the very first session, because when the session is restored,
   // its state is direct. On the first session, users should send ON key
@@ -277,10 +281,10 @@ void Client::ResetHistory() {
 #endif
 }
 
-void Client::GetHistoryInputs(std::vector<commands::Input> *output) const {
-  output->clear();
+void Client::GetHistoryInputs(std::vector<commands::Input> *result) const {
+  result->clear();
   for (size_t i = 0; i < history_inputs_.size(); ++i) {
-    output->push_back(history_inputs_[i]);
+    result->push_back(history_inputs_[i]);
   }
 }
 
@@ -289,10 +293,10 @@ bool Client::SendKeyWithContext(const commands::KeyEvent &key,
                                 commands::Output *output) {
   commands::Input input;
   input.set_type(commands::Input::SEND_KEY);
-  input.mutable_key()->CopyFrom(key);
+  *input.mutable_key() = key;
   // If the pointer of |context| is not the default_instance, update the data.
   if (&context != &commands::Context::default_instance()) {
-    input.mutable_context()->CopyFrom(context);
+    *input.mutable_context() = context;
   }
   return EnsureCallCommand(&input, output);
 }
@@ -304,9 +308,9 @@ bool Client::TestSendKeyWithContext(const commands::KeyEvent &key,
   input.set_type(commands::Input::TEST_SEND_KEY);
   // If the pointer of |context| is not the default_instance, update the data.
   if (&context != &commands::Context::default_instance()) {
-    input.mutable_context()->CopyFrom(context);
+    *input.mutable_context() = context;
   }
-  input.mutable_key()->CopyFrom(key);
+  *input.mutable_key() = key;
   return EnsureCallCommand(&input, output);
 }
 
@@ -315,10 +319,10 @@ bool Client::SendCommandWithContext(const commands::SessionCommand &command,
                                     commands::Output *output) {
   commands::Input input;
   input.set_type(commands::Input::SEND_COMMAND);
-  input.mutable_command()->CopyFrom(command);
+  *input.mutable_command() = command;
   // If the pointer of |context| is not the default_instance, update the data.
   if (&context != &commands::Context::default_instance()) {
-    input.mutable_context()->CopyFrom(context);
+    *input.mutable_context() = context;
   }
   return EnsureCallCommand(&input, output);
 }
@@ -339,7 +343,7 @@ bool Client::CheckVersionOrRestartServer() {
 }
 
 bool Client::EnsureCallCommand(commands::Input *input,
-                                commands::Output *output) {
+                               commands::Output *output) {
   if (!EnsureSession()) {
     LOG(ERROR) << "EnsureSession failed";
     return false;
@@ -350,7 +354,7 @@ bool Client::EnsureCallCommand(commands::Input *input,
 
   if (!CallAndCheckVersion(*input, output)) {  // server is not running
     LOG(ERROR) << "Call command failed";
-  } else if (output->id() != input->id()) {   // invalid ID
+  } else if (output->id() != input->id()) {  // invalid ID
     LOG(ERROR) << "Session id is void. re-issue session id";
     server_status_ = SERVER_INVALID_SESSION;
   }
@@ -395,21 +399,19 @@ bool Client::EnsureCallCommand(commands::Input *input,
 }
 
 void Client::EnableCascadingWindow(const bool enable) {
-  if (preferences_.get() == NULL) {
-    preferences_.reset(new config::Config);
+  if (preferences_ == nullptr) {
+    preferences_ = absl::make_unique<config::Config>();
   }
   preferences_->set_use_cascading_window(enable);
 }
 
-void Client::set_timeout(int timeout) {
-  timeout_ = timeout;
-}
+void Client::set_timeout(int timeout) { timeout_ = timeout; }
 
 void Client::set_restricted(bool restricted) {
   server_launcher_->set_restricted(restricted);
 }
 
-void Client::set_server_program(const string &program_path) {
+void Client::set_server_program(const std::string &program_path) {
   server_launcher_->set_server_program(program_path);
 }
 
@@ -418,7 +420,7 @@ void Client::set_suppress_error_dialog(bool suppress) {
 }
 
 void Client::set_client_capability(const commands::Capability &capability) {
-  client_capability_.CopyFrom(capability);
+  client_capability_ = capability;
 }
 
 bool Client::CreateSession() {
@@ -426,7 +428,7 @@ bool Client::CreateSession() {
   commands::Input input;
   input.set_type(commands::Input::CREATE_SESSION);
 
-  input.mutable_capability()->CopyFrom(client_capability_);
+  *input.mutable_capability() = client_capability_;
 
   commands::ApplicationInfo *info = input.mutable_application_info();
   DCHECK(info);
@@ -435,7 +437,7 @@ bool Client::CreateSession() {
   info->set_process_id(static_cast<uint32>(::GetCurrentProcessId()));
   info->set_thread_id(static_cast<uint32>(::GetCurrentThreadId()));
 #else
-  info->set_process_id(static_cast<uint32>(getpid()));
+  info->set_process_id(static_cast<uint32_t>(getpid()));
   info->set_thread_id(0);
 #endif
 
@@ -489,7 +491,7 @@ bool Client::GetConfig(config::Config *config) {
   }
 
   config->Clear();
-  config->CopyFrom(output.config());
+  *config = output.config();
   return true;
 }
 
@@ -497,7 +499,7 @@ bool Client::SetConfig(const config::Config &config) {
   commands::Input input;
   InitInput(&input);
   input.set_type(commands::Input::SET_CONFIG);
-  input.mutable_config()->CopyFrom(config);
+  *input.mutable_config() = config;
 
   commands::Output output;
   if (!Call(input, &output)) {
@@ -528,17 +530,11 @@ bool Client::Shutdown() {
   return true;
 }
 
-bool Client::SyncData() {
-  return CallCommand(commands::Input::SYNC_DATA);
-}
+bool Client::SyncData() { return CallCommand(commands::Input::SYNC_DATA); }
 
-bool Client::Reload() {
-  return CallCommand(commands::Input::RELOAD);
-}
+bool Client::Reload() { return CallCommand(commands::Input::RELOAD); }
 
-bool Client::Cleanup() {
-  return CallCommand(commands::Input::CLEANUP);
-}
+bool Client::Cleanup() { return CallCommand(commands::Input::CLEANUP); }
 
 bool Client::NoOperation() {
   return CallCommand(commands::Input::NO_OPERATION);
@@ -546,7 +542,7 @@ bool Client::NoOperation() {
 
 // PingServer ignores all server status
 bool Client::PingServer() const {
-  if (client_factory_ == NULL) {
+  if (client_factory_ == nullptr) {
     return false;
   }
 
@@ -557,11 +553,10 @@ bool Client::PingServer() const {
   input.set_type(commands::Input::NO_OPERATION);
 
   // Call IPC
-  std::unique_ptr<IPCClientInterface> client(
-      client_factory_->NewClient(kServerAddress,
-                                 server_launcher_->server_program()));
+  std::unique_ptr<IPCClientInterface> client(client_factory_->NewClient(
+      kServerAddress, server_launcher_->server_program()));
 
-  if (client.get() == NULL) {
+  if (client == nullptr) {
     LOG(ERROR) << "Cannot make client object";
     return false;
   }
@@ -572,12 +567,12 @@ bool Client::PingServer() const {
   }
 
   // Serialize
-  string request;
+  std::string request;
   input.SerializeToString(&request);
 
   size_t size = kResultBufferSize;
-  if (!client->Call(request.data(), request.size(),
-                    result_.get(), &size, timeout_)) {
+  if (!client->Call(request.data(), request.size(), result_.get(), &size,
+                    timeout_)) {
     LOG(ERROR) << "IPCClient::Call failed: " << client->GetLastIPCError();
     return false;
   }
@@ -594,11 +589,10 @@ bool Client::CallCommand(commands::Input::CommandType type) {
 }
 
 bool Client::CallAndCheckVersion(const commands::Input &input,
-                                  commands::Output *output) {
+                                 commands::Output *output) {
   if (!Call(input, output)) {
     if (server_protocol_version_ != IPC_PROTOCOL_VERSION) {
-      LOG(ERROR) << "version mismatch: "
-                 << server_protocol_version_ << " "
+      LOG(ERROR) << "version mismatch: " << server_protocol_version_ << " "
                  << static_cast<int>(IPC_PROTOCOL_VERSION);
       server_status_ = SERVER_VERSION_MISMATCH;
     }
@@ -608,10 +602,8 @@ bool Client::CallAndCheckVersion(const commands::Input &input,
   return true;
 }
 
-bool Client::Call(const commands::Input &input,
-                  commands::Output *output) {
-  VLOG(2) << "commands::Input: " << std::endl
-          << input.DebugString();
+bool Client::Call(const commands::Input &input, commands::Output *output) {
+  VLOG(2) << "commands::Input: " << std::endl << input.DebugString();
 
   // don't repeat Call() if the status is either
   // SERVER_FATAL, SERVER_TIMEOUT, or SERVER_BROKEN_MESSAGE
@@ -620,18 +612,17 @@ bool Client::Call(const commands::Input &input,
     return false;
   }
 
-  if (client_factory_ == NULL) {
+  if (client_factory_ == nullptr) {
     return false;
   }
 
   // Serialize
-  string request;
+  std::string request;
   input.SerializeToString(&request);
 
   // Call IPC
-  std::unique_ptr<IPCClientInterface> client(
-      client_factory_->NewClient(kServerAddress,
-                                 server_launcher_->server_program()));
+  std::unique_ptr<IPCClientInterface> client(client_factory_->NewClient(
+      kServerAddress, server_launcher_->server_program()));
 
   // set client protocol version.
   // When an error occurs inside Connected() function,
@@ -644,7 +635,7 @@ bool Client::Call(const commands::Input &input,
   server_product_version_ = Version::GetMozcVersion();
   server_process_id_ = 0;
 
-  if (client.get() == NULL) {
+  if (client == nullptr) {
     LOG(ERROR) << "Cannot make client object";
     server_status_ = SERVER_FATAL;
     return false;
@@ -673,8 +664,8 @@ bool Client::Call(const commands::Input &input,
   // http://b/2126375
   // TODO(taku): Investigate the error in detail.
   size_t size = kResultBufferSize;
-  if (!client->Call(request.data(), request.size(),
-                    result_.get(), &size, timeout_)) {
+  if (!client->Call(request.data(), request.size(), result_.get(), &size,
+                    timeout_)) {
     LOG(ERROR) << "Call failure";
     //               << input.DebugString();
     if (client->GetLastIPCError() == IPC_TIMEOUT_ERROR) {
@@ -697,37 +688,35 @@ bool Client::Call(const commands::Input &input,
          server_status_ == SERVER_INVALID_SESSION ||
          server_status_ == SERVER_SHUTDOWN ||
          server_status_ == SERVER_UNKNOWN /* during StartServer() */)
-             << " " << server_status_;
+      << " " << server_status_;
 
-  VLOG(2) << "commands::Output: " << std::endl
-          << output->DebugString();
+  VLOG(2) << "commands::Output: " << std::endl << output->DebugString();
 
   return true;
 }
 
 bool Client::StartServer() {
-  if (server_launcher_.get() != NULL) {
+  if (server_launcher_ != nullptr) {
     return server_launcher_->StartServer(this);
   }
   return true;
 }
 
-
 void Client::OnFatal(ServerLauncherInterface::ServerErrorType type) {
-  if (server_launcher_.get() != NULL) {
+  if (server_launcher_ != nullptr) {
     server_launcher_->OnFatal(type);
   }
 }
 
 void Client::InitInput(commands::Input *input) const {
   input->set_id(id_);
-  if (preferences_.get() != NULL) {
-    input->mutable_config()->CopyFrom(*preferences_);
+  if (preferences_ != nullptr) {
+    *input->mutable_config() = *preferences_;
   }
 }
 
-bool Client::CheckVersionOrRestartServerInternal(
-    const commands::Input &input, commands::Output *output) {
+bool Client::CheckVersionOrRestartServerInternal(const commands::Input &input,
+                                                 commands::Output *output) {
   for (int trial = 0; trial < 2; ++trial) {
     const bool call_result = Call(input, output);
 
@@ -737,9 +726,8 @@ bool Client::CheckVersionOrRestartServerInternal(
       return false;
     }
 
-    const bool version_upgraded =
-        Version::CompareVersion(server_product_version_,
-                                Version::GetMozcVersion());
+    const bool version_upgraded = Version::CompareVersion(
+        server_product_version_, Version::GetMozcVersion());
 
     // if the server version is older than client version or
     // protocol version is updated, force to reboot the server.
@@ -748,13 +736,10 @@ bool Client::CheckVersionOrRestartServerInternal(
     // SERVER_FATAL state finally.
     if ((call_result && version_upgraded) ||
         (!call_result && server_protocol_version_ < IPC_PROTOCOL_VERSION)) {
-      LOG(WARNING) << "Version Mismatch: "
-                   << server_product_version_ << " "
-                   << Version::GetMozcVersion()
-                   << " "
+      LOG(WARNING) << "Version Mismatch: " << server_product_version_ << " "
+                   << Version::GetMozcVersion() << " "
                    << server_protocol_version_ << " "
-                   << static_cast<int>(IPC_PROTOCOL_VERSION)
-                   << " " << trial;
+                   << static_cast<int>(IPC_PROTOCOL_VERSION) << " " << trial;
       if (trial > 0) {
         LOG(ERROR) << "Server version mismatch even after server reboot";
         server_status_ = SERVER_BROKEN_MESSAGE;
@@ -812,8 +797,8 @@ void Client::Reset() {
 }
 
 bool Client::TranslateProtoBufToMozcToolArg(const commands::Output &output,
-                                             string *mode) {
-  if (!output.has_launch_tool_mode() || mode == NULL) {
+                                            std::string *mode) {
+  if (!output.has_launch_tool_mode() || mode == nullptr) {
     return false;
   }
 
@@ -838,7 +823,7 @@ bool Client::TranslateProtoBufToMozcToolArg(const commands::Output &output,
 }
 
 bool Client::LaunchToolWithProtoBuf(const commands::Output &output) {
-  string mode;
+  std::string mode;
   if (!TranslateProtoBufToMozcToolArg(output, &mode)) {
     return false;
   }
@@ -847,7 +832,7 @@ bool Client::LaunchToolWithProtoBuf(const commands::Output &output) {
   return LaunchTool(mode, "");
 }
 
-bool Client::LaunchTool(const string &mode, const string &extra_arg) {
+bool Client::LaunchTool(const std::string &mode, const std::string &extra_arg) {
   // Don't execute any child process if the parent process is not
   // in proper runlevel.
   if (!IsValidRunLevel()) {
@@ -864,7 +849,7 @@ bool Client::LaunchTool(const string &mode, const string &extra_arg) {
 
   if (mode == "administration_dialog") {
 #ifdef OS_WIN
-    const string &path = mozc::SystemUtil::GetToolPath();
+    const std::string &path = mozc::SystemUtil::GetToolPath();
     std::wstring wpath;
     Util::UTF8ToWide(path, &wpath);
     wpath = L"\"" + wpath + L"\"";
@@ -877,16 +862,15 @@ bool Client::LaunchTool(const string &mode, const string &extra_arg) {
     // In Windows XP, cannot use "runas", instead, administration
     // dialog is launched with normal process with "open"
     // http://b/2415191
-    return WinUtil::ShellExecuteInSystemDir(
-        L"runas", wpath.c_str(), L"--mode=administration_dialog");
+    return WinUtil::ShellExecuteInSystemDir(L"runas", wpath.c_str(),
+                                            L"--mode=administration_dialog");
 #endif  // OS_WIN
 
     return false;
   }
 
-#if defined(OS_WIN) || defined(OS_LINUX) || defined(OS_ANDROID)\
-    || defined(OS_NACL)
-  string arg = "--mode=" + mode;
+#if defined(OS_WIN) || defined(OS_LINUX) || defined(OS_ANDROID)
+  std::string arg = "--mode=" + mode;
   if (!extra_arg.empty()) {
     arg += " ";
     arg += extra_arg;
@@ -895,21 +879,21 @@ bool Client::LaunchTool(const string &mode, const string &extra_arg) {
     LOG(ERROR) << "Cannot execute: " << kMozcTool << " " << arg;
     return false;
   }
-#endif  // OS_WIN || OS_LINUX || OS_ANDROID || OS_NACL
+#endif  // OS_WIN || OS_LINUX || OS_ANDROID
 
   // TODO(taku): move MacProcess inside SpawnMozcProcess.
   // TODO(taku): support extra_arg.
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   if (!MacProcess::LaunchMozcTool(mode)) {
     LOG(ERROR) << "Cannot execute: " << mode;
     return false;
   }
-#endif  // OS_MACOSX
+#endif  // __APPLE__
 
   return true;
 }
 
-bool Client::OpenBrowser(const string &url) {
+bool Client::OpenBrowser(const std::string &url) {
   if (!IsValidRunLevel()) {
     return false;
   }
@@ -925,24 +909,21 @@ bool Client::OpenBrowser(const string &url) {
 namespace {
 class DefaultClientFactory : public ClientFactoryInterface {
  public:
-  virtual ClientInterface *NewClient() {
-    return new Client;
-  }
+  ClientInterface *NewClient() override { return new Client; }
 };
 
-ClientFactoryInterface *g_client_factory = NULL;
+ClientFactoryInterface *g_client_factory = nullptr;
 }  // namespace
 
 ClientInterface *ClientFactory::NewClient() {
-  if (g_client_factory == NULL) {
+  if (g_client_factory == nullptr) {
     return Singleton<DefaultClientFactory>::get()->NewClient();
   } else {
     return g_client_factory->NewClient();
   }
 }
 
-void ClientFactory::SetClientFactory(
-    ClientFactoryInterface *client_factory) {
+void ClientFactory::SetClientFactory(ClientFactoryInterface *client_factory) {
   g_client_factory = client_factory;
 }
 }  // namespace client

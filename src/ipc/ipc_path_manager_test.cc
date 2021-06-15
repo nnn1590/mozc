@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,16 @@
 
 #include "ipc/ipc_path_manager.h"
 
-#if defined(OS_ANDROID) || defined(OS_NACL)
+#if defined(OS_ANDROID) || defined(OS_WASM)
 #error "This platform is not supported."
-#endif  // OS_ANDROID || OS_NACL
+#endif  // OS_ANDROID || OS_WASM
 
 #include <string>
 #include <vector>
 
-#include "base/port.h"
 #include "base/file_stream.h"
 #include "base/file_util.h"
+#include "base/port.h"
 #include "base/process_mutex.h"
 #include "base/system_util.h"
 #include "base/thread.h"
@@ -46,18 +46,17 @@
 #include "base/version.h"
 #include "ipc/ipc.h"
 #include "ipc/ipc.pb.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace mozc {
 namespace {
 
 class CreateThread : public Thread {
  public:
-  virtual void Run() {
-    IPCPathManager *manager =
-        IPCPathManager::GetIPCPathManager("test");
+  void Run() override {
+    IPCPathManager *manager = IPCPathManager::GetIPCPathManager("test");
     EXPECT_TRUE(manager->CreateNewPathName());
     EXPECT_TRUE(manager->SavePathName());
     EXPECT_TRUE(manager->GetPathName(&path_));
@@ -66,21 +65,18 @@ class CreateThread : public Thread {
     EXPECT_GT(manager->GetServerProcessId(), 0);
   }
 
-  const string &path() const {
-    return path_;
-  }
+  const std::string &path() const { return path_; }
 
  private:
-  string path_;
+  std::string path_;
 };
 
 class BatchGetPathNameThread : public Thread {
  public:
-  virtual void Run() {
+  void Run() override {
     for (int i = 0; i < 100; ++i) {
-      IPCPathManager *manager =
-          IPCPathManager::GetIPCPathManager("test2");
-      string path;
+      IPCPathManager *manager = IPCPathManager::GetIPCPathManager("test2");
+      std::string path;
       EXPECT_TRUE(manager->CreateNewPathName());
       EXPECT_TRUE(manager->GetPathName(&path));
     }
@@ -90,20 +86,19 @@ class BatchGetPathNameThread : public Thread {
 
 class IPCPathManagerTest : public ::testing::Test {
  protected:
-  virtual void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
   }
 };
 
 TEST_F(IPCPathManagerTest, IPCPathManagerTest) {
   CreateThread t;
   t.Start("IPCPathManagerTest");
-  Util::Sleep(1000);
-  IPCPathManager *manager =
-      IPCPathManager::GetIPCPathManager("test");
+  t.Join();
+  IPCPathManager *manager = IPCPathManager::GetIPCPathManager("test");
   EXPECT_TRUE(manager->CreateNewPathName());
   EXPECT_TRUE(manager->SavePathName());
-  string path;
+  std::string path;
   EXPECT_TRUE(manager->GetPathName(&path));
   EXPECT_GT(manager->GetServerProtocolVersion(), 0);
   EXPECT_FALSE(manager->GetServerProductVersion().empty());
@@ -129,15 +124,14 @@ TEST_F(IPCPathManagerTest, IPCPathManagerBatchTest) {
   for (size_t i = 0; i < threads.size(); ++i) {
     threads[i]->Join();
     delete threads[i];
-    threads[i] = NULL;
+    threads[i] = nullptr;
   }
 }
 
 TEST_F(IPCPathManagerTest, ReloadTest) {
   // We have only mock implementations for Windows, so no test should be run.
 #ifndef OS_WIN
-  IPCPathManager *manager =
-      IPCPathManager::GetIPCPathManager("reload_test");
+  IPCPathManager *manager = IPCPathManager::GetIPCPathManager("reload_test");
 
   EXPECT_TRUE(manager->CreateNewPathName());
   EXPECT_TRUE(manager->SavePathName());
@@ -148,7 +142,7 @@ TEST_F(IPCPathManagerTest, ReloadTest) {
   // Modify the saved file explicitly.
   EXPECT_TRUE(manager->path_mutex_->UnLock());
   Util::Sleep(1000);  // msec
-  string filename = FileUtil::JoinPath(
+  std::string filename = FileUtil::JoinPath(
       SystemUtil::GetUserProfileDirectory(), ".reload_test.ipc");
   OutputFileStream outf(filename.c_str());
   outf << "foobar";
@@ -159,8 +153,7 @@ TEST_F(IPCPathManagerTest, ReloadTest) {
 }
 
 TEST_F(IPCPathManagerTest, PathNameTest) {
-  IPCPathManager *manager =
-      IPCPathManager::GetIPCPathManager("path_name_test");
+  IPCPathManager *manager = IPCPathManager::GetIPCPathManager("path_name_test");
 
   EXPECT_TRUE(manager->CreateNewPathName());
   EXPECT_TRUE(manager->SavePathName());

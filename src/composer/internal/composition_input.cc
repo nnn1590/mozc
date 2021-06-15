@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,18 +35,16 @@ namespace mozc {
 namespace composer {
 
 CompositionInput::CompositionInput()
-    : has_conversion_(false),
-      is_new_input_(false),
-      transliterator_(NULL) {}
+    : has_conversion_(false), is_new_input_(false), transliterator_(nullptr) {}
 
-CompositionInput::~CompositionInput() {}
+CompositionInput::~CompositionInput() = default;
 
 void CompositionInput::Clear() {
   raw_.clear();
   conversion_.clear();
   has_conversion_ = false;
   is_new_input_ = false;
-  transliterator_ = NULL;
+  transliterator_ = nullptr;
 }
 
 bool CompositionInput::Empty() const {
@@ -70,46 +68,36 @@ void CompositionInput::CopyFrom(const CompositionInput &input) {
   transliterator_ = input.transliterator();
 }
 
-const string &CompositionInput::raw() const {
-  return raw_;
-}
+const std::string &CompositionInput::raw() const { return raw_; }
 
-string *CompositionInput::mutable_raw() {
-  return &raw_;
-}
+std::string *CompositionInput::mutable_raw() { return &raw_; }
 
-void CompositionInput::set_raw(const string &raw) {
-  raw_ = raw;
-}
+void CompositionInput::set_raw(const std::string &raw) { raw_ = raw; }
 
-const string &CompositionInput::conversion() const {
+const std::string &CompositionInput::conversion() const {
   if (has_conversion_) {
     return conversion_;
   } else {
     LOG(WARNING) << "conversion is not set.";
-    static const string kEmptyString = "";
-    return kEmptyString;
+    static const std::string *kEmptyString = new std::string();
+    return *kEmptyString;
   }
 }
 
-string *CompositionInput::mutable_conversion() {
+std::string *CompositionInput::mutable_conversion() {
   has_conversion_ = true;
   // If has_conversion_ was false, conversion_ should be empty.
   return &conversion_;
 }
 
-void CompositionInput::set_conversion(const string &conversion) {
+void CompositionInput::set_conversion(const std::string &conversion) {
   conversion_ = conversion;
   has_conversion_ = true;
 }
 
-bool CompositionInput::has_conversion() const {
-  return has_conversion_;
-}
+bool CompositionInput::has_conversion() const { return has_conversion_; }
 
-bool CompositionInput::is_new_input() const {
-  return is_new_input_;
-}
+bool CompositionInput::is_new_input() const { return is_new_input_; }
 
 void CompositionInput::set_is_new_input(bool is_new_input) {
   is_new_input_ = is_new_input;

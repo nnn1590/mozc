@@ -38,7 +38,7 @@
     'dummy_input_file': 'android.gyp',
     # GYP's 'copies' rule cannot copy a whole directory recursively, so we use
     # our own script to copy files.
-    'copy_file': ['python', '../build_tools/copy_file.py'],
+    'copy_file': ['python3', '../build_tools/copy_file.py'],
     # Android Development Tools
     'adt_gen_dir': 'gen_for_adt',
     'adt_test_gen_dir': 'tests/gen_for_adt',

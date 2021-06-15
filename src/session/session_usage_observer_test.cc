@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "session/session_usage_observer.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -47,31 +48,31 @@
 #include "usage_stats/usage_stats.h"
 #include "usage_stats/usage_stats.pb.h"
 #include "usage_stats/usage_stats_testing_util.h"
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 using mozc::usage_stats::Stats;
 using mozc::usage_stats::UsageStats;
-
-DECLARE_string(test_tmpdir);
 
 namespace mozc {
 namespace session {
 
 class SessionUsageObserverTest : public testing::Test {
  protected:
-  virtual void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
     UsageStats::ClearAllStatsForTest();
 
     Clock::SetClockForUnitTest(nullptr);
 
-    scheduler_stub_.reset(new SchedulerStub);
+    scheduler_stub_ = absl::make_unique<SchedulerStub>();
     Scheduler::SetSchedulerHandler(scheduler_stub_.get());
 
-    stats_config_util_mock_.reset(new config::StatsConfigUtilMock);
+    stats_config_util_mock_ = absl::make_unique<config::StatsConfigUtilMock>();
     config::StatsConfigUtil::SetHandler(stats_config_util_mock_.get());
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     Clock::SetClockForUnitTest(nullptr);
     Scheduler::SetSchedulerHandler(nullptr);
     config::StatsConfigUtil::SetHandler(nullptr);
@@ -81,27 +82,25 @@ class SessionUsageObserverTest : public testing::Test {
 
   void EnsureSave() const {
     // Make sure to save stats.
-    const uint32 kWaitngUsecForEnsureSave = 10 * 60 * 1000;
+    const uint32_t kWaitngUsecForEnsureSave = 10 * 60 * 1000;
     scheduler_stub_->PutClockForward(kWaitngUsecForEnsureSave);
   }
 
-  void SetDoubleValueStats(
-      uint32 num, double total, double square_total,
-      Stats::DoubleValueStats *double_stats) {
+  void SetDoubleValueStats(uint32_t num, double total, double square_total,
+                           Stats::DoubleValueStats *double_stats) {
     DCHECK(double_stats);
     double_stats->set_num(num);
     double_stats->set_total(total);
     double_stats->set_square_total(square_total);
   }
 
-  void SetEventStats(
-     uint32 source_id,
-     uint32 sx_num, double sx_total, double sx_square_total,
-     uint32 sy_num, double sy_total, double sy_square_total,
-     uint32 dx_num, double dx_total, double dx_square_total,
-     uint32 dy_num, double dy_total, double dy_square_total,
-     uint32 tl_num, double tl_total, double tl_square_total,
-     Stats::TouchEventStats *event_stats) {
+  void SetEventStats(uint32_t source_id, uint32_t sx_num, double sx_total,
+                     double sx_square_total, uint32_t sy_num, double sy_total,
+                     double sy_square_total, uint32_t dx_num, double dx_total,
+                     double dx_square_total, uint32_t dy_num, double dy_total,
+                     double dy_square_total, uint32_t tl_num, double tl_total,
+                     double tl_square_total,
+                     Stats::TouchEventStats *event_stats) {
     event_stats->set_source_id(source_id);
     SetDoubleValueStats(sx_num, sx_total, sx_square_total,
                         event_stats->mutable_start_x_stats());
@@ -150,8 +149,8 @@ TEST_F(SessionUsageObserverTest, ClientSideStatsInfolist) {
     observer->EvalCommandHandler(command);
   }
 
-  const uint64 kSeconds = 0;
-  const uint32 kMicroSeconds = 0;
+  const uint64_t kSeconds = 0;
+  const uint32_t kMicroSeconds = 0;
   ClockMock clock(kSeconds, kMicroSeconds);
   Clock::SetClockForUnitTest(&clock);
 
@@ -167,14 +166,14 @@ TEST_F(SessionUsageObserverTest, ClientSideStatsInfolist) {
   EXPECT_TRUE(orig_show_command.output().has_consumed());
   EXPECT_FALSE(orig_show_command.output().consumed());
   EXPECT_TRUE(orig_show_command.input().has_id());
-  orig_hide_command.CopyFrom(orig_show_command);
+  orig_hide_command = orig_show_command;
   orig_hide_command.mutable_input()->mutable_command()->set_usage_stats_event(
       commands::SessionCommand::INFOLIST_WINDOW_HIDE);
 
   {  // show infolist, wait 1,100,000 usec and hide infolist.
     commands::Command show_command, hide_command;
-    show_command.CopyFrom(orig_show_command);
-    hide_command.CopyFrom(orig_hide_command);
+    show_command = orig_show_command;
+    hide_command = orig_hide_command;
 
     observer->EvalCommandHandler(show_command);
     EXPECT_STATS_NOT_EXIST("InfolistWindowDurationMSec");
@@ -185,8 +184,8 @@ TEST_F(SessionUsageObserverTest, ClientSideStatsInfolist) {
 
   {  // show infolist, wait 1,200,000 usec and hide infolist.
     commands::Command show_command, hide_command;
-    show_command.CopyFrom(orig_show_command);
-    hide_command.CopyFrom(orig_hide_command);
+    show_command = orig_show_command;
+    hide_command = orig_hide_command;
 
     observer->EvalCommandHandler(show_command);
     clock.PutClockForward(1, 200000);
@@ -207,6 +206,8 @@ TEST_F(SessionUsageObserverTest, ClientSideStatsSoftwareKeyboardLayout) {
 
   EXPECT_STATS_NOT_EXIST("SoftwareKeyboardLayoutLandscape");
   EXPECT_STATS_NOT_EXIST("SoftwareKeyboardLayoutPortrait");
+  EXPECT_STATS_NOT_EXIST("SoftwareKeyboardLayoutEnglishLandscape");
+  EXPECT_STATS_NOT_EXIST("SoftwareKeyboardLayoutEnglishPortrait");
 
   command.mutable_input()->set_type(commands::Input::SEND_COMMAND);
   commands::SessionCommand *session_command =
@@ -436,51 +437,12 @@ TEST_F(SessionUsageObserverTest, LogTouchEvent) {
   EXPECT_STATS_NOT_EXIST("VirtualKeyboardMissStats");
   EnsureSave();
 
-  {
-    Stats stats;
-    UsageStats::GetVirtualKeyboardForTest("VirtualKeyboardStats", &stats);
-    ASSERT_EQ(2, stats.virtual_keyboard_stats_size());
-    ASSERT_EQ(2, stats.virtual_keyboard_stats(0).touch_event_stats_size());
-
-    Stats::TouchEventStats expected_event_stats;
-    SetEventStats(10, 2, 3, 5, 2, 4, 8, 2, 0, 2, 2, -2, 2, 2, 3.5, 6.25,
-                  &expected_event_stats);
-    EXPECT_EQ(
-        expected_event_stats.DebugString(),
-        stats.virtual_keyboard_stats(0).touch_event_stats(0).DebugString());
-
-    SetEventStats(100, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1,
-                  &expected_event_stats);
-    EXPECT_EQ(
-        expected_event_stats.DebugString(),
-        stats.virtual_keyboard_stats(0).touch_event_stats(1).DebugString());
-
-    ASSERT_EQ(2, stats.virtual_keyboard_stats(1).touch_event_stats_size());
-
-    SetEventStats(10, 1, 1, 1, 1, 2, 4, 1, 1, 1, 1, -1, 1, 1, 1.5, 2.25,
-                  &expected_event_stats);
-    EXPECT_EQ(
-        expected_event_stats.DebugString(),
-        stats.virtual_keyboard_stats(1).touch_event_stats(0).DebugString());
-
-    SetEventStats(30, 1, 2, 4, 1, 2, 4, 1, -1, 1, 1, 1, 1, 1, 2, 4,
-                  &expected_event_stats);
-    EXPECT_EQ(
-        expected_event_stats.DebugString(),
-        stats.virtual_keyboard_stats(1).touch_event_stats(1).DebugString());
-  }
-  {
-    Stats stats;
-    UsageStats::GetVirtualKeyboardForTest("VirtualKeyboardMissStats", &stats);
-    ASSERT_EQ(1, stats.virtual_keyboard_stats_size());
-    ASSERT_EQ(1, stats.virtual_keyboard_stats(0).touch_event_stats_size());
-    Stats::TouchEventStats expected_event_stats;
-    SetEventStats(20, 1, 2, 4, 1, 2, 4, 1, -1, 1, 1, -1, 1, 1, 2, 4,
-                  &expected_event_stats);
-    EXPECT_EQ(
-        expected_event_stats.DebugString(),
-        stats.virtual_keyboard_stats(0).touch_event_stats(0).DebugString());
-  }
+  // Does not store usage stats anymore.
+  Stats stats;
+  EXPECT_FALSE(
+      UsageStats::GetVirtualKeyboardForTest("VirtualKeyboardStats", &stats));
+  EXPECT_FALSE(UsageStats::GetVirtualKeyboardForTest("VirtualKeyboardMissStats",
+                                                     &stats));
 }
 
 TEST_F(SessionUsageObserverTest, LogTouchEventPasswordField) {
@@ -611,29 +573,12 @@ TEST_F(SessionUsageObserverTest, LogTouchEventPasswordField) {
   EXPECT_STATS_NOT_EXIST("VirtualKeyboardMissStats");
   EnsureSave();
 
-  {
-    Stats stats;
-    UsageStats::GetVirtualKeyboardForTest("VirtualKeyboardStats", &stats);
-    ASSERT_EQ(1, stats.virtual_keyboard_stats_size());
-    ASSERT_EQ(3, stats.virtual_keyboard_stats(0).touch_event_stats_size());
-
-    Stats::TouchEventStats expected_event_stats;
-    SetEventStats(10, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1,
-                  &expected_event_stats);
-    EXPECT_EQ(
-        expected_event_stats.DebugString(),
-        stats.virtual_keyboard_stats(0).touch_event_stats(0).DebugString());
-    SetEventStats(20, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1,
-                  &expected_event_stats);
-    EXPECT_EQ(
-        expected_event_stats.DebugString(),
-        stats.virtual_keyboard_stats(0).touch_event_stats(1).DebugString());
-    SetEventStats(40, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1,
-                  &expected_event_stats);
-    EXPECT_EQ(
-        expected_event_stats.DebugString(),
-        stats.virtual_keyboard_stats(0).touch_event_stats(2).DebugString());
-  }
+  // Does not store usage stats anymore.
+  Stats stats;
+  EXPECT_FALSE(
+      UsageStats::GetVirtualKeyboardForTest("VirtualKeyboardStats", &stats));
+  EXPECT_FALSE(UsageStats::GetVirtualKeyboardForTest("VirtualKeyboardMissStats",
+                                                     &stats));
 }
 
 }  // namespace session

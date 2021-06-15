@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -70,8 +70,7 @@ class TipSurroundingText {
   //     session is guaranteed to be safe. A keyevent hander is one of
   //     examples. See the following document for details.
   //     http://blogs.msdn.com/b/tsfaware/archive/2007/05/17/rules-of-text-services.aspx
-  static bool Get(TipTextService *text_service,
-                  ITfContext *context,
+  static bool Get(TipTextService *text_service, ITfContext *context,
                   TipSurroundingTextInfo *info);
 
   // A variant of TipSurroundingText::Get. One difference is that this method
@@ -87,7 +86,7 @@ class TipSurroundingText {
                                             TipSurroundingTextInfo *info,
                                             bool *need_async_reconversion);
 
-  // Returns true when succeeds to delete preceeding text from the beginning of
+  // Returns true when succeeds to delete preceding text from the beginning of
   // the selected range.
   // Caveats: |num_characters_to_be_deleted_in_ucs4| is not the number of
   //     elements in UTF16. Beware of surrogate pairs.

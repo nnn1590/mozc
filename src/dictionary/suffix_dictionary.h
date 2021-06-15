@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,12 @@
 #ifndef MOZC_DICTIONARY_SUFFIX_DICTIONARY_H_
 #define MOZC_DICTIONARY_SUFFIX_DICTIONARY_H_
 
+#include <cstdint>
+
 #include "base/port.h"
 #include "base/serialized_string_array.h"
-#include "base/string_piece.h"
 #include "dictionary/dictionary_interface.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace dictionary {
@@ -51,34 +53,36 @@ namespace dictionary {
 // functional word with this dictionary.
 class SuffixDictionary : public DictionaryInterface {
  public:
-  SuffixDictionary(StringPiece key_array_data, StringPiece value_array_data,
-                   const uint32 *token_array);
+  SuffixDictionary(absl::string_view key_array_data,
+                   absl::string_view value_array_data,
+                   const uint32_t *token_array);
   ~SuffixDictionary() override;
 
-  bool HasKey(StringPiece key) const override;
-  bool HasValue(StringPiece value) const override;
+  bool HasKey(absl::string_view key) const override;
+  bool HasValue(absl::string_view value) const override;
 
   // Kana modifier insensitive lookup is not supported.
-  void LookupPredictive(StringPiece key,
+  void LookupPredictive(absl::string_view key,
                         const ConversionRequest &conversion_request,
                         Callback *callback) const override;
 
   // SuffixDictionary doesn't support Prefix/Revese/Exact Lookup.
-  void LookupPrefix(StringPiece key,
+  void LookupPrefix(absl::string_view key,
                     const ConversionRequest &conversion_request,
                     Callback *callback) const override;
 
-  void LookupExact(StringPiece key, const ConversionRequest &conversion_request,
+  void LookupExact(absl::string_view key,
+                   const ConversionRequest &conversion_request,
                    Callback *callback) const override;
 
-  void LookupReverse(StringPiece str,
+  void LookupReverse(absl::string_view key,
                      const ConversionRequest &conversion_request,
                      Callback *callback) const override;
 
  private:
   SerializedStringArray key_array_;
   SerializedStringArray value_array_;
-  const uint32 *token_array_;
+  const uint32_t *token_array_;
 
   DISALLOW_COPY_AND_ASSIGN(SuffixDictionary);
 };

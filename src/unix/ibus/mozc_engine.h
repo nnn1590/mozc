@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include "protocol/commands.pb.h"
 #include "testing/base/public/gunit_prod.h"
 #include "unix/ibus/engine_interface.h"
+#include "unix/ibus/ibus_config.h"
 
 namespace mozc {
 
@@ -69,9 +70,7 @@ class MozcEngine : public EngineInterface {
   virtual ~MozcEngine();
 
   // EngineInterface functions
-  void CandidateClicked(IBusEngine *engine,
-                        guint index,
-                        guint button,
+  void CandidateClicked(IBusEngine *engine, guint index, guint button,
                         guint state);
   void CursorDown(IBusEngine *engine);
   void CursorUp(IBusEngine *engine);
@@ -81,28 +80,16 @@ class MozcEngine : public EngineInterface {
   void FocusOut(IBusEngine *engine);
   void PageDown(IBusEngine *engine);
   void PageUp(IBusEngine *engine);
-  gboolean ProcessKeyEvent(IBusEngine *engine,
-                           guint keyval,
-                           guint keycode,
+  gboolean ProcessKeyEvent(IBusEngine *engine, guint keyval, guint keycode,
                            guint state);
-  void PropertyActivate(IBusEngine *engine,
-                        const gchar *property_name,
+  void PropertyActivate(IBusEngine *engine, const gchar *property_name,
                         guint property_state);
-  void PropertyHide(IBusEngine *engine,
-                    const gchar *property_name);
-  void PropertyShow(IBusEngine *engine,
-                    const gchar *property_name);
+  void PropertyHide(IBusEngine *engine, const gchar *property_name);
+  void PropertyShow(IBusEngine *engine, const gchar *property_name);
   void Reset(IBusEngine *engine);
-  void SetCapabilities(IBusEngine *engine,
-                       guint capabilities);
-  void SetCursorLocation(IBusEngine *engine,
-                         gint x,
-                         gint y,
-                         gint w,
-                         gint h);
-  void SetContentType(IBusEngine *engine,
-                      guint purpose,
-                      guint hints);
+  void SetCapabilities(IBusEngine *engine, guint capabilities);
+  void SetCursorLocation(IBusEngine *engine, gint x, gint y, gint w, gint h);
+  void SetContentType(IBusEngine *engine, guint purpose, guint hints);
 
   // Returns the GType which this class represents.
   static GType GetType();
@@ -151,17 +138,18 @@ class MozcEngine : public EngineInterface {
   std::unique_ptr<PropertyHandlerInterface> property_handler_;
   std::unique_ptr<PreeditHandlerInterface> preedit_handler_;
 
-#ifdef ENABLE_GTK_RENDERER
+#if defined(ENABLE_GTK_RENDERER) || defined(ENABLE_QT_RENDERER)
   // TODO(nona): Introduce CandidateWindowHandlerManager to avoid direct access.
   std::unique_ptr<CandidateWindowHandlerInterface>
       gtk_candidate_window_handler_;
-#endif  // ENABLE_GTK_RENDERER
+#endif  // ENABLE_GTK_RENDERER || ENABLE_QT_RENDERER
   std::unique_ptr<CandidateWindowHandlerInterface>
       ibus_candidate_window_handler_;
   config::Config::PreeditMethod preedit_method_;
 
   // Unique IDs of candidates that are currently shown.
   std::vector<int32> unique_candidate_ids_;
+  IbusConfig ibus_config_;
 
   friend class LaunchToolTest;
   FRIEND_TEST(LaunchToolTest, LaunchToolTest);

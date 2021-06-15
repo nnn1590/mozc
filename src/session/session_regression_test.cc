@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 // This is a test with the actual converter.  So the result of the
 // conversion may differ from previous versions.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -43,7 +44,8 @@
 #include "config/config_handler.h"
 #include "converter/segments.h"
 #include "data_manager/testing/mock_data_manager.h"
-#include "engine/engine_factory.h"
+#include "engine/mock_data_engine_factory.h"
+#include "engine/user_data_manager_interface.h"
 #include "protocol/candidates.pb.h"
 #include "protocol/commands.pb.h"
 #include "protocol/config.pb.h"
@@ -56,25 +58,28 @@
 #include "session/session_handler.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
-DECLARE_bool(use_history_rewriter);
+ABSL_DECLARE_FLAG(bool, use_history_rewriter);
 
 namespace mozc {
 namespace {
 
-string GetComposition(const commands::Command &command) {
+std::string GetComposition(const commands::Command &command) {
   if (!command.output().has_preedit()) {
     return "";
   }
 
-  string preedit;
+  std::string preedit;
   for (size_t i = 0; i < command.output().preedit().segment_size(); ++i) {
     preedit.append(command.output().preedit().segment(i).value());
   }
   return preedit;
 }
 
-void InitSessionToPrecomposition(session::Session* session) {
+void InitSessionToPrecomposition(session::Session *session) {
 #ifdef OS_WIN
   // Session is created with direct mode on Windows
   // Direct status
@@ -88,16 +93,22 @@ void InitSessionToPrecomposition(session::Session* session) {
 class SessionRegressionTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
 
-    orig_use_history_rewriter_ = FLAGS_use_history_rewriter;
-    FLAGS_use_history_rewriter = true;
+    orig_use_history_rewriter_ = absl::GetFlag(FLAGS_use_history_rewriter);
+    absl::SetFlag(&FLAGS_use_history_rewriter, true);
 
     // Note: engine must be created after setting all the flags, as it
     // internally depends on global flags, e.g., for creation of rewriters.
-    std::unique_ptr<Engine> engine(EngineFactory::Create());
+    std::unique_ptr<Engine> engine(MockDataEngineFactory::Create());
 
-    handler_.reset(new SessionHandler(std::move(engine)));
+    // Clear previous data just in case. It should work without this clear,
+    // however the reality is Windows environment has a flacky test issue.
+    engine->GetUserDataManager()->ClearUserHistory();
+    engine->GetUserDataManager()->ClearUserPrediction();
+    engine->GetUserDataManager()->Wait();
+
+    handler_ = absl::make_unique<SessionHandler>(std::move(engine));
     ResetSession();
     CHECK(session_.get());
   }
@@ -108,10 +119,10 @@ class SessionRegressionTest : public ::testing::Test {
     config::ConfigHandler::GetDefaultConfig(&config);
     config::ConfigHandler::SetConfig(config);
 
-    FLAGS_use_history_rewriter = orig_use_history_rewriter_;
+    absl::SetFlag(&FLAGS_use_history_rewriter, orig_use_history_rewriter_);
   }
 
-  bool SendKey(const string &key, commands::Command *command) {
+  bool SendKey(const std::string &key, commands::Command *command) {
     command->Clear();
     command->mutable_input()->set_type(commands::Input::SEND_KEY);
     if (!KeyParser::ParseKey(key, command->mutable_input()->mutable_key())) {
@@ -120,11 +131,11 @@ class SessionRegressionTest : public ::testing::Test {
     return session_->SendKey(command);
   }
 
-  bool SendKeyWithContext(const string &key,
+  bool SendKeyWithContext(const std::string &key,
                           const commands::Context &context,
                           commands::Command *command) {
     command->Clear();
-    command->mutable_input()->mutable_context()->CopyFrom(context);
+    *command->mutable_input()->mutable_context() = context;
     command->mutable_input()->set_type(commands::Input::SEND_KEY);
     if (!KeyParser::ParseKey(key, command->mutable_input()->mutable_key())) {
       return false;
@@ -132,9 +143,18 @@ class SessionRegressionTest : public ::testing::Test {
     return session_->SendKey(command);
   }
 
-  void InsertCharacterChars(const string &chars,
+  bool SendCommandWithId(commands::SessionCommand::CommandType type, int id,
+                         commands::Command *command) {
+    command->Clear();
+    command->mutable_input()->set_type(commands::Input::SEND_COMMAND);
+    command->mutable_input()->mutable_command()->set_type(type);
+    command->mutable_input()->mutable_command()->set_id(id);
+    return session_->SendCommand(command);
+  }
+
+  void InsertCharacterChars(const std::string &chars,
                             commands::Command *command) {
-    const uint32 kNoModifiers = 0;
+    const uint32_t kNoModifiers = 0;
     for (size_t i = 0; i < chars.size(); ++i) {
       command->clear_input();
       command->clear_output();
@@ -148,7 +168,7 @@ class SessionRegressionTest : public ::testing::Test {
   void ResetSession() {
     session_.reset(static_cast<session::Session *>(handler_->NewSession()));
     commands::Request request;
-    table_.reset(new composer::Table());
+    table_ = absl::make_unique<composer::Table>();
     table_->InitializeWithRequestAndConfig(request, config_, data_manager_);
     session_->SetTable(table_.get());
   }
@@ -160,7 +180,6 @@ class SessionRegressionTest : public ::testing::Test {
   std::unique_ptr<composer::Table> table_;
   config::Config config_;
 };
-
 
 TEST_F(SessionRegressionTest, ConvertToTransliterationWithMultipleSegments) {
   InitSessionToPrecomposition(session_.get());
@@ -198,7 +217,7 @@ TEST_F(SessionRegressionTest, ConvertToTransliterationWithMultipleSegments) {
 }
 
 TEST_F(SessionRegressionTest,
-       ExitTemporaryAlphanumModeAfterCommitingSugesstion) {
+       ExitTemporaryAlphanumModeAfterCommittingSugesstion) {
   // This is a regression test against http://b/2977131.
   {
     InitSessionToPrecomposition(session_.get());
@@ -212,7 +231,7 @@ TEST_F(SessionRegressionTest,
     EXPECT_FALSE(command.output().has_result());
 
     EXPECT_TRUE(SendKey("a", &command));
-#if OS_MACOSX
+#if __APPLE__
     // The MacOS default short cut of F10 is DisplayAsHalfAlphanumeric.
     // It does not start the conversion so output does not have any result.
     EXPECT_FALSE(command.output().has_result());
@@ -227,10 +246,10 @@ TEST_F(SessionRegressionTest,
 TEST_F(SessionRegressionTest, HistoryLearning) {
   InitSessionToPrecomposition(session_.get());
   commands::Command command;
-  string candidate1;
-  string candidate2;
+  std::string candidate1;
+  std::string candidate2;
 
-  {  // First session.  Second candidate is commited.
+  {  // First session.  Second candidate is committed.
     InsertCharacterChars("kanji", &command);
 
     command.Clear();
@@ -271,11 +290,11 @@ TEST_F(SessionRegressionTest, Undo) {
 
   command.Clear();
   session_->Convert(&command);
-  const string candidate1 = GetComposition(command);
+  const std::string candidate1 = GetComposition(command);
 
   command.Clear();
   session_->ConvertNext(&command);
-  const string candidate2 = GetComposition(command);
+  const std::string candidate2 = GetComposition(command);
   EXPECT_NE(candidate1, candidate2);
 
   command.Clear();
@@ -301,7 +320,7 @@ TEST_F(SessionRegressionTest, PredictionAfterUndo) {
 
   commands::Command command;
   InsertCharacterChars("yoroshi", &command);
-  const string kYoroshikuString = "よろしく";
+  const std::string kYoroshikuString = "よろしく";
 
   command.Clear();
   session_->PredictAndConvert(&command);
@@ -357,24 +376,26 @@ TEST_F(SessionRegressionTest, ConsistencyBetweenPredictionAndSuggesion) {
   command.Clear();
   InsertCharacterChars(kKey, &command);
   EXPECT_EQ(1, command.output().preedit().segment_size());
-  const string suggestion_first_candidate =
+  const std::string suggestion_first_candidate =
       command.output().all_candidate_words().candidates(0).value();
 
   command.Clear();
   session_->CommitFirstSuggestion(&command);
-  const string suggestion_commit_result = command.output().result().value();
+  const std::string suggestion_commit_result =
+      command.output().result().value();
 
   InitSessionToPrecomposition(session_.get());
   command.Clear();
   InsertCharacterChars(kKey, &command);
   command.Clear();
   session_->PredictAndConvert(&command);
-  const string prediction_first_candidate =
+  const std::string prediction_first_candidate =
       command.output().all_candidate_words().candidates(0).value();
 
   command.Clear();
   session_->Commit(&command);
-  const string prediction_commit_result = command.output().result().value();
+  const std::string prediction_commit_result =
+      command.output().result().value();
 
   EXPECT_EQ(suggestion_first_candidate, suggestion_commit_result);
   EXPECT_EQ(suggestion_first_candidate, prediction_first_candidate);
@@ -394,7 +415,7 @@ TEST_F(SessionRegressionTest, AutoConversionTest) {
       command.Clear();
       commands::KeyEvent *key_event = command.mutable_input()->mutable_key();
       key_event->set_key_code(kInputKeys[i]);
-      key_event->set_key_string(string(1, kInputKeys[i]));
+      key_event->set_key_string(std::string(1, kInputKeys[i]));
       session_->InsertCharacter(&command);
     }
 
@@ -417,7 +438,7 @@ TEST_F(SessionRegressionTest, AutoConversionTest) {
       command.Clear();
       commands::KeyEvent *key_event = command.mutable_input()->mutable_key();
       key_event->set_key_code(kInputKeys[i]);
-      key_event->set_key_string(string(1, kInputKeys[i]));
+      key_event->set_key_string(std::string(1, kInputKeys[i]));
       session_->InsertCharacter(&command);
     }
 
@@ -440,7 +461,7 @@ TEST_F(SessionRegressionTest, AutoConversionTest) {
       command.Clear();
       commands::KeyEvent *key_event = command.mutable_input()->mutable_key();
       key_event->set_key_code(kInputKeys[i]);
-      key_event->set_key_string(string(1, kInputKeys[i]));
+      key_event->set_key_string(std::string(1, kInputKeys[i]));
       session_->InsertCharacter(&command);
     }
 
@@ -528,18 +549,74 @@ TEST_F(SessionRegressionTest, CommitT13nSuggestion) {
   InsertCharacterChars("ssh", &command);
   EXPECT_EQ("っｓｈ", GetComposition(command));
 
-  command.Clear();
-  command.mutable_input()->set_type(commands::Input::SEND_COMMAND);
-  command.mutable_input()->mutable_command()->set_type(
-      commands::SessionCommand::SUBMIT_CANDIDATE);
   const int kHiraganaId = -1;
-  command.mutable_input()->mutable_command()->set_id(kHiraganaId);
-  session_->SendCommand(&command);
+  SendCommandWithId(commands::SessionCommand::SUBMIT_CANDIDATE, kHiraganaId,
+                    &command);
 
   EXPECT_TRUE(command.output().has_result());
   EXPECT_FALSE(command.output().has_preedit());
 
   EXPECT_EQ("っｓｈ", command.output().result().value());
+}
+
+TEST_F(SessionRegressionTest, DeleteCandidateFromHistory) {
+  commands::Request request;
+  commands::RequestForUnitTest::FillMobileRequest(&request);
+  session_->SetRequest(&request);
+
+  InitSessionToPrecomposition(session_.get());
+
+  commands::Command command;
+  const std::string target_word = "会内";
+  int target_id = 1;  // ID of "会内"
+
+  // 1. Check the initial state.
+  InsertCharacterChars("aiu", &command);
+  {
+    auto candidate = command.output().candidates().candidate(0);
+    EXPECT_NE(target_id, candidate.id());
+    EXPECT_NE(target_word, candidate.value());
+  }
+  {
+    auto candidate = command.output().candidates().candidate(1);
+    EXPECT_EQ(target_id, candidate.id());
+    EXPECT_EQ(target_word, candidate.value());
+  }
+
+  // 2. Submit a candidate ("会内") to be deleted from history.
+  SendCommandWithId(commands::SessionCommand::SUBMIT_CANDIDATE, target_id,
+                    &command);
+  target_id = 0;  // ID of "会内" is changed after submit.
+
+  InsertCharacterChars("aiu", &command);
+  {
+    auto candidate = command.output().candidates().candidate(0);
+    EXPECT_EQ(target_id, candidate.id());
+    EXPECT_EQ(target_word, candidate.value());
+  }
+  {
+    auto candidate = command.output().candidates().candidate(1);
+    EXPECT_NE(target_id, candidate.id());
+    EXPECT_NE(target_word, candidate.value());
+  }
+
+  // 3. Delete the above candidate from the history.
+  SendCommandWithId(commands::SessionCommand::DELETE_CANDIDATE_FROM_HISTORY,
+                    target_id, &command);
+  target_id = 1;  // ID of "会内" is reverted after history deletion.
+
+  EXPECT_TRUE(command.output().has_candidates());
+  EXPECT_GT(command.output().candidates().candidate_size(), 0);
+  {
+    auto candidate = command.output().candidates().candidate(0);
+    EXPECT_NE(target_id, candidate.id());
+    EXPECT_NE(target_word, candidate.value());
+  }
+  {
+    auto candidate = command.output().candidates().candidate(1);
+    EXPECT_EQ(target_id, candidate.id());
+    EXPECT_EQ(target_word, candidate.value());
+  }
 }
 
 }  // namespace mozc

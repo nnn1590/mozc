@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,19 @@
 
 #include "session/output_util.h"
 
+#include <cstdint>
+
 #include "base/logging.h"
 #include "base/port.h"
+#include "protocol/candidates.pb.h"
 #include "protocol/commands.pb.h"
 
 namespace mozc {
 
 bool OutputUtil::GetCandidateIndexById(const commands::Output &output,
-                                       int32 mozc_candidate_id,
-                                       int32 *candidate_index) {
-  if (candidate_index == NULL) {
+                                       int32_t mozc_candidate_id,
+                                       int32_t *candidate_index) {
+  if (candidate_index == nullptr) {
     return false;
   }
   if (!output.has_all_candidate_words()) {
@@ -52,7 +55,7 @@ bool OutputUtil::GetCandidateIndexById(const commands::Output &output,
       continue;
     }
     if (word.id() == mozc_candidate_id) {
-      DCHECK(NULL != candidate_index);
+      DCHECK(nullptr != candidate_index);
       *candidate_index = word.index();
       return true;
     }
@@ -61,9 +64,9 @@ bool OutputUtil::GetCandidateIndexById(const commands::Output &output,
 }
 
 bool OutputUtil::GetCandidateIdByIndex(const commands::Output &output,
-                                       int32 candidate_index,
-                                       int32 *mozc_candidate_id) {
-  if (mozc_candidate_id == NULL) {
+                                       int32_t candidate_index,
+                                       int32_t *mozc_candidate_id) {
+  if (mozc_candidate_id == nullptr) {
     return false;
   }
   if (!output.has_all_candidate_words()) {
@@ -77,7 +80,7 @@ bool OutputUtil::GetCandidateIdByIndex(const commands::Output &output,
       continue;
     }
     if (word.index() == candidate_index) {
-      DCHECK(NULL != mozc_candidate_id);
+      DCHECK(nullptr != mozc_candidate_id);
       *mozc_candidate_id = word.id();
       return true;
     }
@@ -86,8 +89,8 @@ bool OutputUtil::GetCandidateIdByIndex(const commands::Output &output,
 }
 
 bool OutputUtil::GetFocusedCandidateId(const commands::Output &output,
-                                       int32 *mozc_candidate_id) {
-  if (mozc_candidate_id == NULL) {
+                                       int32_t *mozc_candidate_id) {
+  if (mozc_candidate_id == nullptr) {
     return false;
   }
   if (!output.has_all_candidate_words()) {
@@ -97,7 +100,7 @@ bool OutputUtil::GetFocusedCandidateId(const commands::Output &output,
   if (!list.has_focused_index()) {
     return false;
   }
-  const int32 focused_index = list.focused_index();
+  const int32_t focused_index = list.focused_index();
   for (size_t i = 0; i < list.candidates_size(); ++i) {
     const commands::CandidateWord &word = list.candidates(i);
     if (!word.has_id() || !word.has_index()) {
@@ -105,7 +108,7 @@ bool OutputUtil::GetFocusedCandidateId(const commands::Output &output,
       continue;
     }
     if (word.index() == focused_index) {
-      DCHECK(NULL != mozc_candidate_id);
+      DCHECK(nullptr != mozc_candidate_id);
       *mozc_candidate_id = word.id();
       return true;
     }

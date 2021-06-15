@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,17 +38,17 @@ namespace ibus {
 // The list of properties used in ibus-mozc.
 struct MozcEngineProperty {
   commands::CompositionMode composition_mode;
-  const char *key;  // IBus property key for the mode.
+  const char *key;    // IBus property key for the mode.
   const char *label;  // text for the radio menu (ibus-anthy compatible).
   const char *label_for_panel;  // text for the language panel.
   const char *icon;
 };
 
-// This pointer should be NULL when properties size is 0.
+// This pointer should be nullptr when properties size is 0.
 extern const MozcEngineProperty *kMozcEngineProperties;
 extern const size_t kMozcEnginePropertiesSize;
 
-// If kMozcEnginePropertiesIMEOffState is NULL, it means IME should be always
+// If kMozcEnginePropertiesIMEOffState is nullptr, it means IME should be always
 // On.
 extern const MozcEngineProperty *kMozcEnginePropertyIMEOffState;
 
@@ -61,7 +61,7 @@ struct MozcEngineToolProperty {
   const char *icon;   // icon
 };
 
-// This pointer should be NULL when properties size is 0.
+// This pointer should be nullptr when properties size is 0.
 extern const MozcEngineToolProperty *kMozcEngineToolProperties;
 extern const size_t kMozcEngineToolPropertiesSize;
 

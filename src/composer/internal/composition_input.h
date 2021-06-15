@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,45 +32,44 @@
 
 #include <string>
 
-#include "base/port.h"
-
 namespace mozc {
 namespace composer {
 
 class TransliteratorInterface;
 
-class CompositionInput {
+class CompositionInput final {
  public:
   CompositionInput();
-  virtual ~CompositionInput();
+  ~CompositionInput();
+
+  CompositionInput(const CompositionInput &) = delete;
+  CompositionInput &operator=(const CompositionInput &) = delete;
 
   void Clear();
   bool Empty() const;
   void CopyFrom(const CompositionInput &input);
 
-  const string &raw() const;
-  string *mutable_raw();
-  void set_raw(const string &raw);
+  const std::string &raw() const;
+  std::string *mutable_raw();
+  void set_raw(const std::string &raw);
 
-  const string &conversion() const;
-  string *mutable_conversion();
-  void set_conversion(const string &conversion);
+  const std::string &conversion() const;
+  std::string *mutable_conversion();
+  void set_conversion(const std::string &conversion);
   bool has_conversion() const;
 
   bool is_new_input() const;
   void set_is_new_input(bool is_new_input);
 
   const TransliteratorInterface *transliterator() const;
-  void set_transliterator(const TransliteratorInterface *transliterator);
+  void set_transliterator(const TransliteratorInterface *t12r);
 
  private:
-  string raw_;
-  string conversion_;
+  std::string raw_;
+  std::string conversion_;
   bool has_conversion_;
   bool is_new_input_;
   const TransliteratorInterface *transliterator_;
-
-  DISALLOW_COPY_AND_ASSIGN(CompositionInput);
 };
 
 }  // namespace composer

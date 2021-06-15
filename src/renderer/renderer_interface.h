@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 namespace mozc {
 
 namespace commands {
-class RendererCommand;   // protocol buffer
+class RendererCommand;  // protocol buffer
 }
 
 namespace client {
@@ -47,6 +47,11 @@ class RendererInterface {
  public:
   RendererInterface() {}
   virtual ~RendererInterface() {}
+
+  // Start the main loop of GUI took kit.
+  virtual int StartRendererLoop(int argc, char **argv) {
+    return 0;
+  }
 
   // Activate candidate window.
   // For instance, if the renderer is out-proc renderer,

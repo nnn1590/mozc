@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -42,13 +42,13 @@ class Segment;
 // CommandRewriter is a Rewriter which inserts
 // "Command candidates" with which user can change the configurations
 // of Suggestions and/or Incogito mode.
-class CommandRewriter : public RewriterInterface  {
+class CommandRewriter : public RewriterInterface {
  public:
   CommandRewriter();
-  virtual ~CommandRewriter();
+  ~CommandRewriter() override;
 
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
 
  private:
   bool RewriteSegment(const config::Config &config, Segment *segment) const;
@@ -58,8 +58,7 @@ class CommandRewriter : public RewriterInterface  {
   // |insert_pos| is the actual position where the new candidate
   // is inserted.
   void InsertIncognitoModeToggleCommand(const config::Config &config,
-                                        Segment *segment,
-                                        size_t reference_pos,
+                                        Segment *segment, size_t reference_pos,
                                         size_t insert_pos) const;
 
   // Insert a new IncogitoModeToggle Command candidate.

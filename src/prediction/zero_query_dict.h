@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,19 +31,21 @@
 #define MOZC_PREDICTION_ZERO_QUERY_DICT_H_
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
 #include <utility>
 
 #include "base/port.h"
 #include "base/serialized_string_array.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 
 enum ZeroQueryType {
   ZERO_QUERY_NONE = 0,  // "☁" (symbol, non-unicode 6.0 emoji), and rule based.
   ZERO_QUERY_NUMBER_SUFFIX,  // "階" from "2"
-  ZERO_QUERY_EMOTICON,  // "(>ω<)" from "うれしい"
-  ZERO_QUERY_EMOJI,  // <umbrella emoji> from "かさ"
+  ZERO_QUERY_EMOTICON,       // "(>ω<)" from "うれしい"
+  ZERO_QUERY_EMOJI,          // <umbrella emoji> from "かさ"
   // Following types are defined for usage stats.
   // The candidates of these types will not be stored at |ZeroQueryList|.
   // - "ヒルズ" from "六本木"
@@ -85,41 +87,47 @@ enum ZeroQueryEmojiType {
 // format of string array, see base/serialized_string_array.h".
 class ZeroQueryDict {
  public:
-  static const size_t kTokenByteSize = 16;
+  static constexpr size_t kTokenByteSize = 16;
 
-  class iterator : public std::iterator<std::random_access_iterator_tag,
-                                        uint32> {
+  class iterator
+      : public std::iterator<std::random_access_iterator_tag, uint32_t> {
    public:
     iterator(const char *ptr, const SerializedStringArray *array)
         : ptr_(ptr), string_array_(array) {}
-    iterator(const iterator& x) = default;
-    iterator& operator=(const iterator& x) = default;
+    iterator(const iterator &x) = default;
+    iterator &operator=(const iterator &x) = default;
 
-    uint32 operator*() const { return key_index(); }
+    uint32_t operator*() const { return key_index(); }
 
-    uint32 key_index() const {
-      return *reinterpret_cast<const uint32 *>(ptr_);
+    uint32_t operator[](ptrdiff_t n) const {
+      return *reinterpret_cast<const uint32_t *>(ptr_ + n * kTokenByteSize);
     }
 
-    uint32 value_index() const {
-      return *reinterpret_cast<const uint32 *>(ptr_ + 4);
+    const iterator *operator->() const { return this; }
+
+    uint32_t key_index() const {
+      return *reinterpret_cast<const uint32_t *>(ptr_);
+    }
+
+    uint32_t value_index() const {
+      return *reinterpret_cast<const uint32_t *>(ptr_ + 4);
     }
 
     ZeroQueryType type() const {
-      const uint16 val = *reinterpret_cast<const uint16 *>(ptr_ + 8);
+      const uint16_t val = *reinterpret_cast<const uint16_t *>(ptr_ + 8);
       return static_cast<ZeroQueryType>(val);
     }
 
-    uint16 emoji_type() const {
-      return *reinterpret_cast<const uint16 *>(ptr_ + 10);
+    uint16_t emoji_type() const {
+      return *reinterpret_cast<const uint16_t *>(ptr_ + 10);
     }
 
-    uint32 emoji_android_pua() const {
-      return *reinterpret_cast<const uint32 *>(ptr_ + 12);
+    uint32_t emoji_android_pua() const {
+      return *reinterpret_cast<const uint32_t *>(ptr_ + 12);
     }
 
-    StringPiece key() const { return (*string_array_)[key_index()]; }
-    StringPiece value() const { return (*string_array_)[value_index()]; }
+    absl::string_view key() const { return (*string_array_)[key_index()]; }
+    absl::string_view value() const { return (*string_array_)[value_index()]; }
 
     iterator &operator++() {
       ptr_ += kTokenByteSize;
@@ -147,6 +155,17 @@ class ZeroQueryDict {
       return iter;
     }
 
+    iterator &operator--() {
+      ptr_ -= kTokenByteSize;
+      return *this;
+    }
+
+    iterator operator--(int) {
+      const iterator tmp(ptr_, string_array_);
+      ptr_ -= kTokenByteSize;
+      return tmp;
+    }
+
     iterator &operator-=(ptrdiff_t n) {
       ptr_ -= n * kTokenByteSize;
       return *this;
@@ -161,36 +180,25 @@ class ZeroQueryDict {
       return (x.ptr_ - y.ptr_) / kTokenByteSize;
     }
 
-    friend bool operator==(iterator x, iterator y) {
-      return x.ptr_ == y.ptr_;
-    }
+    friend bool operator==(iterator x, iterator y) { return x.ptr_ == y.ptr_; }
 
-    friend bool operator!=(iterator x, iterator y) {
-      return x.ptr_ != y.ptr_;
-    }
+    friend bool operator!=(iterator x, iterator y) { return x.ptr_ != y.ptr_; }
 
-    friend bool operator<(iterator x, iterator y) {
-      return x.ptr_ < y.ptr_;
-    }
+    friend bool operator<(iterator x, iterator y) { return x.ptr_ < y.ptr_; }
 
-    friend bool operator<=(iterator x, iterator y) {
-      return x.ptr_ <= y.ptr_;
-    }
+    friend bool operator<=(iterator x, iterator y) { return x.ptr_ <= y.ptr_; }
 
-    friend bool operator>(iterator x, iterator y) {
-      return x.ptr_ > y.ptr_;
-    }
+    friend bool operator>(iterator x, iterator y) { return x.ptr_ > y.ptr_; }
 
-    friend bool operator>=(iterator x, iterator y) {
-      return x.ptr_ >= y.ptr_;
-    }
+    friend bool operator>=(iterator x, iterator y) { return x.ptr_ >= y.ptr_; }
 
    private:
     const char *ptr_;
-    const SerializedStringArray * string_array_;
+    const SerializedStringArray *string_array_;
   };
 
-  void Init(StringPiece token_array_data, StringPiece string_array_data) {
+  void Init(absl::string_view token_array_data,
+            absl::string_view string_array_data) {
     token_array_ = token_array_data;
     string_array_.Set(string_array_data);
   }
@@ -200,13 +208,12 @@ class ZeroQueryDict {
   }
 
   iterator end() const {
-    return iterator(token_array_.data() + token_array_.size(),
-                    &string_array_);
+    return iterator(token_array_.data() + token_array_.size(), &string_array_);
   }
 
-  std::pair<iterator, iterator> equal_range(StringPiece key) const {
-    const auto iter = std::lower_bound(string_array_.begin(),
-                                       string_array_.end(), key);
+  std::pair<iterator, iterator> equal_range(absl::string_view key) const {
+    const auto iter =
+        std::lower_bound(string_array_.begin(), string_array_.end(), key);
     if (iter == string_array_.end() || *iter != key) {
       return std::pair<iterator, iterator>(end(), end());
     }
@@ -214,7 +221,7 @@ class ZeroQueryDict {
   }
 
  private:
-  StringPiece token_array_;
+  absl::string_view token_array_;
   SerializedStringArray string_array_;
 };
 

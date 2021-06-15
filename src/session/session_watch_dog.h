@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #ifndef MOZC_SESSION_SESSION_WATCH_DOG_H_
 #define MOZC_SESSION_SESSION_WATCH_DOG_H_
 
+#include <cstdint>
 #include <memory>
 
 #include "base/port.h"
@@ -49,9 +50,7 @@ class ClientInterface;
 class SessionWatchDog : public Thread {
  public:
   // return the interval sec of watch dog timer
-  int32 interval() const {
-    return interval_sec_;
-  }
+  int32_t interval() const { return interval_sec_; }
 
   // Set client interface. This method doesn't take the owership.
   // mainly for unittesting.
@@ -61,8 +60,8 @@ class SessionWatchDog : public Thread {
   // mainly for unittesting.
   void SetCPUStatsInterface(CPUStatsInterface *cpu_stats);
 
-  explicit SessionWatchDog(int32 interval_sec);
-  virtual ~SessionWatchDog();
+  explicit SessionWatchDog(int32_t interval_sec);
+  ~SessionWatchDog() override;
 
   // inherited from Thread class
   void Terminate();
@@ -71,21 +70,19 @@ class SessionWatchDog : public Thread {
   // start watch dog timer and return immediately
   // virtual void Start();
 
-
   // return true if watch dog can send CleanupCommand:
   // |cpu_loads|: An array of cpu loads.
   // |cpu_load_index|: the size of cpu loads
   // |last_cleanup_time|: the last UTC time cleanup is executed
   // TODO(taku): want to define it inside private with FRIEND_TEST
   bool CanSendCleanupCommand(const volatile float *cpu_loads,
-                             int cpu_load_index,
-                             uint64 current_time,
-                             uint64 last_cleanup_time) const;
+                             int cpu_loads_index, uint64_t current_cleanup_time,
+                             uint64_t last_cleanup_time) const;
 
  private:
-  virtual void Run();
+  void Run() override;
 
-  int32 interval_sec_;
+  int32_t interval_sec_;
   client::ClientInterface *client_;
   CPUStatsInterface *cpu_stats_;
   std::unique_ptr<UnnamedEvent> event_;

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,27 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "base/config_file_stream.h"
+
 #include <cstddef>
 #include <ios>
 #include <istream>
 #include <memory>
 
-#include "base/config_file_stream.h"
 #include "base/file_util.h"
 #include "base/system_util.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/flags/flag.h"
 
 namespace mozc {
 
 namespace {
 // Returns all data of the filename.
-string GetFileData(const string &filename) {
+std::string GetFileData(const std::string &filename) {
   InputFileStream ifs(filename.c_str(), std::ios::binary);
   char c = '\0';
-  string data;
+  std::string data;
   while (!ifs.get(c).fail()) {
     data.append(1, c);
   }
@@ -59,7 +61,7 @@ string GetFileData(const string &filename) {
 // |input_stream| as a side effect.
 bool IsEof(std::istream *input_stream) {
   return (input_stream->peek() == std::istream::traits_type::eof() &&
-          // On some enviroment (e.g. Mac OS 10.8 w/ Xcode 4.5),
+          // On some environment (e.g. Mac OS 10.8 w/ Xcode 4.5),
           // peek() does not flip eofbit.  So calling get() is also
           // required.
           input_stream->get() == std::istream::traits_type::eof() &&
@@ -70,22 +72,22 @@ bool IsEof(std::istream *input_stream) {
 
 class ConfigFileStreamTest : public testing::Test {
  protected:
-  virtual void SetUp() {
+  void SetUp() override {
     default_profile_directory_ = SystemUtil::GetUserProfileDirectory();
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
   }
 
-  virtual void TearDown() {
+  void TearDown() override {
     SystemUtil::SetUserProfileDirectory(default_profile_directory_);
   }
 
  private:
-  string default_profile_directory_;
+  std::string default_profile_directory_;
 };
 
 TEST_F(ConfigFileStreamTest, OnMemoryFiles) {
-  const string kData = "data";
-  const string kPath = "memory://test";
+  const std::string kData = "data";
+  const std::string kPath = "memory://test";
   EXPECT_TRUE(ConfigFileStream::GetFileName(kPath).empty());
   ConfigFileStream::AtomicUpdate(kPath, kData);
 
@@ -109,20 +111,20 @@ TEST_F(ConfigFileStreamTest, OnMemoryFiles) {
 }
 
 TEST_F(ConfigFileStreamTest, AtomicUpdate) {
-  const string prefixed_filename = "user://atomic_update_test";
-  const string filename = ConfigFileStream::GetFileName(prefixed_filename);
-  const string tmp_filename = filename + ".tmp";
+  const std::string prefixed_filename = "user://atomic_update_test";
+  const std::string filename = ConfigFileStream::GetFileName(prefixed_filename);
+  const std::string tmp_filename = filename + ".tmp";
 
   EXPECT_FALSE(FileUtil::FileExists(filename));
   EXPECT_FALSE(FileUtil::FileExists(tmp_filename));
 
-  const string contents = "123\n2\n3";
+  const std::string contents = "123\n2\n3";
   ConfigFileStream::AtomicUpdate(prefixed_filename, contents);
   EXPECT_TRUE(FileUtil::FileExists(filename));
   EXPECT_FALSE(FileUtil::FileExists(tmp_filename));
   EXPECT_EQ(contents, GetFileData(filename));
 
-  const string new_contents = "246\n4\n6";
+  const std::string new_contents = "246\n4\n6";
   ConfigFileStream::AtomicUpdate(prefixed_filename, new_contents);
   EXPECT_TRUE(FileUtil::FileExists(filename));
   EXPECT_FALSE(FileUtil::FileExists(tmp_filename));
@@ -137,11 +139,11 @@ TEST_F(ConfigFileStreamTest, OpenReadBinary) {
   // At first, generate a binary data file in (temporary) user directory
   // so that we can load it as "user://my_binary_file.dat"
   const char kTestFileName[] = "my_binary_file.dat";
-  const string &test_file_path = FileUtil::JoinPath(
-      SystemUtil::GetUserProfileDirectory(), kTestFileName);
+  const std::string &test_file_path =
+      FileUtil::JoinPath(SystemUtil::GetUserProfileDirectory(), kTestFileName);
 
   const char kBinaryData[] = {
-    ' ', ' ', '\r', ' ', '\n', ' ', '\r', '\n', ' ', '\0', ' ',
+      ' ', ' ', '\r', ' ', '\n', ' ', '\r', '\n', ' ', '\0', ' ',
   };
   const size_t kBinaryDataSize = sizeof(kBinaryData);
   {
@@ -153,8 +155,8 @@ TEST_F(ConfigFileStreamTest, OpenReadBinary) {
   ASSERT_TRUE(FileUtil::FileExists(test_file_path));
 
   {
-    std::unique_ptr<std::istream> ifs(
-        ConfigFileStream::OpenReadBinary("user://" + string(kTestFileName)));
+    std::unique_ptr<std::istream> ifs(ConfigFileStream::OpenReadBinary(
+        "user://" + std::string(kTestFileName)));
     ASSERT_NE(nullptr, ifs.get());
     std::unique_ptr<char[]> buf(new char[kBinaryDataSize]);
     ifs->read(buf.get(), kBinaryDataSize);
@@ -174,8 +176,8 @@ TEST_F(ConfigFileStreamTest, OpenReadText) {
   // At first, generate a binary data file in (temporary) user directory
   // so that we can load it as "user://my_binary_file.dat"
   const char kTestFileName[] = "my_text_file.dat";
-  const string &test_file_path = FileUtil::JoinPath(
-      SystemUtil::GetUserProfileDirectory(), kTestFileName);
+  const std::string &test_file_path =
+      FileUtil::JoinPath(SystemUtil::GetUserProfileDirectory(), kTestFileName);
 
   const char kSourceTextData[] = {
       'a', 'b', '\r', 'c', '\n', 'd', '\r', '\n', 'e',
@@ -195,17 +197,19 @@ TEST_F(ConfigFileStreamTest, OpenReadText) {
 #define TRAILING_CARRIAGE_RETURN "\r"
 #endif
   const char *kExpectedLines[] = {
-    "ab\rc", "d" TRAILING_CARRIAGE_RETURN, "e",
+      "ab\rc",
+      "d" TRAILING_CARRIAGE_RETURN,
+      "e",
   };
 #undef TRAILING_CARRIAGE_RETURN
 
   {
     std::unique_ptr<std::istream> ifs(
-        ConfigFileStream::OpenReadText("user://" + string(kTestFileName)));
+        ConfigFileStream::OpenReadText("user://" + std::string(kTestFileName)));
     ASSERT_NE(nullptr, ifs.get());
-    string line;
+    std::string line;
     int line_number = 0;  // note that this is 1-origin.
-    while (!getline(*ifs.get(), line).fail()) {
+    while (!std::getline(*ifs, line).fail()) {
       ++line_number;
       ASSERT_LE(line_number, arraysize(kExpectedLines));
       EXPECT_EQ(line, kExpectedLines[line_number - 1])

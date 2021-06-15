@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 #ifndef MOZC_BASE_CLOCK_MOCK_H_
 #define MOZC_BASE_CLOCK_MOCK_H_
 
+#include <cstdint>
+
 #include "base/clock.h"
 #include "base/port.h"
 
@@ -39,48 +41,68 @@ namespace mozc {
 // This mock behaves in UTC
 class ClockMock : public ClockInterface {
  public:
-  ClockMock(uint64 sec, uint32 usec);
-  virtual ~ClockMock();
+  ClockMock(uint64_t sec, uint32_t usec);
 
-  virtual void GetTimeOfDay(uint64 *sec, uint32 *usec);
-  virtual uint64 GetTime();
-  virtual bool GetTmWithOffsetSecond(time_t offset_sec, tm *output);
-  virtual uint64 GetFrequency();
-  virtual uint64 GetTicks();
-#ifdef OS_NACL
-  virtual void SetTimezoneOffset(int32 timezone_offset_sec);
-#endif  // OS_NACL
+  ClockMock(const ClockMock &) = delete;
+  ClockMock &operator=(const ClockMock &) = delete;
+
+  ~ClockMock() override;
+
+  void GetTimeOfDay(uint64_t *sec, uint32_t *usec) override;
+  uint64_t GetTime() override;
+  absl::Time GetAbslTime() override;
+  uint64_t GetFrequency() override;
+  uint64_t GetTicks() override;
+
+  const absl::TimeZone& GetTimeZone() override;
+  void SetTimeZoneOffset(int32_t timezone_offset_sec) override;
 
   // Puts this clock forward.
   // It has no impact on ticks.
-  void PutClockForward(uint64 delta_sec, uint32 delta_usec);
+  void PutClockForward(uint64_t delta_sec, uint32_t delta_usec);
 
   // Puts this clock forward by ticks
   // It has no impact on seconds and micro seconds.
-  void PutClockForwardByTicks(uint64 ticks);
+  void PutClockForwardByTicks(uint64_t ticks);
 
   // Automatically puts this clock forward on every time after it returns time.
   // It has no impact on ticks.
-  void SetAutoPutClockForward(uint64 delta_sec, uint32 delta_usec);
+  void SetAutoPutClockForward(uint64_t delta_sec, uint32_t delta_usec);
 
-  void SetTime(uint64 sec, uint32 usec);
-  void SetFrequency(uint64 frequency);
-  void SetTicks(uint64 ticks);
+  void SetTime(uint64_t sec, uint32_t usec);
+  void SetFrequency(uint64_t frequency);
+  void SetTicks(uint64_t ticks);
 
  private:
-  uint64 seconds_;
-  uint32 micro_seconds_;
-  uint64 frequency_;
-  uint64 ticks_;
-#ifdef OS_NACL
-  int32 timezone_offset_sec_;
-#endif  // OS_NACL
+  uint64_t seconds_;
+  uint32_t micro_seconds_;
+  uint64_t frequency_;
+  uint64_t ticks_;
+  absl::TimeZone timezone_;
+  int32_t timezone_offset_sec_;
   // Everytime user requests time clock, following time is added to the
   // internal clock.
-  uint64 delta_seconds_;
-  uint32 delta_micro_seconds_;
+  uint64_t delta_seconds_;
+  uint32_t delta_micro_seconds_;
+};
 
-  DISALLOW_COPY_AND_ASSIGN(ClockMock);
+// Changes the global clock with a mock during the life time of this object.
+class ScopedClockMock {
+ public:
+  ScopedClockMock(uint64_t sec, uint32_t usec) : mock_(sec, usec) {
+    Clock::SetClockForUnitTest(&mock_);
+  }
+
+  ScopedClockMock(const ScopedClockMock &) = delete;
+  ScopedClockMock &operator=(const ScopedClockMock &) = delete;
+
+  ~ScopedClockMock() { Clock::SetClockForUnitTest(nullptr); }
+
+  ClockMock *operator->() { return &mock_; }
+  const ClockMock *operator->() const { return &mock_; }
+
+ private:
+  ClockMock mock_;
 };
 
 }  // namespace mozc

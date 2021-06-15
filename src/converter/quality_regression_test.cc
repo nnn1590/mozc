@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 #include <algorithm>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -63,23 +63,25 @@ using quality_regression::QualityRegressionUtil;
 
 class QualityRegressionTest : public ::testing::Test {
  protected:
-  static void RunTestForPlatform(uint32 platform, QualityRegressionUtil *util) {
+  static void RunTestForPlatform(uint32_t platform,
+                                 QualityRegressionUtil *util) {
     CHECK(util);
-    std::map<string, std::vector<std::pair<float, string>>> results,
+    std::map<std::string, std::vector<std::pair<float, std::string>>> results,
         disabled_results;
 
     int num_executed_cases = 0, num_disabled_cases = 0;
     for (size_t i = 0; kTestData[i].line; ++i) {
-      const string &tsv_line = kTestData[i].line;
+      const std::string &tsv_line = kTestData[i].line;
       QualityRegressionUtil::TestItem item;
       CHECK(item.ParseFromTSV(tsv_line));
       if (!(item.platform & platform)) {
         continue;
       }
-      string actual_value;
+      std::string actual_value;
       const bool test_result = util->ConvertAndTest(item, &actual_value);
 
-      std::map<string, std::vector<std::pair<float, string>>> *table = nullptr;
+      std::map<std::string, std::vector<std::pair<float, std::string>>> *table =
+          nullptr;
       if (kTestData[i].enabled) {
         ++num_executed_cases;
         table = &results;
@@ -89,8 +91,8 @@ class QualityRegressionTest : public ::testing::Test {
         table = &disabled_results;
       }
 
-      const string &label = item.label;
-      string line = tsv_line;
+      const std::string &label = item.label;
+      std::string line = tsv_line;
       line.append("\tActual: ").append(actual_value);
       if (test_result) {
         // use "-1.0" as a dummy expected ratio
@@ -104,18 +106,19 @@ class QualityRegressionTest : public ::testing::Test {
     ExamineResults(false, platform, &disabled_results);
 
     const int total_cases = num_executed_cases + num_disabled_cases;
-    LOG(INFO) << "Tested " << num_executed_cases << " / "
-              << total_cases << " entries.";
+    LOG(INFO) << "Tested " << num_executed_cases << " / " << total_cases
+              << " entries.";
   }
 
   // If |enabled| parameter is true, then actual conversion results are tested
   // and any failure is reported as test failure.  If false, actual conversion
   // results don't affect test results but closable issues are reported.
   static void ExamineResults(
-      const bool enabled, uint32 platform,
-      std::map<string, std::vector<std::pair<float, string>>> *results) {
+      const bool enabled, uint32_t platform,
+      std::map<std::string, std::vector<std::pair<float, std::string>>>
+          *results) {
     for (auto it = results->begin(); it != results->end(); ++it) {
-      std::vector<std::pair<float, string>> *values = &it->second;
+      std::vector<std::pair<float, std::string>> *values = &it->second;
       std::sort(values->begin(), values->end());
       size_t correct = 0;
       bool all_passed = true;
@@ -128,16 +131,15 @@ class QualityRegressionTest : public ::testing::Test {
         // Print failed example for failed label
         const float actual_ratio = 1.0 * correct / values->size();
         if (enabled) {
-          EXPECT_LT(accuracy, actual_ratio) << value.second
-                                            << " " << accuracy
-                                            << " " << actual_ratio;
+          EXPECT_LT(accuracy, actual_ratio)
+              << value.second << " " << accuracy << " " << actual_ratio;
         } else {
           if (accuracy < actual_ratio) {
-            LOG(INFO) << "PASSED (DISABLED): "
-                      << it->first << ": " << value.second;
+            LOG(INFO) << "PASSED (DISABLED): " << it->first << ": "
+                      << value.second;
           } else {
-            LOG(INFO) << "FAILED (DISABLED): "
-                      << it->first << ": " << value.second;
+            LOG(INFO) << "FAILED (DISABLED): " << it->first << ": "
+                      << value.second;
             all_passed = false;
           }
         }
@@ -147,8 +149,8 @@ class QualityRegressionTest : public ::testing::Test {
       if (!enabled && all_passed) {
         LOG(INFO) << "CLOSED ISSUE [platform = "
                   << QualityRegressionUtil::GetPlatformString(platform)
-                  << "]: " << it->first << " with "
-                  << it->second.size() << " cases";
+                  << "]: " << it->first << " with " << it->second.size()
+                  << " cases";
       }
     }
   }
@@ -157,26 +159,25 @@ class QualityRegressionTest : public ::testing::Test {
   const testing::ScopedTmpUserProfileDirectory scoped_profile_dir_;
 };
 
-std::unique_ptr<EngineInterface> CreateEngine(const string &data_file_path,
-                                              const string &magic_number,
-                                              const string &engine_type) {
+std::unique_ptr<EngineInterface> CreateEngine(const std::string &data_file_path,
+                                              const std::string &magic_number,
+                                              const std::string &engine_type) {
   std::unique_ptr<DataManager> data_manager(new DataManager);
   const auto status = data_manager->InitFromFile(data_file_path, magic_number);
   if (status != DataManager::Status::OK) {
-    LOG(ERROR) << "Failed to load " << data_file_path
-               << ": " << DataManager::StatusCodeToString(status);
+    LOG(ERROR) << "Failed to load " << data_file_path << ": "
+               << DataManager::StatusCodeToString(status);
     return nullptr;
   }
   if (engine_type == "desktop") {
-    return Engine::CreateDesktopEngine(std::move(data_manager));
+    return Engine::CreateDesktopEngine(std::move(data_manager)).value();
   }
   if (engine_type == "mobile") {
-    return Engine::CreateMobileEngine(std::move(data_manager));
+    return Engine::CreateMobileEngine(std::move(data_manager)).value();
   }
   LOG(ERROR) << "Invalid engine type: " << engine_type;
   return nullptr;
 }
-
 
 }  // namespace
 }  // namespace mozc

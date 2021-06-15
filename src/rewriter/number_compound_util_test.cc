@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "rewriter/number_compound_util.h"
 
+#include <cstdint>
 #include <memory>
 
 #include "base/port.h"
@@ -36,6 +37,7 @@
 #include "data_manager/testing/mock_data_manager.h"
 #include "dictionary/pos_matcher.h"
 #include "testing/base/public/gunit.h"
+#include "absl/strings/string_view.h"
 
 using mozc::dictionary::POSMatcher;
 
@@ -43,8 +45,8 @@ namespace mozc {
 namespace number_compound_util {
 
 TEST(NumberCompoundUtilTest, SplitStringIntoNumberAndCounterSuffix) {
-  std::unique_ptr<uint32[]> buf;
-  const StringPiece data = SerializedStringArray::SerializeToBuffer(
+  std::unique_ptr<uint32_t[]> buf;
+  const absl::string_view data = SerializedStringArray::SerializeToBuffer(
       {
           "デシベル",
           "回",
@@ -59,7 +61,7 @@ TEST(NumberCompoundUtilTest, SplitStringIntoNumberAndCounterSuffix) {
     const char* input;
     const char* expected_number;
     const char* expected_suffix;
-    uint32 expected_script_type;
+    uint32_t expected_script_type;
   } kSplittableCases[] = {
       {
           "一階",
@@ -102,11 +104,10 @@ TEST(NumberCompoundUtilTest, SplitStringIntoNumberAndCounterSuffix) {
       },
   };
   for (size_t i = 0; i < arraysize(kSplittableCases); ++i) {
-    StringPiece actual_number, actual_suffix;
-    uint32 actual_script_type = 0;
+    absl::string_view actual_number, actual_suffix;
+    uint32_t actual_script_type = 0;
     EXPECT_TRUE(SplitStringIntoNumberAndCounterSuffix(
-        suffix_array,
-        kSplittableCases[i].input, &actual_number, &actual_suffix,
+        suffix_array, kSplittableCases[i].input, &actual_number, &actual_suffix,
         &actual_script_type));
     EXPECT_EQ(kSplittableCases[i].expected_number, actual_number);
     EXPECT_EQ(kSplittableCases[i].expected_suffix, actual_suffix);
@@ -121,18 +122,17 @@ TEST(NumberCompoundUtilTest, SplitStringIntoNumberAndCounterSuffix) {
       "八億九千万600七十４デシベル",
   };
   for (size_t i = 0; i < arraysize(kUnsplittableCases); ++i) {
-    StringPiece actual_number, actual_suffix;
-    uint32 actual_script_type = 0;
+    absl::string_view actual_number, actual_suffix;
+    uint32_t actual_script_type = 0;
     EXPECT_FALSE(SplitStringIntoNumberAndCounterSuffix(
-        suffix_array,
-        kUnsplittableCases[i], &actual_number, &actual_suffix,
+        suffix_array, kUnsplittableCases[i], &actual_number, &actual_suffix,
         &actual_script_type));
   }
 }
 
 TEST(NumberCompoundUtilTest, IsNumber) {
-  std::unique_ptr<uint32[]> buf;
-  const StringPiece data = SerializedStringArray::SerializeToBuffer(
+  std::unique_ptr<uint32_t[]> buf;
+  const absl::string_view data = SerializedStringArray::SerializeToBuffer(
       {
           "回",
           "階",

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "base/stopwatch.h"
+
+#include <cstdint>
 
 #include "base/clock.h"
 
@@ -63,14 +65,14 @@ void Stopwatch::Start() {
 
 void Stopwatch::Stop() {
   if (state_ == STOPWATCH_RUNNING) {
-    const int64 stop_timestamp = Clock::GetTicks();
+    const int64_t stop_timestamp = Clock::GetTicks();
     elapsed_timestamp_ += (stop_timestamp - start_timestamp_);
     start_timestamp_ = 0;
     state_ = STOPWATCH_STOPPED;
   }
 }
 
-int64 Stopwatch::GetElapsedMilliseconds() {
+int64_t Stopwatch::GetElapsedMilliseconds() {
   return GetElapsedTicks() * 1000 / frequency_;
 }
 
@@ -82,20 +84,18 @@ double Stopwatch::GetElapsedNanoseconds() {
   return GetElapsedTicks() * 1.0e9 / frequency_;
 }
 
-int64 Stopwatch::GetElapsedTicks() {
+int64_t Stopwatch::GetElapsedTicks() {
   if (state_ == STOPWATCH_STOPPED) {
     return elapsed_timestamp_;
   }
 
-  const int64 current_timestamp = Clock::GetTicks();
+  const int64_t current_timestamp = Clock::GetTicks();
   elapsed_timestamp_ += (current_timestamp - start_timestamp_);
   start_timestamp_ = current_timestamp;
 
   return elapsed_timestamp_;
 }
 
-bool Stopwatch::IsRunning() const {
-  return state_ == STOPWATCH_RUNNING;
-}
+bool Stopwatch::IsRunning() const { return state_ == STOPWATCH_RUNNING; }
 
 }  // namespace mozc

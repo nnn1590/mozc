@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_REWRITER_VARIANTS_REWRITER_H_
 #define MOZC_REWRITER_VARIANTS_REWRITER_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -50,46 +51,41 @@ class VariantsRewriter : public RewriterInterface {
   static const char *kKanji;
   static const char *kFullWidth;
   static const char *kHalfWidth;
-  static const char *kPlatformDependent;
   static const char *kDidYouMean;
   static const char *kYenKigou;
 
   explicit VariantsRewriter(dictionary::POSMatcher pos_matcher);
-  virtual ~VariantsRewriter();
-  virtual int capability(const ConversionRequest &request) const;
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
-  virtual void Finish(const ConversionRequest &request, Segments *segments);
-  virtual void Clear();
+  ~VariantsRewriter() override;
+  int capability(const ConversionRequest &request) const override;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
+  void Finish(const ConversionRequest &request, Segments *segments) override;
+  void Clear() override;
 
   // Used by UserSegmentHistoryRewriter.
   // TODO(noriyukit): I'd be better to prepare some utility for rewriters.
   static void SetDescriptionForCandidate(
-      const dictionary::POSMatcher &pos_matcher,
-      Segment::Candidate *candidate);
+      const dictionary::POSMatcher &pos_matcher, Segment::Candidate *candidate);
   static void SetDescriptionForTransliteration(
-      const dictionary::POSMatcher &pos_matcher,
-      Segment::Candidate *candidate);
+      const dictionary::POSMatcher &pos_matcher, Segment::Candidate *candidate);
   static void SetDescriptionForPrediction(
-      const dictionary::POSMatcher &pos_matcher,
-      Segment::Candidate *candidate);
+      const dictionary::POSMatcher &pos_matcher, Segment::Candidate *candidate);
 
  private:
   // 1) Full width / half width description
   // 2) CharForm (hiragana/katakana) description
-  // 3) Platform dependent char (JISX0213..etc) description
-  // 4) Zipcode description (XXX-XXXX)
+  // 3) Zipcode description (XXX-XXXX)
   //     * note that this overrides other descriptions
   enum DescriptionType {
-    FULL_HALF_WIDTH = 1,   // automatically detect full/haflwidth.
+    FULL_HALF_WIDTH = 1,               // automatically detect full/haflwidth.
     FULL_HALF_WIDTH_WITH_UNKNOWN = 2,  // set half/full widith for symbols.
     // This flag must be used together with FULL_HALF_WIDTH.
     // If WITH_UNKNOWN is specified, assign FULL/HALF width annotation
     // more aggressively.
-    HALF_WIDTH = 4,        // always set half width description.
-    FULL_WIDTH = 8,        // always set full width description.
-    CHARACTER_FORM = 16,    // Hiragana/Katakana..etc
-    PLATFORM_DEPENDENT_CHARACTER = 32,
+    HALF_WIDTH = 4,       // always set half width description.
+    FULL_WIDTH = 8,       // always set full width description.
+    CHARACTER_FORM = 16,  // Hiragana/Katakana..etc
+    DEPRECATED_PLATFORM_DEPENDENT_CHARACTER = 32,  // Deprecated. "機種依存文字"
     ZIPCODE = 64,
     SPELLING_CORRECTION = 128
   };
@@ -104,13 +100,11 @@ class VariantsRewriter : public RewriterInterface {
                              Segment::Candidate *candidate);
   bool RewriteSegment(RewriteType type, Segment *seg) const;
   bool GenerateAlternatives(
-      const Segment::Candidate &original,
-      string *default_value,
-      string *alternative_value,
-      string *default_content_value,
-      string *alternative_content_value,
-      std::vector<uint32> *default_inner_segment_boundary,
-      std::vector<uint32> *alternative_inner_segment_boundary) const;
+      const Segment::Candidate &original, std::string *default_value,
+      std::string *alternative_value, std::string *default_content_value,
+      std::string *alternative_content_value,
+      std::vector<uint32_t> *default_inner_segment_boundary,
+      std::vector<uint32_t> *alternative_inner_segment_boundary) const;
 
   const dictionary::POSMatcher pos_matcher_;
 };

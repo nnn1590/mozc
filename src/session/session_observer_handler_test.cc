@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "protocol/commands.pb.h"
 #include "session/session_observer_handler.h"
+#include "protocol/commands.pb.h"
 #include "session/session_observer_interface.h"
 #include "testing/base/public/gunit.h"
 
@@ -38,27 +38,22 @@ namespace session {
 class SessionObserverMock : public SessionObserverInterface {
  public:
   SessionObserverMock() : eval_count_(0) {}
-  virtual ~SessionObserverMock() {}
+  ~SessionObserverMock() override {}
 
-  void EvalCommandHandler(const commands::Command &command) {
-    command_.CopyFrom(command);
+  void EvalCommandHandler(const commands::Command &command) override {
+    command_ = command;
     ++eval_count_;
   }
 
-  int eval_count() const {
-    return eval_count_;
-  }
+  int eval_count() const { return eval_count_; }
 
-  const commands::Command &command() const {
-    return command_;
-  }
+  const commands::Command &command() const { return command_; }
 
  private:
   int eval_count_;
   commands::Command command_;
   DISALLOW_COPY_AND_ASSIGN(SessionObserverMock);
 };
-
 
 TEST(SessionObserverHandlerTest, ObserverTest) {
   SessionObserverHandler handler;

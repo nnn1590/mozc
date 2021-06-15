@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_REWRITER_USAGE_REWRITER_H_
 #define MOZC_REWRITER_USAGE_REWRITER_H_
 
+#include <cstdint>
 #ifndef NO_USAGE_REWRITER
 
 #include <map>
@@ -48,41 +49,43 @@ namespace mozc {
 
 class DataManagerInterface;
 
-class UsageRewriter : public RewriterInterface  {
+class UsageRewriter : public RewriterInterface {
  public:
   UsageRewriter(const DataManagerInterface *data_manager,
                 const dictionary::DictionaryInterface *dictionary);
-  virtual ~UsageRewriter();
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
+  ~UsageRewriter() override;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
 
   // better to show usage when user type "tab" key.
-  virtual int capability(const ConversionRequest &request) const {
+  int capability(const ConversionRequest &request) const override {
     return CONVERSION | PREDICTION;
   }
 
  private:
   FRIEND_TEST(UsageRewriterTest, GetKanjiPrefixAndOneHiragana);
 
-  static const size_t kUsageItemByteLength = 20;
+  static constexpr size_t kUsageItemByteLength = 20;
 
   class UsageDictItemIterator {
    public:
     UsageDictItemIterator() : ptr_(nullptr) {}
     explicit UsageDictItemIterator(const char *ptr) : ptr_(ptr) {}
 
-    size_t usage_id() const { return *reinterpret_cast<const uint32 *>(ptr_); }
+    size_t usage_id() const {
+      return *reinterpret_cast<const uint32_t *>(ptr_);
+    }
     size_t key_index() const {
-      return *reinterpret_cast<const uint32 *>(ptr_ + 4);
+      return *reinterpret_cast<const uint32_t *>(ptr_ + 4);
     }
     size_t value_index() const {
-      return *reinterpret_cast<const uint32 *>(ptr_ + 8);
+      return *reinterpret_cast<const uint32_t *>(ptr_ + 8);
     }
     size_t conjugation_id() const {
-      return *reinterpret_cast<const uint32 *>(ptr_ + 12);
+      return *reinterpret_cast<const uint32_t *>(ptr_ + 12);
     }
     size_t meaning_index() const {
-      return *reinterpret_cast<const uint32 *>(ptr_ + 16);
+      return *reinterpret_cast<const uint32_t *>(ptr_ + 16);
     }
 
     UsageDictItemIterator &operator++() {
@@ -104,18 +107,17 @@ class UsageRewriter : public RewriterInterface  {
     const char *ptr_;
   };
 
-  using StrPair = std::pair<string, string>;
-  static string GetKanjiPrefixAndOneHiragana(const string &word);
+  using StrPair = std::pair<std::string, std::string>;
+  static std::string GetKanjiPrefixAndOneHiragana(const std::string &word);
 
   UsageDictItemIterator LookupUnmatchedUsageHeuristically(
       const Segment::Candidate &candidate) const;
-  UsageDictItemIterator LookupUsage(
-      const Segment::Candidate &candidate) const;
+  UsageDictItemIterator LookupUsage(const Segment::Candidate &candidate) const;
 
   std::map<StrPair, UsageDictItemIterator> key_value_usageitem_map_;
   const dictionary::POSMatcher pos_matcher_;
   const dictionary::DictionaryInterface *dictionary_;
-  const uint32 *base_conjugation_suffix_;
+  const uint32_t *base_conjugation_suffix_;
   SerializedStringArray string_array_;
 };
 

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #ifndef MOZC_SESSION_SESSION_HANDLER_TEST_UTIL_H_
 #define MOZC_SESSION_SESSION_HANDLER_TEST_UTIL_H_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -39,37 +40,29 @@
 #include "engine/engine_interface.h"
 #include "protocol/commands.pb.h"
 #include "protocol/config.pb.h"
+#include "session/session_handler_interface.h"
 #include "testing/base/public/gunit.h"
 #include "usage_stats/usage_stats_testing_util.h"
 
 namespace mozc {
-
-class SessionHandlerInterface;
-
 namespace session {
-class SessionObserverInterface;
-
 namespace testing {
 
 // Sends CREATE_SESSION command to the given handler and returns its result.
 // If it is successfully completed and the given id is not NULL,
 // also stores the session id to it.
-bool CreateSession(SessionHandlerInterface *handler, uint64 *id);
+bool CreateSession(SessionHandlerInterface *handler, uint64_t *id);
 
 // Sends DELETE_SESSION command with the given id to the given handler,
 // and returns its result.
-bool DeleteSession(SessionHandlerInterface *handler, uint64 id);
+bool DeleteSession(SessionHandlerInterface *handler, uint64_t id);
 
 // Sends CLEANUP command to the given handler, and returns its result.
-bool CleanUp(SessionHandlerInterface *handler, uint64 id);
-
-// Sends CLEAR_USER_PREDICTION command to the given handler and returns its
-// result.
-bool CleanUserPrediction(SessionHandlerInterface *handler, uint64 id);
+bool CleanUp(SessionHandlerInterface *handler, uint64_t id);
 
 // Returns the session represented by the given id is "good" or not, based
 // on sending a SPACE key. See the implementation for the detail.
-bool IsGoodSession(SessionHandlerInterface *handler, uint64 id);
+bool IsGoodSession(SessionHandlerInterface *handler, uint64_t id);
 
 // Base implementation of test cases.
 class SessionHandlerTestBase : public ::testing::Test {
@@ -85,65 +78,17 @@ class SessionHandlerTestBase : public ::testing::Test {
 
  private:
   // Keep the global configurations here, and restore them in tear down phase.
-  string user_profile_directory_backup_;
+  std::string user_profile_directory_backup_;
   config::Config config_backup_;
-  int32 flags_max_session_size_backup_;
-  int32 flags_create_session_min_interval_backup_;
-  int32 flags_watch_dog_interval_backup_;
-  int32 flags_last_command_timeout_backup_;
-  int32 flags_last_create_session_timeout_backup_;
+  int32_t flags_max_session_size_backup_;
+  int32_t flags_create_session_min_interval_backup_;
+  int32_t flags_watch_dog_interval_backup_;
+  int32_t flags_last_command_timeout_backup_;
+  int32_t flags_last_create_session_timeout_backup_;
   bool flags_restricted_backup_;
   usage_stats::scoped_usage_stats_enabler usage_stats_enabler_;
 
   DISALLOW_COPY_AND_ASSIGN(SessionHandlerTestBase);
-};
-
-// Session utility for stress tests.
-class TestSessionClient {
- public:
-  explicit TestSessionClient(std::unique_ptr<EngineInterface> engine);
-  ~TestSessionClient();
-
-  bool CreateSession();
-  bool DeleteSession();
-  bool CleanUp();
-  bool ClearUserPrediction();
-  bool SendKey(const commands::KeyEvent &key, commands::Output *output) {
-    return SendKeyWithOption(
-        key, commands::Input::default_instance(), output);
-  }
-  bool SendKeyWithOption(const commands::KeyEvent &key,
-                         const commands::Input &option,
-                         commands::Output *output);
-  bool TestSendKey(const commands::KeyEvent &key, commands::Output *output) {
-    return TestSendKeyWithOption(
-        key, commands::Input::default_instance(), output);
-  }
-  bool TestSendKeyWithOption(const commands::KeyEvent &key,
-                             const commands::Input &option,
-                             commands::Output *output);
-  bool SelectCandidate(uint32 id, commands::Output *output);
-  bool SubmitCandidate(uint32 id, commands::Output *output);
-
-  bool Reload();
-  bool ResetContext();
-  bool UndoOrRewind(commands::Output *output);
-  bool SwitchInputMode(commands::CompositionMode composition_mode);
-  bool SetRequest(const commands::Request &request, commands::Output *output);
-  bool SetConfig(const config::Config &config, commands::Output *output);
-  void SetCallbackText(const string &text);
-
- private:
-  bool EvalCommand(commands::Input *input, commands::Output *output);
-  bool EvalCommandInternal(commands::Input *input, commands::Output *output,
-                           bool allow_callback);
-
-  uint64 id_;
-  std::unique_ptr<SessionObserverInterface> usage_observer_;
-  std::unique_ptr<SessionHandlerInterface> handler_;
-  string callback_text_;
-
-  DISALLOW_COPY_AND_ASSIGN(TestSessionClient);
 };
 
 }  // namespace testing

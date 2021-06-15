@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "rewriter/correction_rewriter.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -40,20 +41,23 @@
 #include "protocol/config.pb.h"
 #include "request/conversion_request.h"
 #include "testing/base/public/gunit.h"
+#include "absl/memory/memory.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace {
 
-Segment *AddSegment(const string &key, Segments *segments) {
+Segment *AddSegment(const std::string &key, Segments *segments) {
   Segment *segment = segments->push_back_segment();
   segment->set_key(key);
   return segment;
 }
 
-Segment::Candidate *AddCandidate(
-    const string &key, const string &value,
-    const string &content_key, const string &content_value,
-    Segment *segment) {
+Segment::Candidate *AddCandidate(const std::string &key,
+                                 const std::string &value,
+                                 const std::string &content_key,
+                                 const std::string &content_value,
+                                 Segment *segment) {
   Segment::Candidate *candidate = segment->add_candidate();
   candidate->Init();
   candidate->key = key;
@@ -73,14 +77,14 @@ class CorrectionRewriterTest : public testing::Test {
 
   void SetUp() override {
     // Create a rewriter with one entry: (TSUKIGIME, gekkyoku, tsukigime)
-    const std::vector<StringPiece> values = {"TSUKIGIME"};
-    const std::vector<StringPiece> errors = {"gekkyoku"};
-    const std::vector<StringPiece> corrections = {"tsukigime"};
-    rewriter_.reset(new CorrectionRewriter(
+    const std::vector<absl::string_view> values = {"TSUKIGIME"};
+    const std::vector<absl::string_view> errors = {"gekkyoku"};
+    const std::vector<absl::string_view> corrections = {"tsukigime"};
+    rewriter_ = absl::make_unique<CorrectionRewriter>(
         SerializedStringArray::SerializeToBuffer(values, &values_buf_),
         SerializedStringArray::SerializeToBuffer(errors, &errors_buf_),
         SerializedStringArray::SerializeToBuffer(corrections,
-                                                 &corrections_buf_)));
+                                                 &corrections_buf_));
     config::ConfigHandler::GetDefaultConfig(&config_);
     config_.set_use_spelling_correction(true);
   }
@@ -91,9 +95,9 @@ class CorrectionRewriterTest : public testing::Test {
   config::Config config_;
 
  private:
-  std::unique_ptr<uint32[]> values_buf_;
-  std::unique_ptr<uint32[]> errors_buf_;
-  std::unique_ptr<uint32[]> corrections_buf_;
+  std::unique_ptr<uint32_t[]> values_buf_;
+  std::unique_ptr<uint32_t[]> errors_buf_;
+  std::unique_ptr<uint32_t[]> corrections_buf_;
 };
 
 TEST_F(CorrectionRewriterTest, CapabilityTest) {
@@ -104,9 +108,8 @@ TEST_F(CorrectionRewriterTest, RewriteTest) {
   Segments segments;
 
   Segment *segment = AddSegment("gekkyokuwo", &segments);
-  Segment::Candidate *candidate =
-      AddCandidate("gekkyokuwo", "TSUKIGIMEwo", "gekkyoku", "TSUKIGIME",
-                   segment);
+  Segment::Candidate *candidate = AddCandidate(
+      "gekkyokuwo", "TSUKIGIMEwo", "gekkyoku", "TSUKIGIME", segment);
   candidate->attributes |= Segment::Candidate::RERANKED;
 
   AddCandidate("gekkyokuwo", "GEKKYOKUwo", "gekkyoku", "GEKKYOKU", segment);
@@ -122,9 +125,8 @@ TEST_F(CorrectionRewriterTest, RewriteTest) {
   EXPECT_EQ(
       (Segment::Candidate::RERANKED | Segment::Candidate::SPELLING_CORRECTION),
       segments.conversion_segment(0).candidate(0).attributes);
-  EXPECT_EQ(
-      "<もしかして: tsukigime>",
-      segments.conversion_segment(0).candidate(0).description);
+  EXPECT_EQ("<もしかして: tsukigime>",
+            segments.conversion_segment(0).candidate(0).description);
 
   // candidate 1
   EXPECT_EQ(Segment::Candidate::DEFAULT_ATTRIBUTE,

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,40 +29,39 @@
 
 #include <string>
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/port.h"
 #include "ipc/named_event.h"
+#include "absl/flags/flag.h"
 
-DEFINE_bool(listener, true, "listener mode");
-DEFINE_bool(notifier, false, "notifier mode");
-DEFINE_int32(timeout, -1, "timeout (msec)");
-DEFINE_int32(pid, -1, "process id");
-DEFINE_string(name, "named_event_test", "name for named event");
+ABSL_FLAG(bool, listener, true, "listener mode");
+ABSL_FLAG(bool, notifier, false, "notifier mode");
+ABSL_FLAG(int32, timeout, -1, "timeout (msec)");
+ABSL_FLAG(int32, pid, -1, "process id");
+ABSL_FLAG(std::string, name, "named_event_test", "name for named event");
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  if (FLAGS_notifier) {
-    mozc::NamedEventNotifier notifier(FLAGS_name.c_str());
-    CHECK(notifier.IsAvailable())
-        << "NamedEventNotifier is not available";
+  if (absl::GetFlag(FLAGS_notifier)) {
+    mozc::NamedEventNotifier notifier(absl::GetFlag(FLAGS_name).c_str());
+    CHECK(notifier.IsAvailable()) << "NamedEventNotifier is not available";
 
     notifier.Notify();
     LOG(INFO) << "Notification has been sent";
 
-  } else if (FLAGS_listener) {
-    mozc::NamedEventListener listener(FLAGS_name.c_str());
-    CHECK(listener.IsAvailable())
-      << "NamedEventListener is not available";
+  } else if (absl::GetFlag(FLAGS_listener)) {
+    mozc::NamedEventListener listener(absl::GetFlag(FLAGS_name).c_str());
+    CHECK(listener.IsAvailable()) << "NamedEventListener is not available";
 
     LOG_IF(INFO, listener.IsOwner()) << "This instance owns event handle";
 
-    LOG(INFO) << "Waiting event " << FLAGS_name;
-    if (FLAGS_pid != -1) {
-      switch (listener.WaitEventOrProcess(FLAGS_timeout,
-                                          static_cast<size_t>(FLAGS_pid))) {
+    LOG(INFO) << "Waiting event " << absl::GetFlag(FLAGS_name);
+    if (absl::GetFlag(FLAGS_pid) != -1) {
+      switch (listener.WaitEventOrProcess(
+          absl::GetFlag(FLAGS_timeout),
+          static_cast<size_t>(absl::GetFlag(FLAGS_pid)))) {
         case mozc::NamedEventListener::TIMEOUT:
           LOG(INFO) << "timeout";
           break;
@@ -77,7 +76,7 @@ int main(int argc, char **argv) {
           break;
       }
     } else {
-      if (listener.Wait(FLAGS_timeout)) {
+      if (listener.Wait(absl::GetFlag(FLAGS_timeout))) {
         LOG(INFO) << "Event comes";
       }
     }

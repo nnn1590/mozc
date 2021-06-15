@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,28 @@
 
 #include "composer/internal/typing_model.h"
 
+#include <cstdint>
 #include <limits>
 #include <memory>
 
 #include "base/port.h"
-#include "base/string_piece.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace composer {
 
-const uint8 TypingModel::kNoData = std::numeric_limits<uint8>::max();
+const uint8_t TypingModel::kNoData = std::numeric_limits<uint8_t>::max();
 const int TypingModel::kInfinity = (2 << 20);  // approximately equals 1e+6
 
-TypingModel::TypingModel(const char *characters,
-                         size_t characters_size,
-                         const uint8 *cost_table,
-                         size_t cost_table_size,
-                         const int32 *mapping_table) :
-    character_to_radix_table_(
-        new unsigned char[std::numeric_limits<unsigned char>::max()]),
-    characters_size_(characters_size),
-    cost_table_(cost_table),
-    cost_table_size_(cost_table_size),
-    mapping_table_(mapping_table) {
+TypingModel::TypingModel(const char *characters, size_t characters_size,
+                         const uint8_t *cost_table, size_t cost_table_size,
+                         const int32_t *mapping_table)
+    : character_to_radix_table_(
+          new unsigned char[std::numeric_limits<unsigned char>::max()]),
+      characters_size_(characters_size),
+      cost_table_(cost_table),
+      cost_table_size_(cost_table_size),
+      mapping_table_(mapping_table) {
   for (size_t i = 0; i < characters_size; ++i) {
     character_to_radix_table_[characters[i]] = i + 1;
   }
@@ -59,16 +58,16 @@ TypingModel::TypingModel(const char *characters,
 
 TypingModel::~TypingModel() = default;
 
-int TypingModel::GetCost(StringPiece key) const {
+int TypingModel::GetCost(absl::string_view key) const {
   size_t index = GetIndex(key);
   if (index >= cost_table_size_) {
     return kInfinity;
   }
-  uint8 cost_index = cost_table_[index];
+  uint8_t cost_index = cost_table_[index];
   return cost_index == kNoData ? kInfinity : mapping_table_[cost_index];
 }
 
-size_t TypingModel::GetIndex(StringPiece key) const {
+size_t TypingModel::GetIndex(absl::string_view key) const {
   const unsigned int radix = characters_size_ + 1;
   size_t index = 0;
   for (size_t i = 0; i < key.length(); ++i) {
@@ -102,35 +101,34 @@ std::unique_ptr<const TypingModel> TypingModel::CreateTypingModel(
       return nullptr;
   }
 
-  const StringPiece data = data_manager.GetTypingModel(key);
+  const absl::string_view data = data_manager.GetTypingModel(key);
   if (data.empty()) {
     return nullptr;
   }
   // Parse the binary image of typing model.  See gen_typing_model.py for file
   // format.
-  const uint32 characters_size =
-      *reinterpret_cast<const uint32*>(data.data());
+  const uint32_t characters_size =
+      *reinterpret_cast<const uint32_t *>(data.data());
   const char *characters = data.data() + 4;
 
   size_t offset = 4 + characters_size;
   if (offset % 4 != 0) {
     offset += 4 - offset % 4;
   }
-  const uint32 cost_table_size =
-      *reinterpret_cast<const uint32*>(data.data() + offset);
-  const uint8 *cost_table =
-      reinterpret_cast<const uint8*>(data.data() + offset + 4);
+  const uint32_t cost_table_size =
+      *reinterpret_cast<const uint32_t *>(data.data() + offset);
+  const uint8_t *cost_table =
+      reinterpret_cast<const uint8_t *>(data.data() + offset + 4);
 
   offset += 4 + cost_table_size;
   if (offset % 4 != 0) {
     offset += 4 - offset % 4;
   }
-  const int32 *mapping_table =
-      reinterpret_cast<const int32*>(data.data() + offset);
+  const int32_t *mapping_table =
+      reinterpret_cast<const int32_t *>(data.data() + offset);
 
-  return std::unique_ptr<const TypingModel>(
-      new TypingModel(characters, characters_size, cost_table, cost_table_size,
-                      mapping_table));
+  return std::unique_ptr<const TypingModel>(new TypingModel(
+      characters, characters_size, cost_table, cost_table_size, mapping_table));
 }
 
 }  // namespace composer

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
 #include <vector>
 
 #include "base/const.h"
-#include "base/flags.h"
 #include "base/logging.h"
 #include "base/process_mutex.h"
 #include "base/scoped_handle.h"
@@ -45,9 +44,10 @@
 #include "win32/base/imm_registrar.h"
 #include "win32/base/imm_util.h"
 #include "win32/base/migration_util.h"
+#include "absl/flags/flag.h"
 
-DEFINE_bool(set_default_do_not_ask_again, false,
-              "Set true if SetDefaultDialog should not be displayed again.");
+ABSL_FLAG(bool, set_default_do_not_ask_again, false,
+          "Set true if SetDefaultDialog should not be displayed again.");
 
 namespace mozc {
 namespace win32 {
@@ -61,8 +61,8 @@ const int kErrorLevelProcessMutexInUse = -1;
 const int kErrorLevelSuccess = 0;
 const int kErrorLevelGeneralError = 1;
 
-void NotifyFatalMessageImpl(const string &msg) {
-#ifdef NO_LOGGING
+void NotifyFatalMessageImpl(const std::string &msg) {
+#ifdef MOZC_NO_LOGGING
   // Explicitly causes crash so that the migration failure will be notified
   // through crash dump.
   LOG(FATAL) << msg;
@@ -72,13 +72,13 @@ void NotifyFatalMessageImpl(const string &msg) {
 #endif
 }
 
-void NotifyFatalMessage(const string &msg, int line) {
+void NotifyFatalMessage(const std::string &msg, int line) {
   std::ostringstream ostr;
   ostr << msg << " (line: " << line << ")";
   NotifyFatalMessageImpl(ostr.str());
 }
 
-string GetMutexName() {
+std::string GetMutexName() {
   return (kProcessMutexPrefixForPerUserIMESettings +
           SystemUtil::GetDesktopNameAsString());
 }
@@ -91,8 +91,8 @@ HKL EnsureKeyboardLoaded() {
     return nullptr;
   }
 
-  HKL hkl = ::LoadKeyboardLayoutW(
-      target_klid.ToString().c_str(), KLF_ACTIVATE | KLF_SUBSTITUTE_OK);
+  HKL hkl = ::LoadKeyboardLayoutW(target_klid.ToString().c_str(),
+                                  KLF_ACTIVATE | KLF_SUBSTITUTE_OK);
   if (hkl == nullptr) {
     const int error = ::GetLastError();
     LOG(ERROR) << "LoadKeyboardLayoutW failed. error = " << error;
@@ -103,8 +103,8 @@ HKL EnsureKeyboardLoaded() {
   // b/2958563 will be recovered.
   ::UnloadKeyboardLayout(hkl);
 
-  hkl = ::LoadKeyboardLayoutW(
-      target_klid.ToString().c_str(), KLF_ACTIVATE | KLF_SUBSTITUTE_OK);
+  hkl = ::LoadKeyboardLayoutW(target_klid.ToString().c_str(),
+                              KLF_ACTIVATE | KLF_SUBSTITUTE_OK);
   if (hkl == nullptr) {
     const int error = ::GetLastError();
     LOG(ERROR) << "LoadKeyboardLayoutW failed. error = " << error;
@@ -144,7 +144,7 @@ int RunSetDefaultWin8() {
     return kErrorLevelGeneralError;
   }
 
-  if (FLAGS_set_default_do_not_ask_again) {
+  if (absl::GetFlag(FLAGS_set_default_do_not_ask_again)) {
     if (!ClearCheckDefault()) {
       // Notify the error to user but never treat this as an error.
       NotifyFatalMessage("ClearCheckDefault() failed.", __LINE__);
@@ -160,7 +160,7 @@ int RunSetDefault(int argc, char *argv[]) {
     return RunSetDefaultWin8();
   }
 
-  const string mutex_name = GetMutexName();
+  const std::string mutex_name = GetMutexName();
 
   mozc::ProcessMutex mutex(mutex_name.c_str());
   if (!mutex.Lock()) {
@@ -183,7 +183,7 @@ int RunSetDefault(int argc, char *argv[]) {
     return kErrorLevelGeneralError;
   }
 
-  if (FLAGS_set_default_do_not_ask_again) {
+  if (absl::GetFlag(FLAGS_set_default_do_not_ask_again)) {
     if (!ClearCheckDefault()) {
       // Notify the error to user but never treat this as an error.
       NotifyFatalMessage("ClearCheckDefault() failed.", __LINE__);

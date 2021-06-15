@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@
 #include "dictionary/suppression_dictionary.h"
 
 #include <string>
+#include <vector>
 
 #include "base/logging.h"
-#include "base/singleton.h"
 #include "base/thread.h"
 #include "base/util.h"
 #include "testing/base/public/googletest.h"
@@ -42,107 +42,121 @@ namespace mozc {
 namespace dictionary {
 namespace {
 
-TEST(SupressionDictionary, BasicTest) {
-  SuppressionDictionary *dic = Singleton<SuppressionDictionary>::get();
-  CHECK(dic);
+TEST(SuppressionDictionary, BasicTest) {
+  SuppressionDictionary dic;
 
   // repeat 10 times
   for (int i = 0; i < 10; ++i) {
     // Not locked
-    EXPECT_FALSE(dic->AddEntry("test", "test"));
+    EXPECT_FALSE(dic.AddEntry("test", "test"));
 
-    dic->Lock();
     // IsEmpty() returns always true when dic is locked
-    EXPECT_TRUE(dic->IsEmpty());
-    EXPECT_FALSE(dic->AddEntry("", ""));
-    EXPECT_TRUE(dic->AddEntry("key1", "value1"));
-    EXPECT_TRUE(dic->AddEntry("key2", "value2"));
-    EXPECT_TRUE(dic->AddEntry("key3", "value3"));
-    EXPECT_TRUE(dic->AddEntry("key4", ""));
-    EXPECT_TRUE(dic->AddEntry("key5", ""));
-    EXPECT_TRUE(dic->AddEntry("", "value4"));
-    EXPECT_TRUE(dic->AddEntry("", "value5"));
-    EXPECT_TRUE(dic->IsEmpty());
-    dic->UnLock();
+    {
+      const SuppressionDictionaryLock l(&dic);
+      EXPECT_TRUE(dic.IsEmpty());
+      EXPECT_FALSE(dic.AddEntry("", ""));
+      EXPECT_TRUE(dic.AddEntry("key1", "value1"));
+      EXPECT_TRUE(dic.AddEntry("key2", "value2"));
+      EXPECT_TRUE(dic.AddEntry("key3", "value3"));
+      EXPECT_TRUE(dic.AddEntry("key4", ""));
+      EXPECT_TRUE(dic.AddEntry("key5", ""));
+      EXPECT_TRUE(dic.AddEntry("", "value4"));
+      EXPECT_TRUE(dic.AddEntry("", "value5"));
+      EXPECT_TRUE(dic.IsEmpty());
+    }
 
-    EXPECT_FALSE(dic->IsEmpty());
+    EXPECT_FALSE(dic.IsEmpty());
 
     // Not locked
-    EXPECT_FALSE(dic->AddEntry("test", "test"));
+    EXPECT_FALSE(dic.AddEntry("test", "test"));
 
     // locked now => SuppressEntry always returns false
-    dic->Lock();
-    EXPECT_FALSE(dic->SuppressEntry("key1", "value1"));
-    dic->UnLock();
+    {
+      const SuppressionDictionaryLock l(&dic);
+      EXPECT_FALSE(dic.SuppressEntry("key1", "value1"));
+    }
 
-    EXPECT_TRUE(dic->SuppressEntry("key1", "value1"));
-    EXPECT_TRUE(dic->SuppressEntry("key2", "value2"));
-    EXPECT_TRUE(dic->SuppressEntry("key3", "value3"));
-    EXPECT_TRUE(dic->SuppressEntry("key4", ""));
-    EXPECT_TRUE(dic->SuppressEntry("key5", ""));
-    EXPECT_TRUE(dic->SuppressEntry("", "value4"));
-    EXPECT_TRUE(dic->SuppressEntry("", "value5"));
-    EXPECT_FALSE(dic->SuppressEntry("key1", ""));
-    EXPECT_FALSE(dic->SuppressEntry("key2", ""));
-    EXPECT_FALSE(dic->SuppressEntry("key3", ""));
-    EXPECT_FALSE(dic->SuppressEntry("", "value1"));
-    EXPECT_FALSE(dic->SuppressEntry("", "value2"));
-    EXPECT_FALSE(dic->SuppressEntry("", "value3"));
-    EXPECT_FALSE(dic->SuppressEntry("key1", "value2"));
-    EXPECT_TRUE(dic->SuppressEntry("key4", "value2"));
-    EXPECT_TRUE(dic->SuppressEntry("key4", "value3"));
-    EXPECT_TRUE(dic->SuppressEntry("key5", "value0"));
-    EXPECT_TRUE(dic->SuppressEntry("key5", "value4"));
-    EXPECT_TRUE(dic->SuppressEntry("key0", "value5"));
-    EXPECT_FALSE(dic->SuppressEntry("", ""));
+    EXPECT_TRUE(dic.SuppressEntry("key1", "value1"));
+    EXPECT_TRUE(dic.SuppressEntry("key2", "value2"));
+    EXPECT_TRUE(dic.SuppressEntry("key3", "value3"));
+    EXPECT_TRUE(dic.SuppressEntry("key4", ""));
+    EXPECT_TRUE(dic.SuppressEntry("key5", ""));
+    EXPECT_TRUE(dic.SuppressEntry("", "value4"));
+    EXPECT_TRUE(dic.SuppressEntry("", "value5"));
+    EXPECT_FALSE(dic.SuppressEntry("key1", ""));
+    EXPECT_FALSE(dic.SuppressEntry("key2", ""));
+    EXPECT_FALSE(dic.SuppressEntry("key3", ""));
+    EXPECT_FALSE(dic.SuppressEntry("", "value1"));
+    EXPECT_FALSE(dic.SuppressEntry("", "value2"));
+    EXPECT_FALSE(dic.SuppressEntry("", "value3"));
+    EXPECT_FALSE(dic.SuppressEntry("key1", "value2"));
+    EXPECT_TRUE(dic.SuppressEntry("key4", "value2"));
+    EXPECT_TRUE(dic.SuppressEntry("key4", "value3"));
+    EXPECT_TRUE(dic.SuppressEntry("key5", "value0"));
+    EXPECT_TRUE(dic.SuppressEntry("key5", "value4"));
+    EXPECT_TRUE(dic.SuppressEntry("key0", "value5"));
+    EXPECT_FALSE(dic.SuppressEntry("", ""));
 
-    dic->Lock();
-    dic->Clear();
-    dic->UnLock();
+    {
+      const SuppressionDictionaryLock l(&dic);
+      dic.Clear();
+    }
   }
 }
 
 class DictionaryLoaderThread : public Thread {
  public:
-  virtual void Run() {
-    SuppressionDictionary *dic = Singleton<SuppressionDictionary>::get();
-    CHECK(dic);
-    dic->Lock();
-    dic->Clear();
+  explicit DictionaryLoaderThread(SuppressionDictionary *dic) : dic_{dic} {}
+
+  void Run() override {
+    const SuppressionDictionaryLock l(dic_);
+    dic_->Clear();
     for (int i = 0; i < 100; ++i) {
-      const string key = "key" + std::to_string(i);
-      const string value = "value" + std::to_string(i);
-      EXPECT_TRUE(dic->AddEntry(key, value));
+      const std::string key = "key" + std::to_string(i);
+      const std::string value = "value" + std::to_string(i);
+      EXPECT_TRUE(dic_->AddEntry(key, value));
+#ifdef OS_IOS
+      // Sleep only for 1 msec. On iOS, Util::Sleep takes a very longer time
+      // like 30 times compaired with MacOS. This should be a temporary
+      // solution.
+      Util::Sleep(1);
+#else
       Util::Sleep(5);
+#endif
     }
-    dic->UnLock();
   }
+
+ private:
+  SuppressionDictionary *dic_;
 };
 
-TEST(SupressionDictionary, ThreadTest) {
-  SuppressionDictionary *dic = Singleton<SuppressionDictionary>::get();
-  CHECK(dic);
+TEST(SuppressionDictionary, ThreadTest) {
+  // Keys and values for testing.
+  std::vector<std::string> keys, values;
+  for (int i = 0; i < 100; ++i) {
+    keys.push_back("key" + std::to_string(i));
+    values.push_back("value" + std::to_string(i));
+  }
 
-  dic->Lock();
+  SuppressionDictionary dic;
+  for (int iter = 0; iter < 3; ++iter) {
+    DictionaryLoaderThread thread(&dic);
 
-  for (int iter = 0; iter < 3; ++iter)  {
-    DictionaryLoaderThread thread;
-
-    // Load dictionary in another thread.
+    // Load dictionary in another thread. `dic` will be locked.
     thread.Start("SuppressionDictionaryTest");
 
     for (int i = 0; i < 100; ++i) {
-      const string key = "key" + std::to_string(i);
-      const string value = "value" + std::to_string(i);
       if (!thread.IsRunning()) {
-        EXPECT_TRUE(dic->SuppressEntry(key, value));
+        EXPECT_TRUE(dic.SuppressEntry(keys[i], values[i]));
       }
     }
 
     thread.Join();
-  }
 
-  dic->UnLock();
+    for (int i = 0; i < 100; ++i) {
+      EXPECT_TRUE(dic.SuppressEntry(keys[i], values[i]));
+    }
+  }
 }
 
 }  // namespace

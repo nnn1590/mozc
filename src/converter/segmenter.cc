@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 
 #include "converter/segmenter.h"
 
+#include <cstdint>
+
 #include "base/bitarray.h"
 #include "base/logging.h"
 #include "base/port.h"
@@ -41,29 +43,29 @@ Segmenter *Segmenter::CreateFromDataManager(
     const DataManagerInterface &data_manager) {
   size_t l_num_elements = 0;
   size_t r_num_elements = 0;
-  const uint16 *l_table = nullptr;
-  const uint16 *r_table = nullptr;
+  const uint16_t *l_table = nullptr;
+  const uint16_t *r_table = nullptr;
   size_t bitarray_num_bytes = 0;
   const char *bitarray_data = nullptr;
-  const uint16 *boundary_data = nullptr;
-  data_manager.GetSegmenterData(&l_num_elements, &r_num_elements,
-                                &l_table, &r_table,
-                                &bitarray_num_bytes, &bitarray_data,
+  const uint16_t *boundary_data = nullptr;
+  data_manager.GetSegmenterData(&l_num_elements, &r_num_elements, &l_table,
+                                &r_table, &bitarray_num_bytes, &bitarray_data,
                                 &boundary_data);
-  return new Segmenter(l_num_elements, r_num_elements,
-                       l_table, r_table,
-                       bitarray_num_bytes, bitarray_data,
-                       boundary_data);
+  return new Segmenter(l_num_elements, r_num_elements, l_table, r_table,
+                       bitarray_num_bytes, bitarray_data, boundary_data);
 }
 
-Segmenter::Segmenter(
-    size_t l_num_elements, size_t r_num_elements, const uint16 *l_table,
-    const uint16 *r_table, size_t bitarray_num_bytes,
-    const char *bitarray_data, const uint16 *boundary_data)
-    : l_num_elements_(l_num_elements), r_num_elements_(r_num_elements),
-      l_table_(l_table), r_table_(r_table),
+Segmenter::Segmenter(size_t l_num_elements, size_t r_num_elements,
+                     const uint16_t *l_table, const uint16_t *r_table,
+                     size_t bitarray_num_bytes, const char *bitarray_data,
+                     const uint16_t *boundary_data)
+    : l_num_elements_(l_num_elements),
+      r_num_elements_(r_num_elements),
+      l_table_(l_table),
+      r_table_(r_table),
       bitarray_num_bytes_(bitarray_num_bytes),
-      bitarray_data_(bitarray_data), boundary_data_(boundary_data) {
+      bitarray_data_(bitarray_data),
+      boundary_data_(boundary_data) {
   DCHECK(l_table_);
   DCHECK(r_table_);
   DCHECK(bitarray_data_);
@@ -75,8 +77,7 @@ Segmenter::~Segmenter() {}
 
 bool Segmenter::IsBoundary(const Node &lnode, const Node &rnode,
                            bool is_single_segment) const {
-  if (lnode.node_type == Node::BOS_NODE ||
-      rnode.node_type == Node::EOS_NODE) {
+  if (lnode.node_type == Node::BOS_NODE || rnode.node_type == Node::EOS_NODE) {
     return true;
   }
 
@@ -92,7 +93,7 @@ bool Segmenter::IsBoundary(const Node &lnode, const Node &rnode,
   // This hack is for handling ambiguous bunsetsu segmentation.
   // e.g. "かみ|にかく" => "紙|に書く" or "紙二角".
   // If we segment "に書く" into two segments, "二角" is never be shown.
-  // There exits some implicit assumpution that user expects that his/her input
+  // There exits some implicit assumpution that user expects that their input
   // becomes one bunsetu. So, it would be better to keep "二角" even after "紙".
   if (lnode.attributes & Node::STARTS_WITH_PARTICLE) {
     return false;
@@ -101,17 +102,18 @@ bool Segmenter::IsBoundary(const Node &lnode, const Node &rnode,
   return IsBoundary(lnode.rid, rnode.lid);
 }
 
-bool Segmenter::IsBoundary(uint16 rid, uint16 lid) const {
-  const uint32 bitarray_index = l_table_[rid] + l_num_elements_ * r_table_[lid];
-  return BitArray::GetValue(reinterpret_cast<const char*>(bitarray_data_),
+bool Segmenter::IsBoundary(uint16_t rid, uint16_t lid) const {
+  const uint32_t bitarray_index =
+      l_table_[rid] + l_num_elements_ * r_table_[lid];
+  return BitArray::GetValue(reinterpret_cast<const char *>(bitarray_data_),
                             bitarray_index);
 }
 
-int32 Segmenter::GetPrefixPenalty(uint16 lid) const {
+int32_t Segmenter::GetPrefixPenalty(uint16_t lid) const {
   return boundary_data_[2 * lid];
 }
 
-int32 Segmenter::GetSuffixPenalty(uint16 rid) const {
+int32_t Segmenter::GetSuffixPenalty(uint16_t rid) const {
   return boundary_data_[2 * rid + 1];
 }
 

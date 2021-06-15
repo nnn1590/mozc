@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@
 #ifdef OS_WIN
 #include <windows.h>
 #else
-#include <signal.h>
 #include <errno.h>
+#include <signal.h>
 #endif
 
 #include "base/logging.h"
@@ -46,33 +46,43 @@ namespace mozc {
 
 #ifdef OS_WIN
 ProcessWatchDog::ProcessWatchDog()
-    : event_(::CreateEventW(NULL, TRUE, FALSE, NULL)),
+    : event_(::CreateEventW(nullptr, TRUE, FALSE, nullptr)),
       process_id_(UnknownProcessID),
       thread_id_(UnknownThreadID),
       timeout_(-1),
       is_finished_(false),
       mutex_(new Mutex) {
-  if (event_.get() == NULL) {
+  if (event_.get() == nullptr) {
     LOG(ERROR) << "::CreateEvent() failed.";
     return;
   }
-  Thread::Start("WatchDog");  // start
 }
 
 ProcessWatchDog::~ProcessWatchDog() {
-  is_finished_ = true;  // set the flag to terminate the thread
+  StopWatchDog();
+}
 
-  if (event_.get() != NULL) {
+void ProcessWatchDog::StartWatchDog() {
+  Thread::Start("WatchDog");
+}
+
+void ProcessWatchDog::StopWatchDog() {
+  {
+    scoped_lock l(mutex_.get());
+    is_finished_ = true;  // set the flag to terminate the thread
+  }
+
+  if (event_.get() != nullptr) {
     ::SetEvent(event_.get());  // wake up WaitForMultipleObjects
   }
 
-  Join();  // wait for the thread
+  Join();
 }
 
 bool ProcessWatchDog::SetID(ProcessID process_id, ThreadID thread_id,
                             int timeout) {
-  if (event_.get() == NULL) {
-    LOG(ERROR) << "event is NULL";
+  if (event_.get() == nullptr) {
+    LOG(ERROR) << "event is nullptr";
     return false;
   }
 
@@ -82,7 +92,7 @@ bool ProcessWatchDog::SetID(ProcessID process_id, ThreadID thread_id,
     return true;
   }
 
-  // rewrite the valeus
+  // rewrite the values
   {
     scoped_lock l(mutex_.get());
     process_id_ = process_id;
@@ -97,7 +107,14 @@ bool ProcessWatchDog::SetID(ProcessID process_id, ThreadID thread_id,
 }
 
 void ProcessWatchDog::Run() {
-  while (!is_finished_) {
+  while (true) {
+    {
+      scoped_lock l(mutex_.get());
+      if (is_finished_) {
+        break;
+      }
+    }
+
     ScopedHandle process_handle;
     ScopedHandle thread_handle;
     int timeout = -1;
@@ -110,7 +127,7 @@ void ProcessWatchDog::Run() {
         const HANDLE handle = ::OpenProcess(SYNCHRONIZE, FALSE, process_id_);
         const DWORD error = ::GetLastError();
         process_handle.reset(handle);
-        if (process_handle.get() == NULL) {
+        if (process_handle.get() == nullptr) {
           LOG(ERROR) << "OpenProcess failed: " << process_id_ << " " << error;
           switch (error) {
             case ERROR_ACCESS_DENIED:
@@ -130,7 +147,7 @@ void ProcessWatchDog::Run() {
         const HANDLE handle = ::OpenThread(SYNCHRONIZE, FALSE, thread_id_);
         const DWORD error = ::GetLastError();
         thread_handle.reset(handle);
-        if (thread_handle.get() == NULL) {
+        if (thread_handle.get() == nullptr) {
           LOG(ERROR) << "OpenThread failed: " << thread_id_ << " " << error;
           switch (error) {
             case ERROR_ACCESS_DENIED:
@@ -164,22 +181,22 @@ void ProcessWatchDog::Run() {
 
     // set handles
     DWORD size = 1;
-    if (process_handle.get() != NULL) {
+    if (process_handle.get() != nullptr) {
       VLOG(2) << "Inserting process handle";
       handles[size] = process_handle.get();
       types[size] = ProcessWatchDog::PROCESS_SIGNALED;
       ++size;
     }
 
-    if (thread_handle.get() != NULL) {
+    if (thread_handle.get() != nullptr) {
       VLOG(2) << "Inserting thread handle";
       handles[size] = thread_handle.get();
       types[size] = ProcessWatchDog::THREAD_SIGNALED;
       ++size;
     }
 
-    const DWORD result = ::WaitForMultipleObjects(
-        size, handles, FALSE, timeout);
+    const DWORD result =
+        ::WaitForMultipleObjects(size, handles, FALSE, timeout);
     SignalType result_type = ProcessWatchDog::UNKNOWN_SIGNALED;
     switch (result) {
       case WAIT_OBJECT_0:
@@ -208,29 +225,39 @@ void ProcessWatchDog::Run() {
 
     if (result_type != ProcessWatchDog::UNKNOWN_SIGNALED) {
       VLOG(1) << "Sending signal: " << static_cast<int>(result_type);
-      Signaled(result_type);   // call signal handler
+      Signaled(result_type);  // call signal handler
     }
   }
 }
 
-#else  // OS_WIN
+#else   // OS_WIN
 
 ProcessWatchDog::ProcessWatchDog()
     : process_id_(UnknownProcessID),
       thread_id_(UnknownProcessID),
       is_finished_(false),
-      mutex_(new Mutex) {
+      mutex_(new Mutex) {}
+
+ProcessWatchDog::~ProcessWatchDog() {
+  // StopWatchDog() should be called before the deconstructor.
+  // This call is a fallback.
+  StopWatchDog();
+}
+
+void ProcessWatchDog::StartWatchDog() {
   Thread::Start("WatchDog");
 }
 
-ProcessWatchDog::~ProcessWatchDog() {
-  is_finished_ = true;
+void ProcessWatchDog::StopWatchDog() {
+  {
+    scoped_lock l(mutex_.get());
+    is_finished_ = true;  // set the flag to terminate the thread
+  }
   Join();
 }
 
 bool ProcessWatchDog::SetID(ProcessWatchDog::ProcessID process_id,
-                            ProcessWatchDog::ThreadID thread_id,
-                            int timeout) {
+                            ProcessWatchDog::ThreadID thread_id, int timeout) {
   if (process_id_ == process_id && thread_id_ == thread_id &&
       timeout_ == timeout) {
     // don't repeat if we are checking the same thread/process
@@ -268,16 +295,26 @@ void ProcessWatchDog::Run() {
   // reuse same process id in 250ms or write to is_finished_ stays
   // forever in another CPU's local cache.
   // TODO(team): use kqueue with EVFILT_PROC/NOTE_EXIT for Mac.
-  while (!is_finished_) {
+  while (true) {
+    {
+      scoped_lock l(mutex_.get());
+      if (is_finished_) {
+        break;
+      }
+    }
+
     Util::Sleep(250);
-    if (process_id_ == UnknownProcessID) {
-      continue;
+    {
+      scoped_lock l(mutex_.get());
+      if (process_id_ == UnknownProcessID) {
+        continue;
+      }
     }
     if (::kill(process_id_, 0) != 0) {
       if (errno == EPERM) {
         Signaled(ProcessWatchDog::PROCESS_ACCESS_DENIED_SIGNALED);
       } else if (errno == ESRCH) {
-        // Since we are polling the process by NULL signal,
+        // Since we are polling the process by nullptr signal,
         // it is essentially impossible to tell the process is not found
         // or terminated.
         Signaled(ProcessWatchDog::PROCESS_SIGNALED);

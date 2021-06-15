@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,8 @@
 #include "request/conversion_request.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 
@@ -51,23 +53,21 @@ using dictionary::POSMatcher;
 class SingleKanjiRewriterTest : public ::testing::Test {
  protected:
   SingleKanjiRewriterTest() {
-    data_manager_.reset(new testing::MockDataManager);
+    data_manager_ = absl::make_unique<testing::MockDataManager>();
     pos_matcher_.Set(data_manager_->GetPOSMatcherData());
   }
 
   ~SingleKanjiRewriterTest() override = default;
 
   void SetUp() override {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
   }
 
   SingleKanjiRewriter *CreateSingleKanjiRewriter() const {
     return new SingleKanjiRewriter(*data_manager_);
   }
 
-  const POSMatcher &pos_matcher() {
-    return pos_matcher_;
-  }
+  const POSMatcher &pos_matcher() { return pos_matcher_; }
 
   const ConversionRequest default_request_;
 
@@ -92,7 +92,7 @@ TEST_F(SingleKanjiRewriterTest, SetKeyTest) {
 
   Segments segments;
   Segment *segment = segments.add_segment();
-  const string kKey = "あ";
+  const std::string kKey = "あ";
   segment->set_key(kKey);
   Segment::Candidate *candidate = segment->add_candidate();
   // First candidate may be inserted by other rewriters.

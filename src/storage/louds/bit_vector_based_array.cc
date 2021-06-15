@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 
 #include "storage/louds/bit_vector_based_array.h"
 
+#include <cstdint>
+
 #include "base/logging.h"
 
 namespace mozc {
@@ -40,13 +42,13 @@ namespace {
 const size_t kLb0CacheSize = 1024;
 const size_t kLb1CacheSize = 0;
 
-inline int ReadInt32(const uint8 *data) {
-  return *reinterpret_cast<const int32*>(data);
+inline int ReadInt32(const uint8_t *data) {
+  return *reinterpret_cast<const int32_t *>(data);
 }
 
 }  // namespace
 
-void BitVectorBasedArray::Open(const uint8 *image) {
+void BitVectorBasedArray::Open(const uint8_t *image) {
   const int index_length = ReadInt32(image);
   const int base_length = ReadInt32(image + 4);
   const int step_length = ReadInt32(image + 8);
@@ -56,14 +58,14 @@ void BitVectorBasedArray::Open(const uint8 *image) {
   index_.Init(image + 16, index_length, kLb0CacheSize, kLb1CacheSize);
   base_length_ = base_length;
   step_length_ = step_length;
-  data_ = reinterpret_cast<const char*>(image + 16 + index_length);
+  data_ = reinterpret_cast<const char *>(image + 16 + index_length);
 }
 
 void BitVectorBasedArray::Close() {
   index_.Reset();
   base_length_ = 0;
   step_length_ = 0;
-  data_ = 0;
+  data_ = nullptr;
 }
 
 const char *BitVectorBasedArray::Get(size_t index, size_t *length) const {

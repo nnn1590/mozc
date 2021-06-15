@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_BASE_SYSTEM_UTIL_H_
 #define MOZC_BASE_SYSTEM_UTIL_H_
 
+#include <cstdint>
 #include <string>
 
 #include "base/port.h"
@@ -48,11 +49,11 @@ class SystemUtil {
   // return "~/.mozc" for Unix/Mac
   // return "%USERPROFILE%\\AppData\\LocalLow\\"
   //        "Google\\Google Japanese Input" for Windows Vista and later.
-  static string GetUserProfileDirectory();
+  static std::string GetUserProfileDirectory();
 
   // return ~/Library/Logs/Mozc for Mac
   // Otherwise same as GetUserProfileDirectory().
-  static string GetLoggingDirectory();
+  static std::string GetLoggingDirectory();
 
   // set user dir
 
@@ -62,44 +63,43 @@ class SystemUtil {
   // - some tests use this.
   // TODO(mukai,taku): find better way to hide this method in the release
   // build but available from those tests.
-  static void SetUserProfileDirectory(const string &path);
+  static void SetUserProfileDirectory(const std::string &path);
 
   // return the directory name where the mozc server exist.
-  static string GetServerDirectory();
+  static std::string GetServerDirectory();
 
   // return the path of the mozc server.
-  static string GetServerPath();
+  static std::string GetServerPath();
 
   // return the path of the mozc renderer.
-  static string GetRendererPath();
+  static std::string GetRendererPath();
 
   // return the path of the mozc tool.
-  static string GetToolPath();
+  static std::string GetToolPath();
 
   // Returns the directory name which holds some documents bundled to
   // the installed application package.  Typically it's
   // <server directory>/documents but it can change among platforms.
-  static string GetDocumentDirectory();
+  static std::string GetDocumentDirectory();
 
   // Returns the directory path crash dumps are stored.
-  static string GetCrashReportDirectory();
+  static std::string GetCrashReportDirectory();
 
   // return the username.  This function's name was GetUserName.
   // Since Windows reserves GetUserName as a macro, we have changed
   // the name to GetUserNameAsString.
-  static string GetUserNameAsString();
+  static std::string GetUserNameAsString();
 
   // return Windows SID as string.
   // On Linux and Mac, GetUserSidAsString() is equivalent to
   // GetUserNameAsString()
-  static string GetUserSidAsString();
-
+  static std::string GetUserSidAsString();
 
   // return DesktopName as string.
   // On Windows. return <session_id>.<DesktopStationName>.<ThreadDesktopName>
   // On Linux, return getenv("DISPLAY")
   // Mac has no DesktopName() so, just return empty string
-  static string GetDesktopNameAsString();
+  static std::string GetDesktopNameAsString();
 
 #ifdef OS_WIN
   // From an early stage of the development of Mozc, we have somehow abused
@@ -143,7 +143,7 @@ class SystemUtil {
   static void SetIsWindowsX64ModeForTest(IsWindowsX64Mode mode);
 
 #ifdef OS_WIN
-  // return system directory. If failed, return NULL.
+  // return system directory. If failed, return nullptr.
   // You need not to delete the returned pointer.
   // This function is thread safe.
   static const wchar_t *GetSystemDir();
@@ -154,18 +154,18 @@ class SystemUtil {
   // Currently this method is defined in util.h because it depends on some
   // utility functions defined in util.cc.
   // TODO(yukawa): Move this method to win32/base/*
-  static string GetMSCTFAsmCacheReadyEventName();
+  static std::string GetMSCTFAsmCacheReadyEventName();
 #endif  // OS_WIN
 
   // return string representing os version
   // TODO(toshiyuki): Add unittests.
-  static string GetOSVersionString();
+  static std::string GetOSVersionString();
 
   // disable IME in the current process/thread
   static void DisableIME();
 
   // retrieve total physical memory. returns 0 if any error occurs.
-  static uint64 GetTotalPhysicalMemory();
+  static uint64_t GetTotalPhysicalMemory();
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(SystemUtil);

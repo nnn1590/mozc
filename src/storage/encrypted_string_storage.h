@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -41,24 +41,24 @@ class StringStorageInterface {
  public:
   virtual ~StringStorageInterface() {}
 
-  virtual bool Load(string *output) const = 0;
-  virtual bool Save(const string &input) const = 0;
+  virtual bool Load(std::string *output) const = 0;
+  virtual bool Save(const std::string &input) const = 0;
 };
 
 class EncryptedStringStorage : public StringStorageInterface {
  public:
-  explicit EncryptedStringStorage(const string &filename);
-  virtual ~EncryptedStringStorage();
+  explicit EncryptedStringStorage(const std::string &filename);
+  ~EncryptedStringStorage() override;
 
-  virtual bool Load(string *output) const;
-  virtual bool Save(const string &input) const;
+  bool Load(std::string *output) const override;
+  bool Save(const std::string &input) const override;
 
  protected:
-  virtual bool Encrypt(const string &salt, string *data) const;
-  virtual bool Decrypt(const string &salt, string *data) const;
+  virtual bool Encrypt(const std::string &salt, std::string *data) const;
+  virtual bool Decrypt(const std::string &salt, std::string *data) const;
 
  private:
-  string filename_;
+  std::string filename_;
 
   DISALLOW_COPY_AND_ASSIGN(EncryptedStringStorage);
 };

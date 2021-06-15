@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -46,9 +46,10 @@
 #include "protocol/commands.pb.h"
 #include "protocol/config.pb.h"
 #include "request/conversion_request.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace {
@@ -57,9 +58,9 @@ using dictionary::SuppressionDictionary;
 using dictionary::UserDictionary;
 using dictionary::UserPOS;
 
-void AddCandidate(const string &key, const string &value,
-                  const string &content_key, const string &content_value,
-                  Segment *segment) {
+void AddCandidate(const std::string &key, const std::string &value,
+                  const std::string &content_key,
+                  const std::string &content_value, Segment *segment) {
   Segment::Candidate *candidate = segment->add_candidate();
   candidate->Init();
   candidate->key = key;
@@ -78,16 +79,15 @@ class UsageRewriterTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
     config::ConfigHandler::GetDefaultConfig(&config_);
 
-    data_manager_.reset(new testing::MockDataManager);
+    data_manager_ = absl::make_unique<testing::MockDataManager>();
     pos_matcher_.Set(data_manager_->GetPOSMatcherData());
-    suppression_dictionary_.reset(new SuppressionDictionary);
-    user_dictionary_.reset(
-        new UserDictionary(UserPOS::CreateFromDataManager(*data_manager_),
-                           pos_matcher_,
-                           suppression_dictionary_.get()));
+    suppression_dictionary_ = absl::make_unique<SuppressionDictionary>();
+    user_dictionary_ = absl::make_unique<UserDictionary>(
+        UserPOS::CreateFromDataManager(*data_manager_), pos_matcher_,
+        suppression_dictionary_.get());
   }
 
   void TearDown() override {
@@ -96,9 +96,7 @@ class UsageRewriterTest : public ::testing::Test {
   }
 
   UsageRewriter *CreateUsageRewriter() const {
-    return new UsageRewriter(
-        data_manager_.get(),
-        user_dictionary_.get());
+    return new UsageRewriter(data_manager_.get(), user_dictionary_.get());
   }
 
   ConversionRequest convreq_;
@@ -113,8 +111,7 @@ class UsageRewriterTest : public ::testing::Test {
 
 TEST_F(UsageRewriterTest, CapabilityTest) {
   std::unique_ptr<UsageRewriter> rewriter(CreateUsageRewriter());
-  EXPECT_EQ(RewriterInterface::CONVERSION |
-            RewriterInterface::PREDICTION,
+  EXPECT_EQ(RewriterInterface::CONVERSION | RewriterInterface::PREDICTION,
             rewriter->capability(convreq_));
 }
 
@@ -312,7 +309,8 @@ TEST_F(UsageRewriterTest, CommentFromUserDictionary) {
   // Load mock data
   {
     UserDictionaryStorage storage("");
-    UserDictionaryStorage::UserDictionary *dic = storage.add_dictionaries();
+    UserDictionaryStorage::UserDictionary *dic =
+        storage.GetProto().add_dictionaries();
 
     UserDictionaryStorage::UserDictionaryEntry *entry = dic->add_entries();
     entry->set_key("うま");
@@ -320,7 +318,7 @@ TEST_F(UsageRewriterTest, CommentFromUserDictionary) {
     entry->set_pos(user_dictionary::UserDictionary::NOUN);
     entry->set_comment("アルパカコメント");
 
-    user_dictionary_->Load(storage);
+    user_dictionary_->Load(storage.GetProto());
   }
 
   // Emulates the conversion of key="うま".

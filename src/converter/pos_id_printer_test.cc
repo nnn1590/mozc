@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,6 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef OS_NACL
-// Disabled on NaCl since it uses a mock file system.
-
 #include "converter/pos_id_printer.h"
 
 #include <memory>
@@ -37,20 +34,21 @@
 
 #include "base/file_stream.h"
 #include "base/file_util.h"
-#include "base/flags.h"
 #include "testing/base/public/gunit.h"
 #include "testing/base/public/mozctest.h"
+#include "absl/flags/flag.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace internal {
 
 class PosIdPrinterTest : public ::testing::Test {
  protected:
-  virtual void SetUp() {
-    const string test_id_def_path = testing::GetSourceFileOrDie({
-        "data", "test", "dictionary", "id.def"});
-    pos_id_.reset(new InputFileStream(test_id_def_path.c_str()));
-    pos_id_printer_.reset(new PosIdPrinter(pos_id_.get()));
+  void SetUp() override {
+    const std::string test_id_def_path =
+        testing::GetSourceFileOrDie({"data", "test", "dictionary", "id.def"});
+    pos_id_ = absl::make_unique<InputFileStream>(test_id_def_path.c_str());
+    pos_id_printer_ = absl::make_unique<PosIdPrinter>(pos_id_.get());
   }
 
   std::unique_ptr<InputFileStream> pos_id_;
@@ -58,12 +56,9 @@ class PosIdPrinterTest : public ::testing::Test {
 };
 
 TEST_F(PosIdPrinterTest, BasicIdTest) {
-  EXPECT_EQ("名詞,サ変接続,*,*,*,*,*",
-            pos_id_printer_->IdToString(1934));
-  EXPECT_EQ("名詞,サ変接続,*,*,*,*,*,使用",
-            pos_id_printer_->IdToString(1935));
-  EXPECT_EQ("BOS/EOS,*,*,*,*,*,*",
-            pos_id_printer_->IdToString(0));
+  EXPECT_EQ("名詞,サ変接続,*,*,*,*,*", pos_id_printer_->IdToString(1934));
+  EXPECT_EQ("名詞,サ変接続,*,*,*,*,*,使用", pos_id_printer_->IdToString(1935));
+  EXPECT_EQ("BOS/EOS,*,*,*,*,*,*", pos_id_printer_->IdToString(0));
 }
 
 TEST_F(PosIdPrinterTest, InvalidId) {
@@ -71,12 +66,10 @@ TEST_F(PosIdPrinterTest, InvalidId) {
 }
 
 TEST_F(PosIdPrinterTest, NullInput) {
-  PosIdPrinter pos_id_printer(NULL);
+  PosIdPrinter pos_id_printer(nullptr);
   EXPECT_EQ("", pos_id_printer.IdToString(-1));
   EXPECT_EQ("", pos_id_printer.IdToString(1934));
 }
 
 }  // namespace internal
 }  // namespace mozc
-
-#endif  // !OS_NACL

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #include "rewriter/unicode_rewriter.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -47,11 +48,13 @@
 #include "request/conversion_request.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/flags/flag.h"
 
 namespace mozc {
 namespace {
 
-void AddSegment(const string &key, const string &value, Segments *segments) {
+void AddSegment(const std::string &key, const std::string &value,
+                Segments *segments) {
   Segment *seg = segments->add_segment();
   Segment::Candidate *candidate = seg->add_candidate();
   seg->set_key(key);
@@ -60,12 +63,13 @@ void AddSegment(const string &key, const string &value, Segments *segments) {
   candidate->content_value = value;
 }
 
-void InitSegments(const string &key, const string &value, Segments *segments) {
+void InitSegments(const std::string &key, const std::string &value,
+                  Segments *segments) {
   segments->Clear();
   AddSegment(key, value, segments);
 }
 
-bool ContainCandidate(const Segments &segments, const string &candidate) {
+bool ContainCandidate(const Segments &segments, const std::string &candidate) {
   const Segment &segment = segments.segment(0);
   for (size_t i = 0; i < segment.candidates_size(); ++i) {
     if (candidate == segment.candidate(i).value) {
@@ -81,20 +85,17 @@ class UnicodeRewriterTest : public ::testing::Test {
  protected:
   // Workaround for C2512 error (no default appropriate constructor) on MSVS.
   UnicodeRewriterTest() {}
-  virtual ~UnicodeRewriterTest() {}
+  ~UnicodeRewriterTest() override {}
 
-  virtual void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
     engine_.reset(MockDataEngineFactory::Create());
   }
 
   std::unique_ptr<EngineInterface> engine_;
-  const commands::Request &default_request() const {
-    return default_request_;
-  }
-  const config::Config &default_config() const {
-    return default_config_;
-  }
+  const commands::Request &default_request() const { return default_request_; }
+  const config::Config &default_config() const { return default_config_; }
+
  private:
   const commands::Request default_request_;
   const config::Config default_config_;
@@ -111,59 +112,64 @@ TEST_F(UnicodeRewriterTest, UnicodeConversionTest) {
   };
 
   const UCS4UTF8Data kUcs4Utf8Data[] = {
-    // Hiragana
-    { "U+3042", "あ" },
-    { "U+3044", "い" },
-    { "U+3046", "う" },
-    { "U+3048", "え" },
-    { "U+304A", "お" },
+      // Hiragana
+      {"U+3042", "あ"},
+      {"U+3044", "い"},
+      {"U+3046", "う"},
+      {"U+3048", "え"},
+      {"U+304A", "お"},
 
-    // Katakana
-    { "U+30A2", "ア" },
-    { "U+30A4", "イ" },
-    { "U+30A6", "ウ" },
-    { "U+30A8", "エ" },
-    { "U+30AA", "オ" },
+      // Katakana
+      {"U+30A2", "ア"},
+      {"U+30A4", "イ"},
+      {"U+30A6", "ウ"},
+      {"U+30A8", "エ"},
+      {"U+30AA", "オ"},
 
-    // half-Katakana
-    { "U+FF71", "ｱ" },
-    { "U+FF72", "ｲ" },
-    { "U+FF73", "ｳ" },
-    { "U+FF74", "ｴ" },
-    { "U+FF75", "ｵ" },
+      // half-Katakana
+      {"U+FF71", "ｱ"},
+      {"U+FF72", "ｲ"},
+      {"U+FF73", "ｳ"},
+      {"U+FF74", "ｴ"},
+      {"U+FF75", "ｵ"},
 
-    // CJK
-    { "U+611B", "愛" },
-    { "U+690D", "植" },
-    { "U+7537", "男" },
+      // CJK
+      {"U+611B", "愛"},
+      {"U+690D", "植"},
+      {"U+7537", "男"},
 
-    // Other types (Oriya script)
-    { "U+0B00", "\xE0\xAC\x80" },  // "଀"
-    { "U+0B01", "ଁ" },  // "ଁ"
-    { "U+0B02", "ଂ" },  // "ଂ"
+      // Other types (Oriya script)
+      {"U+0B00", "\xE0\xAC\x80"},  // "଀"
+      {"U+0B01", "ଁ"},              // "ଁ"
+      {"U+0B02", "ଂ"},             // "ଂ"
 
-    // Other types (Arabic)
-    { "U+0600", "؀" },
-    { "U+0601", "؁" },
-    { "U+0602", "؂" },
+      // Other types (Arabic)
+      {"U+0600", "؀"},
+      {"U+0601", "؁"},
+      {"U+0602", "؂"},
 
-    // Latin-1 support
-    { "U+00A0", "\xC2\xA0" },  // " " (nbsp)
-    { "U+00A1", "¡" },
+      // Latin-1 support
+      {"U+00A0", "\xC2\xA0"},  // " " (nbsp)
+      {"U+00A1", "¡"},
   };
 
-  const char* kMozcUnsupportedUtf8[] = {
-    // Control characters
-    "U+0000", "U+001F", "U+007F", "U+0080", "U+009F",
-    // Out of Unicode
-    "U+110000",
-    // Bidirectional text
-    "U+200E", "U+202D",
+  const char *kMozcUnsupportedUtf8[] = {
+      // Control characters
+      "U+0000",
+      "U+001F",
+      "U+007F",
+      "U+0080",
+      "U+009F",
+      // Out of Unicode
+      "U+110000",
+      // Bidirectional text
+      "U+200E",
+      "U+202D",
   };
 
   // All ascii code would be accepted.
-  for (uint32 ascii = 0x20; ascii < 0x7F; ++ascii) {
-    const string ucs4 = Util::StringPrintf("U+00%02X", ascii);
+  for (uint32_t ascii = 0x20; ascii < 0x7F; ++ascii) {
+    const std::string ucs4 = Util::StringPrintf("U+00%02X", ascii);
     InitSegments(ucs4, ucs4, &segments);
     EXPECT_TRUE(rewriter.Rewrite(request, &segments));
     EXPECT_EQ(ascii, segments.segment(0).candidate(0).value.at(0));
@@ -229,7 +235,7 @@ TEST_F(UnicodeRewriterTest, MultipleSegment) {
 TEST_F(UnicodeRewriterTest, RewriteToUnicodeCharFormat) {
   UnicodeRewriter rewriter(engine_->GetConverter());
   {  // Typical case
-    composer::Composer composer(NULL, &default_request(), &default_config());
+    composer::Composer composer(nullptr, &default_request(), &default_config());
     composer.set_source_text("A");
     ConversionRequest request(&composer, &default_request(), &default_config());
 
@@ -241,7 +247,7 @@ TEST_F(UnicodeRewriterTest, RewriteToUnicodeCharFormat) {
   }
 
   {  // If source_text is not set, this rewrite is not triggered.
-    composer::Composer composer(NULL, &default_request(), &default_config());
+    composer::Composer composer(nullptr, &default_request(), &default_config());
     ConversionRequest request(&composer, &default_request(), &default_config());
 
     Segments segments;
@@ -253,7 +259,7 @@ TEST_F(UnicodeRewriterTest, RewriteToUnicodeCharFormat) {
 
   {  // If source_text is not a single character, this rewrite is not
      // triggered.
-    composer::Composer composer(NULL, &default_request(), &default_config());
+    composer::Composer composer(nullptr, &default_request(), &default_config());
     composer.set_source_text("AB");
     ConversionRequest request(&composer, &default_request(), &default_config());
 
@@ -264,7 +270,7 @@ TEST_F(UnicodeRewriterTest, RewriteToUnicodeCharFormat) {
   }
 
   {  // Multibyte character is also supported.
-    composer::Composer composer(NULL, &default_request(), &default_config());
+    composer::Composer composer(nullptr, &default_request(), &default_config());
     composer.set_source_text("愛");
     ConversionRequest request(&composer, &default_request(), &default_config());
 

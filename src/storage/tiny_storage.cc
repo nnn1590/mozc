@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 
 #include "storage/tiny_storage.h"
 
+#include <cstdint>
+
 #ifdef OS_WIN
 #include <Windows.h>
 #endif  // OS_WIN
@@ -48,16 +50,16 @@ namespace mozc {
 namespace storage {
 namespace {
 
-const uint32 kStorageVersion = 0;
-const uint32 kStorageMagicId = 0x431fe241;  // random seed
+const uint32_t kStorageVersion = 0;
+const uint32_t kStorageMagicId = 0x431fe241;  // random seed
 const size_t kMaxElementSize = 1024;        // max map size
-const size_t kMaxKeySize     = 4096;        // 4k for key/value
-const size_t kMaxValueSize   = 4096;        // 4k for key/value
+const size_t kMaxKeySize = 4096;            // 4k for key/value
+const size_t kMaxValueSize = 4096;          // 4k for key/value
 // 1024 * (4096 + 4096) =~ 8MByte
 // so 10Mbyte data is reasonable upper bound for file size
-const size_t kMaxFileSize     = 1024 * 1024 * 10;  // 10Mbyte
+const size_t kMaxFileSize = 1024 * 1024 * 10;  // 10Mbyte
 
-template<typename T>
+template <typename T>
 bool ReadData(char **begin, const char *end, T *value) {
   if (*begin + sizeof(*value) > end) {
     LOG(WARNING) << "accessing invalid pointer";
@@ -68,7 +70,7 @@ bool ReadData(char **begin, const char *end, T *value) {
   return true;
 }
 
-bool IsInvalid(const string &key, const string &value, size_t size) {
+bool IsInvalid(const std::string &key, const std::string &value, size_t size) {
   if (size >= kMaxElementSize) {
     LOG(ERROR) << "too many elements";
     return true;
@@ -87,22 +89,20 @@ bool IsInvalid(const string &key, const string &value, size_t size) {
 class TinyStorageImpl : public StorageInterface {
  public:
   TinyStorageImpl();
-  virtual ~TinyStorageImpl();
+  ~TinyStorageImpl() override;
 
-  virtual bool Open(const string &filename);
-  virtual bool Sync();
-  virtual bool Lookup(const string &key, string *value) const;
-  virtual bool Insert(const string &key, const string &value);
-  virtual bool Erase(const string &key);
-  virtual bool Clear();
-  virtual size_t Size() const {
-    return dic_.size();
-  }
+  bool Open(const std::string &filename) override;
+  bool Sync() override;
+  bool Lookup(const std::string &key, std::string *value) const override;
+  bool Insert(const std::string &key, const std::string &value) override;
+  bool Erase(const std::string &key) override;
+  bool Clear() override;
+  size_t Size() const override { return dic_.size(); }
 
  private:
-  string filename_;
+  std::string filename_;
   bool should_sync_;
-  std::map<string, string> dic_;
+  std::map<std::string, std::string> dic_;
 
   DISALLOW_COPY_AND_ASSIGN(TinyStorageImpl);
 };
@@ -111,9 +111,8 @@ TinyStorageImpl::TinyStorageImpl() : should_sync_(true) {
   // the each entry consumes at most
   // sizeof(uint32) * 2 (key/value length) +
   // kMaxKeySize + kMaxValueSize
-  DCHECK_GT(
-      kMaxFileSize,
-      kMaxElementSize * (kMaxKeySize + kMaxValueSize + sizeof(uint32) * 2));
+  DCHECK_GT(kMaxFileSize, kMaxElementSize * (kMaxKeySize + kMaxValueSize +
+                                             sizeof(uint32_t) * 2));
 }
 
 TinyStorageImpl::~TinyStorageImpl() {
@@ -122,7 +121,7 @@ TinyStorageImpl::~TinyStorageImpl() {
   }
 }
 
-bool TinyStorageImpl::Open(const string &filename) {
+bool TinyStorageImpl::Open(const std::string &filename) {
   Mmap mmap;
   dic_.clear();
   filename_ = filename;
@@ -142,12 +141,12 @@ bool TinyStorageImpl::Open(const string &filename) {
   char *begin = mmap.begin();
   const char *end = mmap.end();
 
-  uint32 version = 0;
-  uint32 magic = 0;
-  uint32 size = 0;
+  uint32_t version = 0;
+  uint32_t magic = 0;
+  uint32_t size = 0;
   // magic is used for checking whether given file is correct or not.
   // magic = (file_size ^ kStorageMagicId)
-  if (!ReadData<uint32>(&begin, end, &magic)) {
+  if (!ReadData<uint32_t>(&begin, end, &magic)) {
     LOG(ERROR) << "cannot read magic";
     return false;
   }
@@ -157,7 +156,7 @@ bool TinyStorageImpl::Open(const string &filename) {
     return false;
   }
 
-  if (!ReadData<uint32>(&begin, end, &version)) {
+  if (!ReadData<uint32_t>(&begin, end, &version)) {
     LOG(ERROR) << "cannot read version";
     return false;
   }
@@ -167,15 +166,15 @@ bool TinyStorageImpl::Open(const string &filename) {
     return false;
   }
 
-  if (!ReadData<uint32>(&begin, end, &size)) {
+  if (!ReadData<uint32_t>(&begin, end, &size)) {
     LOG(ERROR) << "cannot read size";
     return false;
   }
 
   for (size_t i = 0; i < size; ++i) {
-    uint32 key_size = 0;
-    uint32 value_size = 0;
-    if (!ReadData<uint32>(&begin, end, &key_size)) {
+    uint32_t key_size = 0;
+    uint32_t value_size = 0;
+    if (!ReadData<uint32_t>(&begin, end, &key_size)) {
       LOG(ERROR) << "key_size is invalid";
       return false;
     }
@@ -185,10 +184,10 @@ bool TinyStorageImpl::Open(const string &filename) {
       return false;
     }
 
-    const string key(begin, key_size);
+    const std::string key(begin, key_size);
     begin += key_size;
 
-    if (!ReadData<uint32>(&begin, end, &value_size)) {
+    if (!ReadData<uint32_t>(&begin, end, &value_size)) {
       LOG(ERROR) << "value_size is invalid";
       return false;
     }
@@ -198,7 +197,7 @@ bool TinyStorageImpl::Open(const string &filename) {
       return false;
     }
 
-    const string value(begin, value_size);
+    const std::string value(begin, value_size);
     begin += value_size;
 
     if (IsInvalid(key, value, dic_.size())) {
@@ -227,7 +226,7 @@ bool TinyStorageImpl::Sync() {
     return true;
   }
 
-  const string output_filename = filename_ + ".tmp";
+  const std::string output_filename = filename_ + ".tmp";
 
   OutputFileStream ofs(output_filename.c_str(),
                        std::ios::binary | std::ios::out);
@@ -236,43 +235,37 @@ bool TinyStorageImpl::Sync() {
     return false;
   }
 
-  uint32 magic = 0;
-  uint32 size = 0;
-  ofs.write(reinterpret_cast<const char *>(&magic),
-            sizeof(magic));
+  uint32_t magic = 0;
+  uint32_t size = 0;
+  ofs.write(reinterpret_cast<const char *>(&magic), sizeof(magic));
   ofs.write(reinterpret_cast<const char *>(&kStorageVersion),
             sizeof(kStorageVersion));
-  ofs.write(reinterpret_cast<const char *>(&size),
-            sizeof(size));
+  ofs.write(reinterpret_cast<const char *>(&size), sizeof(size));
 
-  for (std::map<string, string>::const_iterator it = dic_.begin();
+  for (std::map<std::string, std::string>::const_iterator it = dic_.begin();
        it != dic_.end(); ++it) {
     if (it->first.empty()) {
       continue;
     }
-    const string &key = it->first;
-    const string &value = it->second;
-    const uint32 key_size = static_cast<uint32>(key.size());
-    const uint32 value_size = static_cast<uint32>(value.size());
-    ofs.write(reinterpret_cast<const char *>(&key_size),
-              sizeof(key_size));
+    const std::string &key = it->first;
+    const std::string &value = it->second;
+    const uint32_t key_size = static_cast<uint32_t>(key.size());
+    const uint32_t value_size = static_cast<uint32_t>(value.size());
+    ofs.write(reinterpret_cast<const char *>(&key_size), sizeof(key_size));
     ofs.write(key.data(), key_size);
-    ofs.write(reinterpret_cast<const char *>(&value_size),
-              sizeof(value_size));
+    ofs.write(reinterpret_cast<const char *>(&value_size), sizeof(value_size));
     ofs.write(value.data(), value_size);
     ++size;
   }
 
-  magic = static_cast<uint32>(ofs.tellp());
+  magic = static_cast<uint32_t>(ofs.tellp());
   ofs.seekp(0);
   magic ^= kStorageMagicId;
 
-  ofs.write(reinterpret_cast<const char *>(&magic),
-            sizeof(magic));
+  ofs.write(reinterpret_cast<const char *>(&magic), sizeof(magic));
   ofs.write(reinterpret_cast<const char *>(&kStorageVersion),
             sizeof(kStorageVersion));
-  ofs.write(reinterpret_cast<const char *>(&size),
-            sizeof(size));
+  ofs.write(reinterpret_cast<const char *>(&size), sizeof(size));
 
   // should call close(). Othrwise AtomicRename will be failed.
   ofs.close();
@@ -284,8 +277,8 @@ bool TinyStorageImpl::Sync() {
 
 #ifdef OS_WIN
   if (!FileUtil::HideFile(filename_)) {
-    LOG(ERROR) << "Cannot make hidden: " << filename_
-               << " " << ::GetLastError();
+    LOG(ERROR) << "Cannot make hidden: " << filename_ << " "
+               << ::GetLastError();
   }
 #endif
 
@@ -294,7 +287,7 @@ bool TinyStorageImpl::Sync() {
   return true;
 }
 
-bool TinyStorageImpl::Insert(const string &key, const string &value) {
+bool TinyStorageImpl::Insert(const std::string &key, const std::string &value) {
   if (IsInvalid(key, value, dic_.size())) {
     LOG(WARNING) << "invalid key/value is passed";
     return false;
@@ -304,8 +297,8 @@ bool TinyStorageImpl::Insert(const string &key, const string &value) {
   return true;
 }
 
-bool TinyStorageImpl::Erase(const string &key) {
-  std::map<string, string>::iterator it = dic_.find(key);
+bool TinyStorageImpl::Erase(const std::string &key) {
+  std::map<std::string, std::string>::iterator it = dic_.find(key);
   if (it == dic_.end()) {
     VLOG(2) << "cannot erase key: " << key;
     return false;
@@ -315,8 +308,8 @@ bool TinyStorageImpl::Erase(const string &key) {
   return true;
 }
 
-bool TinyStorageImpl::Lookup(const string &key, string *value) const {
-  std::map<string, string>::const_iterator it = dic_.find(key);
+bool TinyStorageImpl::Lookup(const std::string &key, std::string *value) const {
+  std::map<std::string, std::string>::const_iterator it = dic_.find(key);
   if (it == dic_.end()) {
     VLOG(3) << "cannot find key: " << key;
     return false;
@@ -337,14 +330,12 @@ StorageInterface *TinyStorage::Create(const char *filename) {
   std::unique_ptr<TinyStorageImpl> storage(new TinyStorageImpl);
   if (!storage->Open(filename)) {
     LOG(ERROR) << "cannot open " << filename;
-    return NULL;
+    return nullptr;
   }
   return storage.release();
 }
 
-StorageInterface *TinyStorage::New() {
-  return new TinyStorageImpl;
-}
+StorageInterface *TinyStorage::New() { return new TinyStorageImpl; }
 
 }  // namespace storage
 }  // namespace mozc

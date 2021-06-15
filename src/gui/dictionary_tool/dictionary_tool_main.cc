@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,16 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
+#include "absl/flags/flag.h"
+
+#ifdef OS_WIN
 #include "base/winmain.h"
+#endif  // OS_WIN
 
 int RunDictionaryTool(int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
   return RunDictionaryTool(argc, argv);
 }

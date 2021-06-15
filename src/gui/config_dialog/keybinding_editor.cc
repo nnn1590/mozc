@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,28 @@
 
 #include "gui/config_dialog/keybinding_editor.h"
 
-#if defined(OS_ANDROID) || defined(OS_NACL)
+#if defined(OS_ANDROID) || defined(OS_WASM)
 #error "This platform is not supported."
-#endif  // OS_ANDROID || OS_NACL
+#endif  // OS_ANDROID || OS_WASM
 
 #ifdef OS_WIN
+// clang-format off
 #include <windows.h>
 #include <imm.h>
 #include <ime.h>
-#elif OS_LINUX
-#define XK_MISCELLANY
-#include <X11/keysymdef.h>
+// clang-format on
 #endif
 
 #include <QtCore/QString>
-#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QTableWidget>
 
 #include "base/logging.h"
 #include "base/util.h"
+#include "gui/base/util.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace gui {
@@ -62,47 +63,57 @@ struct QtKeyEntry {
 
 // TODO(taku): check it these mappings are correct.
 const QtKeyEntry kQtKeyModifierNonRequiredTable[] = {
-  { Qt::Key_Escape, "Escape" },
-  { Qt::Key_Tab, "Tab" },
-  { Qt::Key_Backtab, "Tab" },   // Qt handles Tab + Shift as a special key
-  { Qt::Key_Backspace, "Backspace" },
-  { Qt::Key_Return, "Enter" },
-  { Qt::Key_Enter, "Enter" },
-  { Qt::Key_Insert, "Insert" },
-  { Qt::Key_Delete, "Delete" },
-  { Qt::Key_Home, "Home" },
-  { Qt::Key_End, "End" },
-  { Qt::Key_Left, "Left" },
-  { Qt::Key_Up, "Up" },
-  { Qt::Key_Right, "Right" },
-  { Qt::Key_Down, "Down" },
-  { Qt::Key_PageUp, "PageUp" },
-  { Qt::Key_PageDown, "PageDown" },
-  { Qt::Key_Space, "Space" },
-  { Qt::Key_F1, "F1" },
-  { Qt::Key_F2, "F2" },
-  { Qt::Key_F3, "F3" },
-  { Qt::Key_F4, "F4" },
-  { Qt::Key_F5, "F5" },
-  { Qt::Key_F6, "F6" },
-  { Qt::Key_F7, "F7" },
-  { Qt::Key_F8, "F8" },
-  { Qt::Key_F9, "F9" },
-  { Qt::Key_F10, "F10" },
-  { Qt::Key_F11, "F11" },
-  { Qt::Key_F12, "F12" },
-  { Qt::Key_F13, "F13" },
-  { Qt::Key_F14, "F14" },
-  { Qt::Key_F15, "F15" },
-  { Qt::Key_F16, "F16" },
-  { Qt::Key_F17, "F17" },
-  { Qt::Key_F18, "F18" },
-  { Qt::Key_F19, "F19" },
-  { Qt::Key_F20, "F20" },
-  { Qt::Key_F21, "F21" },
-  { Qt::Key_F22, "F22" },
-  { Qt::Key_F23, "F23" },
-  { Qt::Key_F24, "F24" }
+    {Qt::Key_Escape, "Escape"},
+    {Qt::Key_Tab, "Tab"},
+    {Qt::Key_Backtab, "Tab"},  // Qt handles Tab + Shift as a special key
+    {Qt::Key_Backspace, "Backspace"},
+    {Qt::Key_Return, "Enter"},
+    {Qt::Key_Enter, "Enter"},
+    {Qt::Key_Insert, "Insert"},
+    {Qt::Key_Delete, "Delete"},
+    {Qt::Key_Home, "Home"},
+    {Qt::Key_End, "End"},
+    {Qt::Key_Left, "Left"},
+    {Qt::Key_Up, "Up"},
+    {Qt::Key_Right, "Right"},
+    {Qt::Key_Down, "Down"},
+    {Qt::Key_PageUp, "PageUp"},
+    {Qt::Key_PageDown, "PageDown"},
+    {Qt::Key_Space, "Space"},
+    {Qt::Key_F1, "F1"},
+    {Qt::Key_F2, "F2"},
+    {Qt::Key_F3, "F3"},
+    {Qt::Key_F4, "F4"},
+    {Qt::Key_F5, "F5"},
+    {Qt::Key_F6, "F6"},
+    {Qt::Key_F7, "F7"},
+    {Qt::Key_F8, "F8"},
+    {Qt::Key_F9, "F9"},
+    {Qt::Key_F10, "F10"},
+    {Qt::Key_F11, "F11"},
+    {Qt::Key_F12, "F12"},
+    {Qt::Key_F13, "F13"},
+    {Qt::Key_F14, "F14"},
+    {Qt::Key_F15, "F15"},
+    {Qt::Key_F16, "F16"},
+    {Qt::Key_F17, "F17"},
+    {Qt::Key_F18, "F18"},
+    {Qt::Key_F19, "F19"},
+    {Qt::Key_F20, "F20"},
+    {Qt::Key_F21, "F21"},
+    {Qt::Key_F22, "F22"},
+    {Qt::Key_F23, "F23"},
+    {Qt::Key_F24, "F24"},
+
+    {Qt::Key_Muhenkan, "Muhenkan"},
+    {Qt::Key_Henkan, "Henkan"},
+    {Qt::Key_Hiragana, "Hiragana"},
+    {Qt::Key_Katakana, "Katakana"},
+    // We need special hack for Hiragana_Katakana key. For the detail, please
+    // see KeyBindingFilter::AddKey implementation.
+    {Qt::Key_Hiragana_Katakana, "Hiragana"},
+    {Qt::Key_Eisu_toggle, "Eisu"},
+    {Qt::Key_Zenkaku_Hankaku, "Hankaku/Zenkaku"},
 };
 
 #ifdef OS_WIN
@@ -112,72 +123,48 @@ struct WinVirtualKeyEntry {
 };
 
 const WinVirtualKeyEntry kWinVirtualKeyModifierNonRequiredTable[] = {
-  //  { VK_DBE_HIRAGANA, "Kana" },       // Kana
-  // "Hiragana" and "Kana" are the same key on Mozc
-  { VK_DBE_HIRAGANA, "Hiragana" },       // Hiragana
-  { VK_DBE_KATAKANA, "Katakana" },        // Ktakana
-  { VK_DBE_ALPHANUMERIC, "Eisu" },   // Eisu
-  // TODO(taku): better to support Romaji key
-  // { VK_DBE_ROMAN, "Romaji" },           // Romaji
-  // { VK_DBE_NOROMAN, "Romaji" },         // Romaji
-  { VK_NONCONVERT, "Muhenkan" },     // Muhenkan
-  { VK_CONVERT, "Henkan" },           // Henkan
-  // JP109's Hankaku/Zenkaku key has two V_KEY for toggling IME-On and Off.
-  // Althogh these are visible keys on 109JP, Mozc doesn't support them.
-  { VK_DBE_SBCSCHAR, "Hankaku/Zenkaku" },        // Zenkaku/hankaku
-  { VK_DBE_DBCSCHAR, "Hankaku/Zenkaku" },        // Zenkaku/hankaku
-  // { VK_KANJI, "Kanji" },  // Do not support Kanji
-};
-#elif OS_LINUX
-struct LinuxVirtualKeyEntry {
-  uint16 virtual_key;
-  const char *mozc_key_name;
-};
-
-const LinuxVirtualKeyEntry kLinuxVirtualKeyModifierNonRequiredTable[] = {
-  { XK_Muhenkan, "Muhenkan" },
-  { XK_Henkan, "Henkan" },
-  { XK_Hiragana, "Hiragana" },
-  { XK_Katakana, "Katakana" },
-  // We need special hack for Hiragana_Katakana key. For the detail, please see
-  // KeyBindingFilter::AddKey implementation.
-  { XK_Hiragana_Katakana, "Hiragana" },
-  { XK_Eisu_toggle, "Eisu" },
-  { XK_Zenkaku_Hankaku, "Hankaku/Zenkaku" },
+    //  { VK_DBE_HIRAGANA, "Kana" },       // Kana
+    // "Hiragana" and "Kana" are the same key on Mozc
+    {VK_DBE_HIRAGANA, "Hiragana"},  // Hiragana
+    {VK_DBE_KATAKANA, "Katakana"},  // Ktakana
+    {VK_DBE_ALPHANUMERIC, "Eisu"},  // Eisu
+    // TODO(taku): better to support Romaji key
+    // { VK_DBE_ROMAN, "Romaji" },           // Romaji
+    // { VK_DBE_NOROMAN, "Romaji" },         // Romaji
+    {VK_NONCONVERT, "Muhenkan"},  // Muhenkan
+    {VK_CONVERT, "Henkan"},       // Henkan
+    // JP109's Hankaku/Zenkaku key has two V_KEY for toggling IME-On and Off.
+    // Althogh these are visible keys on 109JP, Mozc doesn't support them.
+    {VK_DBE_SBCSCHAR, "Hankaku/Zenkaku"},  // Zenkaku/hankaku
+    {VK_DBE_DBCSCHAR, "Hankaku/Zenkaku"},  // Zenkaku/hankaku
+    // { VK_KANJI, "Kanji" },  // Do not support Kanji
 };
 #endif
 
 // On Windows Hiragana/Eisu keys only emits KEY_DOWN event.
-// for these keys we don't hanlde auto-key repeat.
+// for these keys we don't handle auto-key repeat.
 bool IsDownOnlyKey(const QKeyEvent &key_event) {
 #ifdef OS_WIN
   const DWORD virtual_key = key_event.nativeVirtualKey();
   return (virtual_key == VK_DBE_ALPHANUMERIC ||
-          virtual_key == VK_DBE_HIRAGANA ||
-          virtual_key == VK_DBE_KATAKANA);
+          virtual_key == VK_DBE_HIRAGANA || virtual_key == VK_DBE_KATAKANA);
 #else
   return false;
 #endif  // OS_WIN
 }
 
-bool IsAlphabet(const char key) {
-  return (key >= 'a' && key <= 'z');
-}
+bool IsAlphabet(const char key) { return (key >= 'a' && key <= 'z'); }
 }  // namespace
 
 class KeyBindingFilter : public QObject {
  public:
   KeyBindingFilter(QLineEdit *line_edit, QPushButton *ok_button);
-  virtual ~KeyBindingFilter();
+  ~KeyBindingFilter() override;
 
-  enum KeyState {
-    DENY_KEY,
-    ACCEPT_KEY,
-    SUBMIT_KEY
-  };
+  enum KeyState { DENY_KEY, ACCEPT_KEY, SUBMIT_KEY };
 
  protected:
-  bool eventFilter(QObject *obj, QEvent *event);
+  bool eventFilter(QObject *obj, QEvent *event) override;
 
  private:
   void Reset();
@@ -201,8 +188,7 @@ class KeyBindingFilter : public QObject {
   QPushButton *ok_button_;
 };
 
-KeyBindingFilter::KeyBindingFilter(QLineEdit *line_edit,
-                                   QPushButton *ok_button)
+KeyBindingFilter::KeyBindingFilter(QLineEdit *line_edit, QPushButton *ok_button)
     : committed_(false),
       ctrl_pressed_(false),
       alt_pressed_(false),
@@ -234,10 +220,10 @@ KeyBindingFilter::KeyState KeyBindingFilter::Encode(QString *result) const {
   // are pressed. If Hiragana/Eisu key is pressed, we assume that
   // the key is already released at the same time.
   // Hankaku/Zenkaku key is preserved key and modifier keys are ignored.
-  if (modifier_non_required_key_ == "Hiragana" ||
-      modifier_non_required_key_ == "Katakana" ||
-      modifier_non_required_key_ == "Eisu" ||
-      modifier_non_required_key_ == "Hankaku/Zenkaku") {
+  if (modifier_non_required_key_ == QLatin1String("Hiragana") ||
+      modifier_non_required_key_ == QLatin1String("Katakana") ||
+      modifier_non_required_key_ == QLatin1String("Eisu") ||
+      modifier_non_required_key_ == QLatin1String("Hankaku/Zenkaku")) {
     *result = modifier_non_required_key_;
     return KeyBindingFilter::SUBMIT_KEY;
   }
@@ -245,16 +231,16 @@ KeyBindingFilter::KeyState KeyBindingFilter::Encode(QString *result) const {
   QStringList results;
 
   if (ctrl_pressed_) {
-    results << "Ctrl";
+    results << QLatin1String("Ctrl");
   }
 
   if (shift_pressed_) {
-    results << "Shift";
+    results << QLatin1String("Shift");
   }
 
   if (alt_pressed_) {
-#ifdef OS_MACOSX
-    results << "Option";
+#ifdef __APPLE__
+    results << QLatin1String("Option");
 #else
     // Do not support and show keybindings with alt for Windows
     // results << "Alt";
@@ -272,7 +258,7 @@ KeyBindingFilter::KeyState KeyBindingFilter::Encode(QString *result) const {
   }
 
   // in release binary, unknown_key_ is hidden
-#ifndef NO_LOGGING
+#ifndef MOZC_NO_LOGGING
   if (!unknown_key_.isEmpty()) {
     results << unknown_key_;
   }
@@ -284,12 +270,12 @@ KeyBindingFilter::KeyState KeyBindingFilter::Encode(QString *result) const {
     result_state = KeyBindingFilter::DENY_KEY;
   }
 
-  const char key = modifier_required_key_.isEmpty() ?
-      0 : modifier_required_key_[0].toLatin1();
+  const char key = modifier_required_key_.isEmpty()
+                       ? 0
+                       : modifier_required_key_[0].toLatin1();
 
   // Alt or Ctrl or these combinations
-  if ((alt_pressed_ || ctrl_pressed_) &&
-      modifier_non_required_key_.isEmpty() &&
+  if ((alt_pressed_ || ctrl_pressed_) && modifier_non_required_key_.isEmpty() &&
       modifier_required_key_.isEmpty()) {
     result_state = KeyBindingFilter::DENY_KEY;
   }
@@ -316,8 +302,7 @@ KeyBindingFilter::KeyState KeyBindingFilter::Encode(QString *result) const {
   }
 
   // Don't support Shift + Ctrl + '@'
-  if (shift_pressed_ && !modifier_required_key_.isEmpty() &&
-      !IsAlphabet(key)) {
+  if (shift_pressed_ && !modifier_required_key_.isEmpty() && !IsAlphabet(key)) {
     result_state = KeyBindingFilter::DENY_KEY;
   }
 
@@ -343,8 +328,8 @@ KeyBindingFilter::KeyState KeyBindingFilter::Encode(QString *result) const {
   return result_state;
 }
 
-KeyBindingFilter::KeyState KeyBindingFilter::AddKey(
-    const QKeyEvent &key_event, QString *result) {
+KeyBindingFilter::KeyState KeyBindingFilter::AddKey(const QKeyEvent &key_event,
+                                                    QString *result) {
   CHECK(result);
   result->clear();
 
@@ -352,12 +337,12 @@ KeyBindingFilter::KeyState KeyBindingFilter::AddKey(
 
   // modifier keys
   switch (qt_key) {
-#ifdef OS_MACOSX
+#ifdef __APPLE__
     case Qt::Key_Meta:
       ctrl_pressed_ = true;
       return Encode(result);
-    case Qt::Key_Alt:   // Option key
-     //    case Qt::Key_Control:  Command key
+    case Qt::Key_Alt:  // Option key
+                       //    case Qt::Key_Control:  Command key
       alt_pressed_ = true;
       return Encode(result);
 #else
@@ -380,7 +365,7 @@ KeyBindingFilter::KeyState KeyBindingFilter::AddKey(
   for (size_t i = 0; i < arraysize(kQtKeyModifierNonRequiredTable); ++i) {
     if (kQtKeyModifierNonRequiredTable[i].qt_key == qt_key) {
       modifier_non_required_key_ =
-          kQtKeyModifierNonRequiredTable[i].mozc_key_name;
+          QLatin1String(kQtKeyModifierNonRequiredTable[i].mozc_key_name);
       return Encode(result);
     }
   }
@@ -390,16 +375,13 @@ KeyBindingFilter::KeyState KeyBindingFilter::AddKey(
   const DWORD virtual_key = key_event.nativeVirtualKey();
   for (size_t i = 0; i < arraysize(kWinVirtualKeyModifierNonRequiredTable);
        ++i) {
-    if (kWinVirtualKeyModifierNonRequiredTable[i].virtual_key ==
-        virtual_key) {
-      modifier_non_required_key_ =
-          kWinVirtualKeyModifierNonRequiredTable[i].mozc_key_name;
+    if (kWinVirtualKeyModifierNonRequiredTable[i].virtual_key == virtual_key) {
+      modifier_non_required_key_ = QLatin1String(
+          kWinVirtualKeyModifierNonRequiredTable[i].mozc_key_name);
       return Encode(result);
     }
   }
 #elif OS_LINUX
-  const uint16 virtual_key = key_event.nativeVirtualKey();
-
   // The XKB defines three types of logical key code: "xkb::Hiragana",
   // "xkb::Katakana" and "xkb::Hiragana_Katakana".
   // On most of Linux distributions, any key event against physical
@@ -419,44 +401,33 @@ KeyBindingFilter::KeyState KeyBindingFilter::AddKey(
   //   2. Press "Hiragana/Katakana"  (shift_pressed_ == true)
   //   3. Press "Hiragana/Katakana"  (shift_pressed_ == false)
   const bool with_shift = (key_event.modifiers() & Qt::ShiftModifier) != 0;
-  if (with_shift && (virtual_key == XK_Hiragana_Katakana)) {
-    modifier_non_required_key_ = "Katakana";
+  if (with_shift && (qt_key == Qt::Key_Hiragana_Katakana)) {
+    modifier_non_required_key_ = QLatin1String("Katakana");
     return Encode(result);
-  }
-
-  // Handle JP109's Muhenkan/Henkan/katakana-hiragana and Zenkaku/Hankaku
-  for (size_t i = 0; i < arraysize(kLinuxVirtualKeyModifierNonRequiredTable);
-       ++i) {
-    if (kLinuxVirtualKeyModifierNonRequiredTable[i].virtual_key ==
-        virtual_key) {
-      modifier_non_required_key_ =
-          kLinuxVirtualKeyModifierNonRequiredTable[i].mozc_key_name;
-      return Encode(result);
-    }
   }
 #endif
 
   if (qt_key == Qt::Key_yen) {
     // Japanese Yen mark, treat it as backslash for compatibility
-    modifier_non_required_key_ = "\\";
+    modifier_non_required_key_ = QLatin1String("\\");
     return Encode(result);
   }
 
   // printable command, which requires modifier keys
   if ((qt_key >= 0x21 && qt_key <= 0x60) ||
       (qt_key >= 0x7B && qt_key <= 0x7E)) {
+    const char key_char = static_cast<char>(qt_key);
     if (qt_key >= 0x41 && qt_key <= 0x5A) {
-      modifier_required_key_ = static_cast<char>(qt_key - 'A' + 'a');
+      modifier_required_key_ = QLatin1Char(key_char - 'A' + 'a');
     } else {
-      modifier_required_key_ = static_cast<char>(qt_key);
+      modifier_required_key_ = QLatin1Char(key_char);
     }
     return Encode(result);
   }
 
-  unknown_key_.sprintf("<UNK:0x%x 0x%x 0x%x>",
-                       key_event.key(),
-                       key_event.nativeScanCode(),
-                       key_event.nativeVirtualKey());
+  unknown_key_.asprintf("<UNK:0x%x 0x%x 0x%x>", key_event.key(),
+                        key_event.nativeScanCode(),
+                        key_event.nativeVirtualKey());
 
   return Encode(result);
 }
@@ -471,7 +442,7 @@ bool KeyBindingFilter::eventFilter(QObject *obj, QEvent *event) {
   }
 
   // TODO(taku): the following sequence doesn't work as once
-  // user relase any of keys, the statues goes to "submitted"
+  // user release any of keys, the statues goes to "submitted"
   // 1. Press Ctrl + a
   // 2. Release a, but keep pressing Ctrl
   // 3. Press b  (the result should be "Ctrl + b").
@@ -520,9 +491,9 @@ KeyBindingEditor::KeyBindingEditor(QWidget *parent, QWidget *trigger_parent)
 
   QPushButton *ok_button =
       KeyBindingEditorbuttonBox->button(QDialogButtonBox::Ok);
-  CHECK(ok_button != NULL);
+  CHECK(ok_button != nullptr);
 
-  filter_.reset(new KeyBindingFilter(KeyBindingLineEdit, ok_button));
+  filter_ = absl::make_unique<KeyBindingFilter>(KeyBindingLineEdit, ok_button);
   KeyBindingLineEdit->installEventFilter(filter_.get());
 
   // no right click
@@ -535,9 +506,10 @@ KeyBindingEditor::KeyBindingEditor(QWidget *parent, QWidget *trigger_parent)
 #endif
 
   QObject::connect(KeyBindingEditorbuttonBox,
-                   SIGNAL(clicked(QAbstractButton *)),
-                   this,
+                   SIGNAL(clicked(QAbstractButton *)), this,
                    SLOT(Clicked(QAbstractButton *)));
+
+  GuiUtil::ReplaceWidgetLabels(this);
 
   setFocusProxy(KeyBindingLineEdit);
 }

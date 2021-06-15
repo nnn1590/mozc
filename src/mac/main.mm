@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,25 +38,24 @@
 
 #include "base/const.h"
 #include "base/crash_report_handler.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/run_level.h"
 #include "client/client.h"
 #include "config/stats_config_util.h"
+#include "absl/flags/flag.h"
 
 int main(int argc, char *argv[]) {
   if (!mozc::RunLevel::IsValidClientRunLevel()) {
     return -1;
   }
 
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 #ifdef GOOGLE_JAPANESE_INPUT_BUILD
   if (mozc::config::StatsConfigUtil::IsEnabled()) {
     mozc::CrashReportHandler::Initialize(false);
   }
 #endif
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
   IMKServer *imkServer = [GoogleJapaneseInputServer getServer];
   if (!imkServer) {
@@ -74,7 +73,6 @@ int main(int argc, char *argv[]) {
     client->PingServer();
   }
   NSApplicationMain(argc, (const char **)argv);
-  [pool drain];
 #ifdef GOOGLE_JAPANESE_INPUT_BUILD
   mozc::CrashReportHandler::Uninitialize();
 #endif

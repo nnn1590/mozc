@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Script to invoke protoc with considering project root directory.
+r"""Script to invoke protoc with considering project root directory.
 
   % python protoc_wrapper.py               \
       --protoc_command=protoc              \
@@ -46,6 +46,7 @@ import os
 import subprocess
 import sys
 
+
 def ParseOption():
   """Parse command line options."""
   parser = optparse.OptionParser()
@@ -56,8 +57,6 @@ def ParseOption():
   parser.add_option('--proto', dest='proto', help='path of the *.proto file')
   parser.add_option('--cpp_out', dest='cpp_out', default='',
                     help='path where cpp files should be generated')
-  parser.add_option('--java_out', dest='java_out', default='',
-                    help='path where java files should be generated')
   parser.add_option('--project_root', dest='project_root', default='.',
                     help='run protoc after moving this directory')
   parser.add_option('--proto_path', dest='proto_path', default='',
@@ -68,6 +67,13 @@ def ParseOption():
   return opts
 
 
+def CreateProtoH(cpp_out, proto_file):
+  proto_h = os.path.join(cpp_out, proto_file + '.h')
+  pb_h = proto_file[:-len('.proto')] + '.pb.h'
+  with open(proto_h, 'w') as output:
+    output.write('#include "%s"\n' % pb_h)
+
+
 def main():
   """The main function."""
   opts = ParseOption()
@@ -76,7 +82,6 @@ def main():
   project_root = os.path.abspath(opts.project_root)
   proto_path = os.path.abspath(opts.proto_path) if opts.proto_path else ''
   cpp_out = os.path.abspath(opts.cpp_out) if opts.cpp_out else ''
-  java_out = os.path.abspath(opts.java_out) if opts.java_out else ''
 
   protoc_path = opts.protoc_command
   if opts.protoc_dir:
@@ -94,11 +99,13 @@ def main():
   commands = [protoc_path] + proto_files
   if cpp_out:
     commands += ['--cpp_out=' + cpp_out]
-  if java_out:
-    commands += ['--java_out=' + java_out]
   if proto_path:
     rel_proto_path = os.path.relpath(proto_path, project_root)
     commands += ['--proto_path=' + rel_proto_path]
+
+  for proto_file in proto_files:
+    CreateProtoH(cpp_out, proto_file)
+
   sys.exit(subprocess.call(commands))
 
 

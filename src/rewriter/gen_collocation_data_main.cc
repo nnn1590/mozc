@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -41,24 +41,24 @@
 #include <vector>
 
 #include "base/file_stream.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "rewriter/gen_existence_data.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(collocation_data, "", "collocation data text");
-DEFINE_string(output, "", "output file name (default: stdout)");
-DEFINE_double(error_rate, 0.00001, "error rate");
-DEFINE_bool(binary_mode, false, "outputs binary file");
+ABSL_FLAG(std::string, collocation_data, "", "collocation data text");
+ABSL_FLAG(std::string, output, "", "output file name (default: stdout)");
+ABSL_FLAG(double, error_rate, 0.00001, "error rate");
+ABSL_FLAG(bool, binary_mode, false, "outputs binary file");
 
 namespace mozc {
 namespace {
 
 void Convert() {
-  InputFileStream ifs(FLAGS_collocation_data.c_str());
-  string line;
-  std::vector<string> entries;
-  while (!getline(ifs, line).fail()) {
+  InputFileStream ifs(absl::GetFlag(FLAGS_collocation_data).c_str());
+  std::string line;
+  std::vector<std::string> entries;
+  while (!std::getline(ifs, line).fail()) {
     if (line.empty()) {
       continue;
     }
@@ -66,20 +66,21 @@ void Convert() {
   }
 
   std::ostream *ofs = &std::cout;
-  if (!FLAGS_output.empty()) {
-    if (FLAGS_binary_mode) {
-      ofs = new OutputFileStream(FLAGS_output.c_str(),
+  if (!absl::GetFlag(FLAGS_output).empty()) {
+    if (absl::GetFlag(FLAGS_binary_mode)) {
+      ofs = new OutputFileStream(absl::GetFlag(FLAGS_output).c_str(),
                                  std::ios::out | std::ios::binary);
     } else {
-      ofs = new OutputFileStream(FLAGS_output.c_str());
+      ofs = new OutputFileStream(absl::GetFlag(FLAGS_output).c_str());
     }
   }
 
-  if (FLAGS_binary_mode) {
-    OutputExistenceBinary(entries, ofs, FLAGS_error_rate);
+  if (absl::GetFlag(FLAGS_binary_mode)) {
+    OutputExistenceBinary(entries, ofs, absl::GetFlag(FLAGS_error_rate));
   } else {
-    const string kNameSpace = "CollocationData";
-    OutputExistenceHeader(entries, kNameSpace, ofs, FLAGS_error_rate);
+    const std::string kNameSpace = "CollocationData";
+    OutputExistenceHeader(entries, kNameSpace, ofs,
+                          absl::GetFlag(FLAGS_error_rate));
   }
 
   if (ofs != &std::cout) {
@@ -90,13 +91,13 @@ void Convert() {
 }  // namespace mozc
 
 int main(int argc, char *argv[]) {
-  mozc::InitMozc(argv[0], &argc, &argv, true);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  if (FLAGS_collocation_data.empty() && argc > 1) {
-    FLAGS_collocation_data = argv[1];
+  if (absl::GetFlag(FLAGS_collocation_data).empty() && argc > 1) {
+    absl::SetFlag(&FLAGS_collocation_data, argv[1]);
   }
 
-  LOG(INFO) << FLAGS_collocation_data;
+  LOG(INFO) << absl::GetFlag(FLAGS_collocation_data);
 
   mozc::Convert();
 

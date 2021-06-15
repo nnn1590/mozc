@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,16 @@
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QSplitterHandle>
 #include <QtWidgets/QSplitter>
-
+#include <QtWidgets/QSplitterHandle>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "base/port.h"
-#include "gui/dictionary_tool/ui_dictionary_tool.h"
 #include "dictionary/user_dictionary_importer.h"
+#include "gui/dictionary_tool/ui_dictionary_tool.h"
 
 namespace mozc {
 
@@ -60,25 +60,22 @@ namespace gui {
 class ImportDialog;
 class FindDialog;
 
-class DictionaryTool : public QMainWindow,
-                       private Ui::DictionaryTool {
+class DictionaryTool : public QMainWindow, private Ui::DictionaryTool {
   Q_OBJECT
 
  public:
-  explicit DictionaryTool(QWidget *parent = 0);
-  virtual ~DictionaryTool();
+  explicit DictionaryTool(QWidget *parent = nullptr);
+  ~DictionaryTool() override;
 
   // return true DictionaryTool is available.
-  bool IsAvailable() const {
-    return is_available_;
-  }
+  bool IsAvailable() const { return is_available_; }
 
  protected:
   // Override the default implementation to check unsaved
   // modifications on data before closing the window.
-  void closeEvent(QCloseEvent *event);
+  void closeEvent(QCloseEvent *event) override;
 
-  bool eventFilter(QObject *obj, QEvent *event);
+  bool eventFilter(QObject *obj, QEvent *event) override;
 
  private slots:
   void CreateDictionary();
@@ -109,7 +106,7 @@ class DictionaryTool : public QMainWindow,
   // Data type to provide information on a dictionary.
   struct DictionaryInfo {
     int row;                // Row in the list widget.
-    uint64 id;              // ID of the dictionary.
+    uint64_t id;            // ID of the dictionary.
     QListWidgetItem *item;  // Item object for the dictionary.
   };
 
@@ -130,10 +127,9 @@ class DictionaryTool : public QMainWindow,
 
   // Show a dialog and get text for dictionary name from the user. The
   // first parameter is default text printed in a form. The second is
-  // message printed on the dialog. It returns an empty stirng
+  // message printed on the dialog. It returns an empty string
   // whenever a proper value for dictionary name is input.
-  QString PromptForDictionaryName(const QString &text,
-                                  const QString &label);
+  QString PromptForDictionaryName(const QString &text, const QString &label);
 
   // Check storage_->GetLastError() and displays an
   // appropriate error message.
@@ -142,19 +138,17 @@ class DictionaryTool : public QMainWindow,
   // These two functions are to start/stop monitoring data on the
   // table widget being changed. We validate the value on the widget
   // when the user edit it but the data can be modified
-  // programatically and validation is not necessary.
+  // programmatically and validation is not necessary.
   void StartMonitoringUserEdit();
   void StopMonitoringUserEdit();
 
   // Show a special dialog message according to the result
   // of UserDictionaryImporter.
   void ReportImportError(UserDictionaryImporter::ErrorType error,
-                         const string &dic_name,
-                         int added_entries_size);
+                         const std::string &dic_name, int added_entries_size);
 
-  void ImportHelper(uint64 dic_id,
-                    const string &dic_name,
-                    const string &file_name,
+  void ImportHelper(uint64_t dic_id, const std::string &dic_name,
+                    const std::string &file_name,
                     UserDictionaryImporter::IMEType,
                     UserDictionaryImporter::EncodingType encoding_type);
 
@@ -162,49 +156,49 @@ class DictionaryTool : public QMainWindow,
   // send Reload command to the server.
   void SaveAndReloadServer();
 
-  // 1. Shows a dialog box and get new |commnet|.
+  // 1. Shows a dialog box and get new |comment|.
   // 2. Changes the comemnt of all selected.
   void EditComment();
 
   // Changes the POS of all selected items to |pos|.
-  void EditPOS(const string &pos);
+  void EditPOS(const std::string &pos);
 
   // Moves selected items to the dictionary whose row is |dictionary_row|.
   void MoveTo(int dictionary_row);
 
   // Helper functions to check if a file with given name is readable
   // to import or writable to export without trying to open it.
-  static bool IsWritableToExport(const string &file_name);
-  static bool IsReadableToImport(const string &file_name);
+  static bool IsWritableToExport(const std::string &file_name);
+  static bool IsReadableToImport(const std::string &file_name);
 
   // Helper function for DeleteWord and MoveTo.
   // Fills selected word entry rows as a unique sorted sequence.
   void GetSortedSelectedRows(std::vector<int> *rows) const;
 
   // Returns a pointer to the first selected dictionary.
-  // Returns NULL if no dictionary is selected.
+  // Returns nullptr if no dictionary is selected.
   QListWidgetItem *GetFirstSelectedDictionary() const;
 
   ImportDialog *import_dialog_;
-  FindDialog   *find_dialog_;
+  FindDialog *find_dialog_;
   std::unique_ptr<mozc::user_dictionary::UserDictionarySession> session_;
 
   // ID of current selected dictionary. This needs to be maintained
   // separate from selection on the list widget because data is saved
   // on the previous dictionary after the selection on the widget is
   // changed. It takes -1 when no dictionary is selected.
-  uint64 current_dic_id_;
+  uint64_t current_dic_id_;
 
   // Whether any change has been made on the current dictionary and
   // not been saved.
   bool modified_;
 
-  // Holds information on whether dictionary entires are sorted, key
+  // Holds information on whether dictionary entries are sorted, key
   // column of sort and order of sort.
   //
   // Current implementation of sort may not be perfect. It doesn't
   // check if entries are already sorted when they are loaded nor
-  // whether modification is made keeping sorted entires sorted.
+  // whether modification is made keeping sorted entries sorted.
   struct SortState {
     bool sorted;
     int column;

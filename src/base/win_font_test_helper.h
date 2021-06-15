@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -46,9 +46,9 @@ class WinFontTestHelper {
   static void Uninitialize();
 
   // Returns the font face name of IPAex-Gothic.
-  static string GetIPAexGothicFontName();
+  static std::string GetIPAexGothicFontName();
   // Returns the font face name of IPAex-Mincho.
-  static string GetIPAexMinchoFontName();
+  static std::string GetIPAexMinchoFontName();
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(WinFontTestHelper);

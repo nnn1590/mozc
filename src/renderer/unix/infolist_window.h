@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -52,18 +52,17 @@ namespace gtk {
 class InfolistWindow : public GtkWindowBase {
  public:
   // GtkWindowBase(InfolistWindow) has ownership of GtkWrapperInterface *gtk;
-  explicit InfolistWindow(
-      TextRendererInterface *text_renderer,
-      DrawToolInterface *draw_tool,
-      GtkWrapperInterface *gtk,
-      CairoFactoryInterface *cairo_factory);
+  explicit InfolistWindow(TextRendererInterface *text_renderer,
+                          DrawToolInterface *draw_tool,
+                          GtkWrapperInterface *gtk,
+                          CairoFactoryInterface *cairo_factory);
   virtual ~InfolistWindow() {}
 
   virtual Size Update(const commands::Candidates &candidates);
   virtual void Initialize();
   // This function is not used in infolist window.
   virtual Rect GetCandidateColumnInClientCord() const;
-  virtual void ReloadFontConfig(const string &font_description);
+  virtual void ReloadFontConfig(const std::string &font_description);
 
  protected:
   virtual bool OnPaint(GtkWidget *widget, GdkEventExpose *event);
@@ -79,13 +78,13 @@ class InfolistWindow : public GtkWindowBase {
 
   void Draw();
 
-  // Draws specified description row and returns it's height.
+  // Draws specified description row and returns its height.
   int DrawRow(int row, int ypos);
 
   // Gets target rendering rects.
   RenderingRowRects GetRowRects(int row, int ypos);
 
-  // Draws caption string and returns it's height.
+  // Draws caption string and returns its height.
   int DrawCaption();
 
   // Draws infolist window frame line.
@@ -94,11 +93,9 @@ class InfolistWindow : public GtkWindowBase {
   // Calculate background and text displaying area based on style, text font and
   // top position.
   void GetRenderingRects(const renderer::RendererStyle::TextStyle &style,
-                         const string &text,
-                         FontSpecInterface::FONT_TYPE font_type,
-                         int top,
-                         Rect *background_rect,
-                         Rect *textarea_rect);
+                         const std::string &text,
+                         FontSpecInterface::FONT_TYPE font_type, int top,
+                         Rect *background_rect, Rect *textarea_rect);
 
   friend class InfolistWindowTest;
   FRIEND_TEST(InfolistWindowTest, DrawFrameTest);

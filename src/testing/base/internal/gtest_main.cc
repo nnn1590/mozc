@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,15 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-#ifdef OS_NACL
-#include "base/pepper_file_system_mock.h"
-#include "base/pepper_file_util.h"
-#include "testing/base/public/nacl_mock_module.h"
-#endif  // OS_NACL
+#include "absl/flags/flag.h"
 
 int main(int argc, char **argv) {
   // TODO(yukawa, team): Implement b/2805528 so that you can specify any option
   // given by gunit.
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
   mozc::InitTestFlags();
   testing::InitGoogleTest(&argc, argv);
 
@@ -54,15 +48,6 @@ int main(int argc, char **argv) {
   // Without this flag, ::RaiseException makes the job stuck.
   // See b/2805521 for details.
   testing::GTEST_FLAG(catch_exceptions) = true;
-
-#ifdef OS_NACL
-  mozc::testing::WorkAroundEmptyFunctionToAvoidLinkError();
-
-  // Sets Pepper file system mock.
-  mozc::PepperFileSystemMock pepper_file_system_mock;
-  mozc::PepperFileUtil::SetPepperFileSystemInterfaceForTest(
-      &pepper_file_system_mock);
-#endif  // OS_NACL
 
   return RUN_ALL_TESTS();
 }

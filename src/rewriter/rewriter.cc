@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@
 
 #include "rewriter/rewriter.h"
 
-#include "base/flags.h"
 #include "base/logging.h"
 #include "converter/converter_interface.h"
 #include "data_manager/data_manager_interface.h"
@@ -63,11 +62,12 @@
 #include "rewriter/variants_rewriter.h"
 #include "rewriter/version_rewriter.h"
 #include "rewriter/zipcode_rewriter.h"
+#include "absl/flags/flag.h"
 #ifndef NO_USAGE_REWRITER
 #include "rewriter/usage_rewriter.h"
 #endif  // NO_USAGE_REWRITER
 
-DEFINE_bool(use_history_rewriter, true, "Use history rewriter or not.");
+ABSL_FLAG(bool, use_history_rewriter, true, "Use history rewriter or not.");
 
 namespace mozc {
 namespace {
@@ -104,19 +104,19 @@ RewriterImpl::RewriterImpl(const ConverterInterface *parent_converter,
   AddRewriter(new ZipcodeRewriter(&pos_matcher_));
   AddRewriter(new DiceRewriter);
 
-  if (FLAGS_use_history_rewriter) {
+  if (absl::GetFlag(FLAGS_use_history_rewriter)) {
     AddRewriter(new UserBoundaryHistoryRewriter(parent_converter));
     AddRewriter(new UserSegmentHistoryRewriter(&pos_matcher_, pos_group));
   }
 
-  AddRewriter(new DateRewriter);
+  AddRewriter(new DateRewriter(dictionary));
   AddRewriter(new FortuneRewriter);
-#ifndef OS_ANDROID
-  // CommandRewriter is not tested well on Android.
+#if !(defined(OS_ANDROID) || defined(OS_IOS))
+  // CommandRewriter is not tested well on Android or iOS.
   // So we temporarily disable it.
   // TODO(yukawa, team): Enable CommandRewriter on Android if necessary.
   AddRewriter(new CommandRewriter);
-#endif  // !OS_ANDROID
+#endif  // !(OS_ANDROID || OS_IOS)
 #ifndef NO_USAGE_REWRITER
   AddRewriter(new UsageRewriter(data_manager, dictionary));
 #endif  // NO_USAGE_REWRITER

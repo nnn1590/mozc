@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,11 @@
 #ifndef MOZC_DATA_MANAGER_DATA_MANAGER_INTERFACE_H_
 #define MOZC_DATA_MANAGER_DATA_MANAGER_INTERFACE_H_
 
+#include <cstdint>
 #include <string>
 
 #include "base/port.h"
-#include "base/string_piece.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 
@@ -44,38 +45,39 @@ class DataManagerInterface {
   virtual ~DataManagerInterface() = default;
 
   // Returns data set for UserPOS.
-  virtual void GetUserPOSData(StringPiece *token_array_data,
-                              StringPiece *string_array_data) const = 0;
+  virtual void GetUserPOSData(absl::string_view *token_array_data,
+                              absl::string_view *string_array_data) const = 0;
 
   // Returns a reference to POSMatcher class handling POS rules. Don't
   // delete the returned pointer, which is owned by the manager.
-  virtual const uint16 *GetPOSMatcherData() const = 0;
+  virtual const uint16_t *GetPOSMatcherData() const = 0;
 
   // Returns the address of an array of lid group.
-  virtual const uint8 *GetPosGroupData() const = 0;
+  virtual const uint8_t *GetPosGroupData() const = 0;
 
   // Returns the address of connection data and its size.
   virtual void GetConnectorData(const char **data, size_t *size) const = 0;
 
   // Returns the addresses and their sizes necessary to create a segmenter.
-  virtual void GetSegmenterData(
-      size_t *l_num_elements, size_t *r_num_elements,
-      const uint16 **l_table, const uint16 **r_table,
-      size_t *bitarray_num_bytes, const char **bitarray_data,
-      const uint16 **boundary_data) const = 0;
+  virtual void GetSegmenterData(size_t *l_num_elements, size_t *r_num_elements,
+                                const uint16_t **l_table,
+                                const uint16_t **r_table,
+                                size_t *bitarray_num_bytes,
+                                const char **bitarray_data,
+                                const uint16_t **boundary_data) const = 0;
 
   // Returns the address of system dictionary data and its size.
   virtual void GetSystemDictionaryData(const char **data, int *size) const = 0;
 
   // Returns the array containing keys, values, and token (lid, rid, cost).
-  virtual void GetSuffixDictionaryData(StringPiece *key_array,
-                                       StringPiece *value_array,
-                                       const uint32 **token_array) const = 0;
+  virtual void GetSuffixDictionaryData(absl::string_view *key_array,
+                                       absl::string_view *value_array,
+                                       const uint32_t **token_array) const = 0;
 
   // Gets a reference to reading correction data array and its size.
   virtual void GetReadingCorrectionData(
-      StringPiece *value_array_data, StringPiece *error_array_data,
-      StringPiece *correction_array_data) const = 0;
+      absl::string_view *value_array_data, absl::string_view *error_array_data,
+      absl::string_view *correction_array_data) const = 0;
 
   // Gets the address of collocation data array and its size.
   virtual void GetCollocationData(const char **array, size_t *size) const = 0;
@@ -89,35 +91,37 @@ class DataManagerInterface {
                                        size_t *size) const = 0;
 
   // Gets an address of symbol rewriter data array and its size.
-  virtual void GetSymbolRewriterData(StringPiece *token_array_data,
-                                     StringPiece *string_array_data) const = 0;
+  virtual void GetSymbolRewriterData(
+      absl::string_view *token_array_data,
+      absl::string_view *string_array_data) const = 0;
 
   // Gets an address of symbol rewriter data array and its size.
   virtual void GetEmoticonRewriterData(
-      StringPiece *token_array_data, StringPiece *string_array_data) const = 0;
+      absl::string_view *token_array_data,
+      absl::string_view *string_array_data) const = 0;
 
   // Gets EmojiRewriter data.
   virtual void GetEmojiRewriterData(
-      StringPiece *token_array_data, StringPiece *string_array_data) const = 0;
+      absl::string_view *token_array_data,
+      absl::string_view *string_array_data) const = 0;
 
   // Gets SingleKanjiRewriter data.
   virtual void GetSingleKanjiRewriterData(
-      StringPiece *token_array_data,
-      StringPiece *string_array_data,
-      StringPiece *variant_type_array_data,
-      StringPiece *variant_token_array_data,
-      StringPiece *variant_string_array_data,
-      StringPiece *noun_prefix_token_array_data,
-      StringPiece *noun_prefix_string_array_data) const = 0;
+      absl::string_view *token_array_data, absl::string_view *string_array_data,
+      absl::string_view *variant_type_array_data,
+      absl::string_view *variant_token_array_data,
+      absl::string_view *variant_string_array_data,
+      absl::string_view *noun_prefix_token_array_data,
+      absl::string_view *noun_prefix_string_array_data) const = 0;
 
 #ifndef NO_USAGE_REWRITER
   // Gets the usage rewriter data.
   virtual void GetUsageRewriterData(
-      StringPiece *base_conjugation_suffix_data,
-      StringPiece *conjugation_suffix_data,
-      StringPiece *conjugation_suffix_index_data,
-      StringPiece *usage_items_data,
-      StringPiece *string_array_data) const = 0;
+      absl::string_view *base_conjugation_suffix_data,
+      absl::string_view *conjugation_suffix_data,
+      absl::string_view *conjugation_suffix_index_data,
+      absl::string_view *usage_items_data,
+      absl::string_view *string_array_data) const = 0;
 #endif  // NO_USAGE_REWRITER
 
   // Gets the address and size of a sorted array of counter suffix values.
@@ -126,16 +130,16 @@ class DataManagerInterface {
 
   // Gets the zero query prediction data.
   virtual void GetZeroQueryData(
-      StringPiece *zero_query_token_array_data,
-      StringPiece *zero_query_string_array_data,
-      StringPiece *zero_query_number_token_array_data,
-      StringPiece *zero_query_number_string_array_data) const = 0;
+      absl::string_view *zero_query_token_array_data,
+      absl::string_view *zero_query_string_array_data,
+      absl::string_view *zero_query_number_token_array_data,
+      absl::string_view *zero_query_number_string_array_data) const = 0;
 
   // Gets the typing model binary data for the specified name.
-  virtual StringPiece GetTypingModel(const string &name) const = 0;
+  virtual absl::string_view GetTypingModel(const std::string &name) const = 0;
 
   // Gets the data version string.
-  virtual StringPiece GetDataVersion() const = 0;
+  virtual absl::string_view GetDataVersion() const = 0;
 
  protected:
   DataManagerInterface() = default;

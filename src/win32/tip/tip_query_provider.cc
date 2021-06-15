@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,8 @@ using ::mozc::client::ClientFactory;
 using ::mozc::client::ClientInterface;
 using ::mozc::commands::Input;
 using ::mozc::commands::KeyEvent;
-using ::mozc::commands::SessionCommand;
 using ::mozc::commands::Output;
+using ::mozc::commands::SessionCommand;
 using ::std::unique_ptr;
 
 namespace mozc {
@@ -53,14 +53,11 @@ namespace {
 
 class TipQueryProviderImpl : public TipQueryProvider {
  public:
-  explicit TipQueryProviderImpl(ClientInterface *client)
-      : client_(client) {
-  }
+  explicit TipQueryProviderImpl(ClientInterface *client) : client_(client) {}
 
  private:
   // The TipQueryProvider interface methods.
-  virtual bool Query(const std::wstring &query,
-                     QueryType type,
+  virtual bool Query(const std::wstring &query, QueryType type,
                      std::vector<std::wstring> *result) {
     if (type == kReconversion) {
       return ReconvertQuery(query, result);
@@ -72,7 +69,7 @@ class TipQueryProviderImpl : public TipQueryProvider {
                    std::vector<std::wstring> *result) {
     {
       KeyEvent key_event;
-      string utf8_query;
+      std::string utf8_query;
       Util::WideToUTF8(query, &utf8_query);
       key_event.set_key_string(utf8_query);
       key_event.set_activated(true);
@@ -106,7 +103,7 @@ class TipQueryProviderImpl : public TipQueryProvider {
   bool ReconvertQuery(const std::wstring &query,
                       std::vector<std::wstring> *result) {
     {
-      string utf8_query;
+      std::string utf8_query;
       Util::WideToUTF8(query, &utf8_query);
       SessionCommand command;
       command.set_type(SessionCommand::CONVERT_REVERSE);
@@ -141,8 +138,7 @@ class TipQueryProviderImpl : public TipQueryProvider {
 
 }  // namespace
 
-TipQueryProvider::~TipQueryProvider() {
-}
+TipQueryProvider::~TipQueryProvider() {}
 
 // static
 TipQueryProvider *TipQueryProvider::Create() {

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ class ImeSwitchUtil {
   // Returns true if 'key' is assigned for any command in direct mode.
   // We want to know this configuration before starting mozc server,
   // because we use this config to start mozc server.
-  // Please call this fuction only when the server is not runnning.
+  // Please call this fuction only when the server is not running.
   static bool IsDirectModeCommand(const commands::KeyEvent &key);
 
   static void ReloadConfig(const Config &config);

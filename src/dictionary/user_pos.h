@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_DICTIONARY_USER_POS_H_
 #define MOZC_DICTIONARY_USER_POS_H_
 
+#include <cstdint>
 #include <iterator>
 #include <string>
 #include <utility>
@@ -37,9 +38,9 @@
 
 #include "base/port.h"
 #include "base/serialized_string_array.h"
-#include "base/string_piece.h"
 #include "data_manager/data_manager_interface.h"
 #include "dictionary/user_pos_interface.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace dictionary {
@@ -80,29 +81,29 @@ namespace dictionary {
 // tokens having the same POS index.
 class UserPOS : public UserPOSInterface {
  public:
-  static const size_t kTokenByteLength = 8;
+  static constexpr size_t kTokenByteLength = 8;
 
   class iterator
-      : public std::iterator<std::random_access_iterator_tag, uint16> {
+      : public std::iterator<std::random_access_iterator_tag, uint16_t> {
    public:
     iterator() = default;
     explicit iterator(const char *ptr) : ptr_(ptr) {}
     iterator(const iterator &x) = default;
 
-    uint16 pos_index() const {
-      return *reinterpret_cast<const uint16 *>(ptr_);
+    uint16_t pos_index() const {
+      return *reinterpret_cast<const uint16_t *>(ptr_);
     }
-    uint16 value_suffix_index() const {
-      return *reinterpret_cast<const uint16 *>(ptr_ + 2);
+    uint16_t value_suffix_index() const {
+      return *reinterpret_cast<const uint16_t *>(ptr_ + 2);
     }
-    uint16 key_suffix_index() const {
-      return *reinterpret_cast<const uint16 *>(ptr_ + 4);
+    uint16_t key_suffix_index() const {
+      return *reinterpret_cast<const uint16_t *>(ptr_ + 4);
     }
-    uint16 conjugation_id() const {
-      return *reinterpret_cast<const uint16 *>(ptr_ + 6);
+    uint16_t conjugation_id() const {
+      return *reinterpret_cast<const uint16_t *>(ptr_ + 6);
     }
 
-    uint16 operator*() const { return pos_index(); }
+    uint16_t operator*() const { return pos_index(); }
 
     void swap(iterator &x) {
       using std::swap;
@@ -172,18 +173,21 @@ class UserPOS : public UserPOSInterface {
 
   using const_iterator = iterator;
 
-  static UserPOS *CreateFromDataManager(const DataManagerInterface &manager);
+  static std::unique_ptr<UserPOS> CreateFromDataManager(
+      const DataManagerInterface &manager);
 
   // Initializes the user pos from the given binary data.  The provided byte
   // data must outlive this instance.
-  UserPOS(StringPiece token_array_data, StringPiece string_array_data);
+  UserPOS(absl::string_view token_array_data,
+          absl::string_view string_array_data);
   ~UserPOS() override;
 
   // Implementation of UserPOSInterface.
-  void GetPOSList(std::vector<string> *pos_list) const override;
-  bool IsValidPOS(const string &pos) const override;
-  bool GetPOSIDs(const string &pos, uint16 *id) const override;
-  bool GetTokens(const string &key, const string &value, const string &pos,
+  void GetPOSList(std::vector<std::string> *pos_list) const override;
+  bool IsValidPOS(const std::string &pos) const override;
+  bool GetPOSIDs(const std::string &pos, uint16_t *id) const override;
+  bool GetTokens(const std::string &key, const std::string &value,
+                 const std::string &pos, const std::string &locale,
                  std::vector<Token> *tokens) const override;
 
   iterator begin() const { return iterator(token_array_data_.data()); }
@@ -192,7 +196,7 @@ class UserPOS : public UserPOSInterface {
   }
 
  private:
-  StringPiece token_array_data_;
+  absl::string_view token_array_data_;
   SerializedStringArray string_array_;
 
   DISALLOW_COPY_AND_ASSIGN(UserPOS);

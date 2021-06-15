@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_STORAGE_LOUDS_LOUDS_H_
 #define MOZC_STORAGE_LOUDS_LOUDS_H_
 
+#include <cstdint>
 #include <memory>
 
 #include "base/port.h"
@@ -71,7 +72,7 @@ class Louds {
     // Default instance represents the root node (not the super-root).
     Node() : edge_index_(0), node_id_(1) {}
     Node(const Node &n) : edge_index_(n.edge_index_), node_id_(n.node_id_) {}
-    Node& operator=(const Node &n) {
+    Node &operator=(const Node &n) {
       edge_index_ = n.edge_index_;
       node_id_ = n.node_id_;
       return *this;
@@ -97,12 +98,12 @@ class Louds {
   // and |select0_cache_size| to larger values.  On the other hand, to improve
   // the performance of upward traversal (i.e., from leaves to the root), set
   // |bitvec_lb1_cache_size| and |select1_cache_size| to larger values.
-  void Init(const uint8 *image, int length,
-            size_t bitvec_lb0_cache_size, size_t bitvec_lb1_cache_size,
-            size_t select0_cache_size, size_t select1_cache_size);
+  void Init(const uint8_t *image, int length, size_t bitvec_lb0_cache_size,
+            size_t bitvec_lb1_cache_size, size_t select0_cache_size,
+            size_t select1_cache_size);
 
   // Initializes this LOUDS from bit array without cache.
-  void Init(const uint8 *image, int length) {
+  void Init(const uint8_t *image, int length) {
     Init(image, length, 0, 0, 0, 0);
   }
 
@@ -121,9 +122,7 @@ class Louds {
   }
 
   // Returns true if the given node is the root.
-  static bool IsRoot(const Node &node) {
-    return node.node_id_ == 1;
-  }
+  static bool IsRoot(const Node &node) { return node.node_id_ == 1; }
 
   // Moves the given node to its first (most left) child.  If |node| is a leaf,
   // the resulting node becomes invalid.  For example, in the above diagram of
@@ -174,7 +173,7 @@ class Louds {
   size_t select0_cache_size_;
   size_t select1_cache_size_;
   std::unique_ptr<int[]> select_cache_;
-  int* select1_cache_ptr_;  // = select_cache_.get() + select0_cache_size_
+  int *select1_cache_ptr_;  // = select_cache_.get() + select0_cache_size_
 
   DISALLOW_COPY_AND_ASSIGN(Louds);
 };

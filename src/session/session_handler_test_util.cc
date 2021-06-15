@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
 
 #include "session/session_handler_test_util.h"
 
+#include <cstdint>
 #include <utility>
 
 #include "base/config_file_stream.h"
@@ -43,18 +44,18 @@
 #include "protocol/commands.pb.h"
 #include "protocol/config.pb.h"
 #include "session/session_handler.h"
-#include "session/session_handler_interface.h"
 #include "session/session_usage_observer.h"
 #include "storage/registry.h"
+#include "testing/base/public/googletest.h"
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 
-DECLARE_string(test_tmpdir);
-
-DECLARE_int32(max_session_size);
-DECLARE_int32(create_session_min_interval);
-DECLARE_int32(watch_dog_interval);
-DECLARE_int32(last_command_timeout);
-DECLARE_int32(last_create_session_timeout);
-DECLARE_bool(restricted);
+ABSL_DECLARE_FLAG(int32_t, max_session_size);
+ABSL_DECLARE_FLAG(int32_t, create_session_min_interval);
+ABSL_DECLARE_FLAG(int32_t, watch_dog_interval);
+ABSL_DECLARE_FLAG(int32_t, last_command_timeout);
+ABSL_DECLARE_FLAG(int32_t, last_create_session_timeout);
+ABSL_DECLARE_FLAG(bool, restricted);
 
 namespace mozc {
 namespace session {
@@ -64,7 +65,7 @@ using commands::Command;
 using config::CharacterFormManager;
 using config::ConfigHandler;
 
-bool CreateSession(SessionHandlerInterface *handler, uint64 *id) {
+bool CreateSession(SessionHandlerInterface *handler, uint64_t *id) {
   Command command;
   command.mutable_input()->set_type(commands::Input::CREATE_SESSION);
   command.mutable_input()->mutable_capability()->set_text_deletion(
@@ -76,28 +77,28 @@ bool CreateSession(SessionHandlerInterface *handler, uint64 *id) {
   return (command.output().error_code() == commands::Output::SESSION_SUCCESS);
 }
 
-bool DeleteSession(SessionHandlerInterface *handler, uint64 id) {
+bool DeleteSession(SessionHandlerInterface *handler, uint64_t id) {
   Command command;
   command.mutable_input()->set_id(id);
   command.mutable_input()->set_type(commands::Input::DELETE_SESSION);
   return handler->EvalCommand(&command);
 }
 
-bool CleanUp(SessionHandlerInterface *handler, uint64 id) {
+bool CleanUp(SessionHandlerInterface *handler, uint64_t id) {
   Command command;
   command.mutable_input()->set_id(id);
   command.mutable_input()->set_type(commands::Input::CLEANUP);
   return handler->EvalCommand(&command);
 }
 
-bool ClearUserPrediction(SessionHandlerInterface *handler, uint64 id) {
+bool ClearUserPrediction(SessionHandlerInterface *handler, uint64_t id) {
   Command command;
   command.mutable_input()->set_id(id);
   command.mutable_input()->set_type(commands::Input::CLEAR_USER_PREDICTION);
   return handler->EvalCommand(&command);
 }
 
-bool IsGoodSession(SessionHandlerInterface *handler, uint64 id) {
+bool IsGoodSession(SessionHandlerInterface *handler, uint64_t id) {
   Command command;
   command.mutable_input()->set_id(id);
   command.mutable_input()->set_type(commands::Input::SEND_KEY);
@@ -107,21 +108,22 @@ bool IsGoodSession(SessionHandlerInterface *handler, uint64 id) {
   return (command.output().error_code() == commands::Output::SESSION_SUCCESS);
 }
 
-SessionHandlerTestBase::SessionHandlerTestBase() {
-}
-SessionHandlerTestBase::~SessionHandlerTestBase() {
-}
+SessionHandlerTestBase::SessionHandlerTestBase() {}
+SessionHandlerTestBase::~SessionHandlerTestBase() {}
 
 void SessionHandlerTestBase::SetUp() {
-  flags_max_session_size_backup_ = FLAGS_max_session_size;
-  flags_create_session_min_interval_backup_ = FLAGS_create_session_min_interval;
-  flags_watch_dog_interval_backup_ = FLAGS_watch_dog_interval;
-  flags_last_command_timeout_backup_ = FLAGS_last_command_timeout;
-  flags_last_create_session_timeout_backup_ = FLAGS_last_create_session_timeout;
-  flags_restricted_backup_ = FLAGS_restricted;
+  flags_max_session_size_backup_ = absl::GetFlag(FLAGS_max_session_size);
+  flags_create_session_min_interval_backup_ =
+      absl::GetFlag(FLAGS_create_session_min_interval);
+  flags_watch_dog_interval_backup_ = absl::GetFlag(FLAGS_watch_dog_interval);
+  flags_last_command_timeout_backup_ =
+      absl::GetFlag(FLAGS_last_command_timeout);
+  flags_last_create_session_timeout_backup_ =
+      absl::GetFlag(FLAGS_last_create_session_timeout);
+  flags_restricted_backup_ = absl::GetFlag(FLAGS_restricted);
 
   user_profile_directory_backup_ = SystemUtil::GetUserProfileDirectory();
-  SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
   ConfigHandler::GetConfig(&config_backup_);
   ClearState();
 }
@@ -131,12 +133,15 @@ void SessionHandlerTestBase::TearDown() {
   ConfigHandler::SetConfig(config_backup_);
   SystemUtil::SetUserProfileDirectory(user_profile_directory_backup_);
 
-  FLAGS_max_session_size = flags_max_session_size_backup_;
-  FLAGS_create_session_min_interval = flags_create_session_min_interval_backup_;
-  FLAGS_watch_dog_interval = flags_watch_dog_interval_backup_;
-  FLAGS_last_command_timeout = flags_last_command_timeout_backup_;
-  FLAGS_last_create_session_timeout = flags_last_create_session_timeout_backup_;
-  FLAGS_restricted = flags_restricted_backup_;
+  absl::SetFlag(&FLAGS_max_session_size, flags_max_session_size_backup_);
+  absl::SetFlag(&FLAGS_create_session_min_interval,
+                flags_create_session_min_interval_backup_);
+  absl::SetFlag(&FLAGS_watch_dog_interval, flags_watch_dog_interval_backup_);
+  absl::SetFlag(&FLAGS_last_command_timeout,
+                flags_last_command_timeout_backup_);
+  absl::SetFlag(&FLAGS_last_create_session_timeout,
+                flags_last_create_session_timeout_backup_);
+  absl::SetFlag(&FLAGS_restricted, flags_restricted_backup_);
 }
 
 void SessionHandlerTestBase::ClearState() {
@@ -154,152 +159,6 @@ void SessionHandlerTestBase::ClearState() {
   FileUtil::Unlink(ConfigFileStream::GetFileName("user://boundary.db"));
   FileUtil::Unlink(ConfigFileStream::GetFileName("user://segment.db"));
   FileUtil::Unlink(UserHistoryPredictor::GetUserHistoryFileName());
-}
-
-TestSessionClient::TestSessionClient(std::unique_ptr<EngineInterface> engine)
-  : id_(0),
-    usage_observer_(new SessionUsageObserver),
-    handler_(new SessionHandler(std::move(engine))) {
-  handler_->AddObserver(usage_observer_.get());
-}
-
-TestSessionClient::~TestSessionClient() {
-}
-
-bool TestSessionClient::CreateSession() {
-  return ::mozc::session::testing::CreateSession(handler_.get(), &id_);
-}
-
-bool TestSessionClient::DeleteSession() {
-  return ::mozc::session::testing::DeleteSession(handler_.get(), id_);
-}
-
-bool TestSessionClient::CleanUp() {
-  return ::mozc::session::testing::CleanUp(handler_.get(), id_);
-}
-
-bool TestSessionClient::ClearUserPrediction() {
-  return ::mozc::session::testing::ClearUserPrediction(handler_.get(), id_);
-}
-
-bool TestSessionClient::SendKeyWithOption(const commands::KeyEvent &key,
-                                          const commands::Input &option,
-                                          commands::Output *output) {
-  commands::Input input;
-  input.set_type(commands::Input::SEND_KEY);
-  input.mutable_key()->CopyFrom(key);
-  input.MergeFrom(option);
-  return EvalCommand(&input, output);
-}
-
-bool TestSessionClient::TestSendKeyWithOption(const commands::KeyEvent &key,
-                                              const commands::Input &option,
-                                              commands::Output *output) {
-  commands::Input input;
-  input.set_type(commands::Input::TEST_SEND_KEY);
-  input.mutable_key()->CopyFrom(key);
-  input.MergeFrom(option);
-  return EvalCommand(&input, output);
-}
-
-bool TestSessionClient::SelectCandidate(uint32 id, commands::Output *output) {
-  commands::Input input;
-  input.set_type(commands::Input::SEND_COMMAND);
-  input.mutable_command()->set_type(commands::SessionCommand::SELECT_CANDIDATE);
-  input.mutable_command()->set_id(id);
-  return EvalCommand(&input, output);
-}
-
-bool TestSessionClient::SubmitCandidate(uint32 id, commands::Output *output) {
-  commands::Input input;
-  input.set_type(commands::Input::SEND_COMMAND);
-  input.mutable_command()->set_type(commands::SessionCommand::SUBMIT_CANDIDATE);
-  input.mutable_command()->set_id(id);
-  return EvalCommand(&input, output);
-}
-
-bool TestSessionClient::Reload() {
-  commands::Input input;
-  input.set_type(commands::Input::RELOAD);
-  return EvalCommand(&input, nullptr);
-}
-
-bool TestSessionClient::ResetContext() {
-  commands::Input input;
-  input.set_type(commands::Input::SEND_COMMAND);
-  input.mutable_command()->set_type(commands::SessionCommand::RESET_CONTEXT);
-  return EvalCommand(&input, nullptr);
-}
-
-bool TestSessionClient::UndoOrRewind(commands::Output *output) {
-  commands::Input input;
-  input.set_type(commands::Input::SEND_COMMAND);
-  input.mutable_command()->set_type(commands::SessionCommand::UNDO_OR_REWIND);
-  return EvalCommand(&input, output);
-}
-
-bool TestSessionClient::SwitchInputMode(
-    commands::CompositionMode composition_mode) {
-  commands::Input input;
-  input.set_type(commands::Input::SEND_COMMAND);
-  input.mutable_command()->set_type(
-      commands::SessionCommand::SWITCH_INPUT_MODE);
-  input.mutable_command()->set_composition_mode(composition_mode);
-  return EvalCommand(&input, nullptr);
-}
-
-bool TestSessionClient::SetRequest(const commands::Request &request,
-                                   commands::Output *output) {
-  commands::Input input;
-  input.set_type(commands::Input::SET_REQUEST);
-  input.mutable_request()->CopyFrom(request);
-  return EvalCommand(&input, output);
-}
-
-bool TestSessionClient::SetConfig(const config::Config &config,
-                                  commands::Output *output) {
-  commands::Input input;
-  input.set_type(commands::Input::SET_CONFIG);
-  *input.mutable_config() = config;
-  return EvalCommand(&input, output);
-}
-
-void TestSessionClient::SetCallbackText(const string &text) {
-  callback_text_ = text;
-}
-
-bool TestSessionClient::EvalCommandInternal(commands::Input *input,
-                                            commands::Output *output,
-                                            bool allow_callback) {
-  input->set_id(id_);
-  commands::Command command;
-  command.mutable_input()->CopyFrom(*input);
-  bool result = handler_->EvalCommand(&command);
-  if (result && output != nullptr) {
-    output->CopyFrom(command.output());
-  }
-
-  // If callback is allowed and the callback field exists, evaluate the callback
-  // command.
-  if (result &&
-      allow_callback &&
-      command.output().has_callback() &&
-      command.output().callback().has_session_command()) {
-    commands::Input input2;
-    input2.set_type(commands::Input::SEND_COMMAND);
-    input2.mutable_command()->CopyFrom(
-        command.output().callback().session_command());
-    input2.mutable_command()->set_text(callback_text_);
-    // Disallow further recursion.
-    result = EvalCommandInternal(&input2, output, false);
-  }
-  callback_text_.clear();
-  return result;
-}
-
-bool TestSessionClient::EvalCommand(commands::Input *input,
-                                    commands::Output *output) {
-  return EvalCommandInternal(input, output, true);
 }
 
 }  // namespace testing

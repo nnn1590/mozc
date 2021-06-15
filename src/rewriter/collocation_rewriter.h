@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 #ifndef MOZC_REWRITER_COLLOCATION_REWRITER_H_
 #define MOZC_REWRITER_COLLOCATION_REWRITER_H_
 
+#include <cstdint>
+
 #include "base/port.h"
 #include "converter/segments.h"
 #include "dictionary/pos_matcher.h"
@@ -42,9 +44,9 @@ class DataManagerInterface;
 class CollocationRewriter : public RewriterInterface {
  public:
   explicit CollocationRewriter(const DataManagerInterface *data_manager);
-  virtual ~CollocationRewriter();
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const;
+  ~CollocationRewriter() override;
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override;
 
  private:
   class CollocationFilter;
@@ -53,13 +55,12 @@ class CollocationRewriter : public RewriterInterface {
   bool IsName(const Segment::Candidate &cand) const;
   bool RewriteFromPrevSegment(const Segment::Candidate &prev_cand,
                               Segment *seg) const;
-  bool RewriteUsingNextSegment(Segment *next_seg,
-                               Segment *seg) const;
+  bool RewriteUsingNextSegment(Segment *next_seg, Segment *seg) const;
   bool RewriteCollocation(Segments *segments) const;
 
   const dictionary::POSMatcher pos_matcher_;
-  const uint16 first_name_id_;
-  const uint16 last_name_id_;
+  const uint16_t first_name_id_;
+  const uint16_t last_name_id_;
 
   // Used to test if pairs of strings are in collocation data. Since it's a
   // bloom filter, non-collocation words are sometimes mistakenly boosted,

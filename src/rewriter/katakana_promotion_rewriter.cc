@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 #include "converter/segments.h"
 #include "protocol/commands.pb.h"
 #include "request/conversion_request.h"
+#include "rewriter/rewriter_util.h"
 #include "transliteration/transliteration.h"
 
 namespace mozc {
@@ -46,15 +47,14 @@ bool MaybePromoteKatakana(Segment *segment) {
 
   const Segment::Candidate &katakana_candidate =
       segment->meta_candidate(transliteration::FULL_KATAKANA);
-  const string &katakana_value = katakana_candidate.value;
+  const std::string &katakana_value = katakana_candidate.value;
   if (!Util::IsScriptType(katakana_value, Util::KATAKANA)) {
     return false;
   }
 
   constexpr size_t kMaxRankForKatakana = 5;
   for (size_t i = 0;
-       i < std::min(segment->candidates_size(), kMaxRankForKatakana);
-       ++i) {
+       i < std::min(segment->candidates_size(), kMaxRankForKatakana); ++i) {
     if (segment->candidate(i).value == katakana_value) {
       // No need to promote or insert.
       return false;
@@ -70,7 +70,7 @@ bool MaybePromoteKatakana(Segment *segment) {
   }
 
   const size_t insert_pos =
-      std::min(kMaxRankForKatakana, segment->candidates_size());
+      RewriterUtil::CalculateInsertPosition(*segment, kMaxRankForKatakana);
   if (index < segment->candidates_size()) {
     const Segment::Candidate insert_candidate = segment->candidate(index);
     *(segment->insert_candidate(insert_pos)) = insert_candidate;

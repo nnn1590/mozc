@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,12 @@
 #define MOZC_BASE_UNVERIFIED_SHA1_H_
 
 #include "base/port.h"
-#include "base/string_piece.h"
+#include "absl/strings/string_view.h"
 
 namespace mozc {
 namespace internal {
 
-// Note that this implemenation is kept just for the backward compatibility
+// Note that this implementation is kept just for the backward compatibility
 // so that we can read previously obfuscated data.
 // !!! Not FIPS-certified.
 // !!! Performance optimization is not well considered.
@@ -46,7 +46,7 @@ class UnverifiedSHA1 {
  public:
   // Returns 20-byte-length SHA1 digest.
   // CAVEATS: See the above comment.
-  static string MakeDigest(StringPiece source);
+  static std::string MakeDigest(absl::string_view source);
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnverifiedSHA1);

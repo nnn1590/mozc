@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,77 +27,88 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <cstdint>
 #include <iostream>
 #include <string>
 
 #include "base/encryptor.h"
 #include "base/file_stream.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/mmap.h"
 #include "base/util.h"
+#include "absl/flags/flag.h"
 
-DEFINE_string(password, "", "password");
-DEFINE_string(salt, "", "salt");
-DEFINE_string(iv, "", "initialization vector");
+ABSL_FLAG(std::string, password, "", "password");
+ABSL_FLAG(std::string, salt, "", "salt");
+ABSL_FLAG(std::string, iv, "", "initialization vector");
 
-DEFINE_bool(encrypt, false, "encrypt mode");
-DEFINE_bool(decrypt, false, "decrypt mode");
+ABSL_FLAG(bool, encrypt, false, "encrypt mode");
+ABSL_FLAG(bool, decrypt, false, "decrypt mode");
 
 // encrypt/decrypt files
-DEFINE_string(input_file, "", "input file");
-DEFINE_string(output_file, "", "input file");
+ABSL_FLAG(std::string, input_file, "", "input file");
+ABSL_FLAG(std::string, output_file, "", "input file");
 
-// perform encryption/decription with test_input.
+// perform encryption/decryption with test_input.
 // used for making a golden data for unittesting
-DEFINE_string(test_input, "", "test input string");
+ABSL_FLAG(std::string, test_input, "", "test input string");
 
 namespace {
-string Escape(const string &buf) {
-  string tmp;
+std::string Escape(const std::string &buf) {
+  std::string tmp;
   mozc::Util::Escape(buf, &tmp);
   return tmp;
 }
 }  // namespace
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  if (!FLAGS_iv.empty()) {
-    CHECK_EQ(16, FLAGS_iv.size()) << "iv size must be 16 byte";
+  if (!absl::GetFlag(FLAGS_iv).empty()) {
+    CHECK_EQ(16, absl::GetFlag(FLAGS_iv).size()) << "iv size must be 16 byte";
   }
 
-  const uint8 *iv = FLAGS_iv.empty() ? NULL :
-      reinterpret_cast<const uint8 *>(FLAGS_iv.data());
+  const std::string iv_str = absl::GetFlag(FLAGS_iv);
+  const uint8_t *iv = iv_str.empty()
+                          ? nullptr
+                          : reinterpret_cast<const uint8_t *>(iv_str.data());
 
-  if (!FLAGS_input_file.empty() && !FLAGS_output_file.empty()) {
+  if (!absl::GetFlag(FLAGS_input_file).empty() &&
+      !absl::GetFlag(FLAGS_output_file).empty()) {
     mozc::Encryptor::Key key;
-    CHECK(key.DeriveFromPassword(FLAGS_password, FLAGS_salt, iv));
+    CHECK(key.DeriveFromPassword(absl::GetFlag(FLAGS_password),
+                                 absl::GetFlag(FLAGS_salt), iv));
 
     mozc::Mmap mmap;
-    CHECK(mmap.Open(FLAGS_input_file.c_str(), "r"));
-    string buf(mmap.begin(), mmap.size());
-    if (FLAGS_encrypt) {
+    CHECK(mmap.Open(absl::GetFlag(FLAGS_input_file).c_str(), "r"));
+    std::string buf(mmap.begin(), mmap.size());
+    if (absl::GetFlag(FLAGS_encrypt)) {
       CHECK(mozc::Encryptor::EncryptString(key, &buf));
-    } else if (FLAGS_decrypt) {
+    } else if (absl::GetFlag(FLAGS_decrypt)) {
       CHECK(mozc::Encryptor::DecryptString(key, &buf));
     } else {
       LOG(FATAL) << "unknown mode. set --encrypt or --decrypt";
     }
-    mozc::OutputFileStream ofs(FLAGS_output_file.c_str(), std::ios::binary);
+    mozc::OutputFileStream ofs(absl::GetFlag(FLAGS_output_file).c_str(),
+                               std::ios::binary);
     CHECK(ofs);
     ofs.write(buf.data(), buf.size());
-  } else if (!FLAGS_test_input.empty()) {
+  } else if (!absl::GetFlag(FLAGS_test_input).empty()) {
     mozc::Encryptor::Key key1, key2;
-    CHECK(key1.DeriveFromPassword(FLAGS_password, FLAGS_salt, iv));
-    CHECK(key2.DeriveFromPassword(FLAGS_password, FLAGS_salt, iv));
+    CHECK(key1.DeriveFromPassword(absl::GetFlag(FLAGS_password),
+                                  absl::GetFlag(FLAGS_salt), iv));
+    CHECK(key2.DeriveFromPassword(absl::GetFlag(FLAGS_password),
+                                  absl::GetFlag(FLAGS_salt), iv));
 
-    string buf = FLAGS_test_input;
-    string iv_buf(reinterpret_cast<const char *>(key1.iv()), key1.iv_size());
+    std::string buf = absl::GetFlag(FLAGS_test_input);
+    std::string iv_buf(reinterpret_cast<const char *>(key1.iv()),
+                       key1.iv_size());
 
-    std::cout << "Password:  \"" << Escape(FLAGS_password) << "\"" << std::endl;
-    std::cout << "Salt:      \"" << Escape(FLAGS_salt) << "\"" << std::endl;
+    std::cout << "Password:  \"" << Escape(absl::GetFlag(FLAGS_password))
+              << "\"" << std::endl;
+    std::cout << "Salt:      \"" << Escape(absl::GetFlag(FLAGS_salt)) << "\""
+              << std::endl;
     std::cout << "IV:        \"" << Escape(iv_buf) << "\"" << std::endl;
     std::cout << "Input:     \"" << Escape(buf) << "\"" << std::endl;
     CHECK(mozc::Encryptor::EncryptString(key1, &buf));
@@ -105,8 +116,7 @@ int main(int argc, char **argv) {
     CHECK(mozc::Encryptor::DecryptString(key2, &buf));
     std::cout << "Decrypted: \"" << Escape(buf) << "\"" << std::endl;
   } else {
-    LOG(ERROR) <<
-        "Unknown mode. set --input_file/--output_file/--test_input";
+    LOG(ERROR) << "Unknown mode. set --input_file/--output_file/--test_input";
   }
 
   return 0;

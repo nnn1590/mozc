@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,25 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "converter/gen_segmenter_bitarray.h"
+#include "absl/flags/flag.h"
 
 namespace {
 #include "data_manager/testing/segmenter_inl.inc"
 }
 
-DEFINE_string(output_size_info, "", "Serialized SegmenterDataSizeInfo");
-DEFINE_string(output_ltable, "", "LTable array");
-DEFINE_string(output_rtable, "", "RTable array");
-DEFINE_string(output_bitarray, "", "Segmenter bitarray");
+ABSL_FLAG(std::string, output_size_info, "",
+          "Serialized SegmenterDataSizeInfo");
+ABSL_FLAG(std::string, output_ltable, "", "LTable array");
+ABSL_FLAG(std::string, output_rtable, "", "RTable array");
+ABSL_FLAG(std::string, output_bitarray, "", "Segmenter bitarray");
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, true);
+  mozc::InitMozc(argv[0], &argc, &argv);
   mozc::SegmenterBitarrayGenerator::GenerateBitarray(
-      kLSize, kRSize, &IsBoundaryInternal, FLAGS_output_size_info,
-      FLAGS_output_ltable, FLAGS_output_rtable, FLAGS_output_bitarray);
+      kLSize, kRSize, &IsBoundaryInternal,
+      absl::GetFlag(FLAGS_output_size_info), absl::GetFlag(FLAGS_output_ltable),
+      absl::GetFlag(FLAGS_output_rtable), absl::GetFlag(FLAGS_output_bitarray));
   return 0;
 }

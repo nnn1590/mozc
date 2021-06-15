@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,16 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <cstdint>
 #include <iostream>
-#include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "base/file_stream.h"
 #include "base/file_util.h"
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/logging.h"
 #include "base/number_util.h"
@@ -56,22 +56,27 @@
 #include "protocol/config.pb.h"
 #include "request/conversion_request.h"
 #include "session/request_test_util.h"
+#include "absl/flags/flag.h"
 
-DEFINE_int32(max_conversion_candidates_size, 200, "maximum candidates size");
-DEFINE_string(user_profile_dir, "", "path to user profile directory");
-DEFINE_string(engine, "default",
-              "Shortcut to select engine_data from name: (default|oss|mock)");
-DEFINE_string(engine_type, "desktop", "Engine type: (desktop|mobile)");
-DEFINE_bool(output_debug_string, true, "output debug string for each input");
-DEFINE_bool(show_meta_candidates, false, "if true, show meta candidates");
+ABSL_FLAG(int32_t, max_conversion_candidates_size, 200,
+          "maximum candidates size");
+ABSL_FLAG(std::string, user_profile_dir, "", "path to user profile directory");
+ABSL_FLAG(std::string, engine_name, "default",
+          "Shortcut to select engine_data_path from name: (default|oss|mock)");
+ABSL_FLAG(std::string, engine_type, "desktop", "Engine type: (desktop|mobile)");
+ABSL_FLAG(bool, output_debug_string, true,
+          "output debug string for each input");
+ABSL_FLAG(bool, show_meta_candidates, false, "if true, show meta candidates");
 
 // Advanced options for data files.  These are automatically set when --engine
 // is used but they can be overridden by specifying these flags.
-DEFINE_string(engine_data, "", "Path to engine data file");
-DEFINE_string(magic, "", "Expected magic number of data file");
-DEFINE_string(id_def, "",
-              "id.def file for POS IDs. If provided, show human readable "
-              "POS instead of ID number");
+ABSL_FLAG(std::string, engine_data_path, "",
+          "Path to engine data file. This overrides the default data path "
+          "for engine_name.");
+ABSL_FLAG(std::string, magic, "", "Expected magic number of data file");
+ABSL_FLAG(std::string, id_def, "",
+          "id.def file for POS IDs. If provided, show human readable "
+          "POS instead of ID number");
 
 namespace mozc {
 namespace {
@@ -83,17 +88,17 @@ using config::Config;
 // Wrapper class for pos id printing
 class PosIdPrintUtil {
  public:
-  static string IdToString(int id) {
+  static std::string IdToString(int id) {
     return Singleton<PosIdPrintUtil>::get()->IdToStringInternal(id);
   }
 
  private:
-  PosIdPrintUtil() :
-      pos_id_(new InputFileStream(FLAGS_id_def.c_str())),
-      pos_id_printer_(new internal::PosIdPrinter(pos_id_.get())) {}
+  PosIdPrintUtil()
+      : pos_id_(new InputFileStream(absl::GetFlag(FLAGS_id_def).c_str())),
+        pos_id_printer_(new internal::PosIdPrinter(pos_id_.get())) {}
 
-  string IdToStringInternal(int id) const {
-    const string &pos_string = pos_id_printer_->IdToString(id);
+  std::string IdToStringInternal(int id) const {
+    const std::string &pos_string = pos_id_printer_->IdToString(id);
     if (pos_string.empty()) {
       return std::to_string(id);
     }
@@ -107,8 +112,10 @@ class PosIdPrintUtil {
   DISALLOW_COPY_AND_ASSIGN(PosIdPrintUtil);
 };
 
-string SegmentTypeToString(Segment::SegmentType type) {
-#define RETURN_STR(val) case Segment::val: return #val
+std::string SegmentTypeToString(Segment::SegmentType type) {
+#define RETURN_STR(val) \
+  case Segment::val:    \
+    return #val
   switch (type) {
     RETURN_STR(FREE);
     RETURN_STR(FIXED_BOUNDARY);
@@ -121,12 +128,11 @@ string SegmentTypeToString(Segment::SegmentType type) {
 #undef RETURN_STR
 }
 
-string CandidateAttributesToString(uint32 attrs) {
-  std::vector<string> v;
-#define ADD_STR(fieldname)                       \
-  do {                                           \
-    if (attrs & Segment::Candidate::fieldname)   \
-      v.push_back(#fieldname);                   \
+std::string CandidateAttributesToString(uint32_t attrs) {
+  std::vector<std::string> v;
+#define ADD_STR(fieldname)                                              \
+  do {                                                                  \
+    if (attrs & Segment::Candidate::fieldname) v.push_back(#fieldname); \
   } while (false)
 
   ADD_STR(BEST_CANDIDATE);
@@ -146,13 +152,15 @@ string CandidateAttributesToString(uint32 attrs) {
   ADD_STR(USER_HISTORY_PREDICTION);
 
 #undef ADD_STR
-  string s;
+  std::string s;
   Util::JoinStrings(v, " | ", &s);
   return s;
 }
 
-string NumberStyleToString(NumberUtil::NumberString::Style style) {
-#define RETURN_STR(val) case NumberUtil::NumberString::val: return #val
+std::string NumberStyleToString(NumberUtil::NumberString::Style style) {
+#define RETURN_STR(val)               \
+  case NumberUtil::NumberString::val: \
+    return #val
   switch (style) {
     RETURN_STR(DEFAULT_STYLE);
     RETURN_STR(NUMBER_SEPARATED_ARABIC_HALFWIDTH);
@@ -174,14 +182,14 @@ string NumberStyleToString(NumberUtil::NumberString::Style style) {
 #undef RETURN_STR
 }
 
-string InnerSegmentBoundaryToString(const Segment::Candidate &cand) {
+std::string InnerSegmentBoundaryToString(const Segment::Candidate &cand) {
   if (cand.inner_segment_boundary.empty()) {
     return "";
   }
-  std::vector<string> pieces;
-  for (Segment::Candidate::InnerSegmentIterator iter(&cand);
-       !iter.Done(); iter.Next()) {
-    string s = "<";
+  std::vector<std::string> pieces;
+  for (Segment::Candidate::InnerSegmentIterator iter(&cand); !iter.Done();
+       iter.Next()) {
+    std::string s = "<";
     s.append(iter.GetKey().data(), iter.GetKey().size());
     s.append(", ");
     s.append(iter.GetValue().data(), iter.GetValue().size());
@@ -192,27 +200,27 @@ string InnerSegmentBoundaryToString(const Segment::Candidate &cand) {
     s.append(1, '>');
     pieces.push_back(s);
   }
-  string s;
+  std::string s;
   Util::JoinStrings(pieces, " | ", &s);
   return s;
 }
 
 void PrintCandidate(const Segment &parent, int num,
                     const Segment::Candidate &cand, std::ostream *os) {
-  std::vector<string> lines;
+  std::vector<std::string> lines;
   if (parent.key() != cand.key) {
     lines.push_back("key: " + cand.key);
   }
-  lines.push_back("content_vk: " + cand.content_value +
-                  "  " + cand.content_key);
-  lines.push_back(Util::StringPrintf(
-      "cost: %d  scost: %d  wcost: %d",
-      cand.cost, cand.structure_cost, cand.wcost));
+  lines.push_back("content_vk: " + cand.content_value + "  " +
+                  cand.content_key);
+  lines.push_back(Util::StringPrintf("cost: %d  scost: %d  wcost: %d",
+                                     cand.cost, cand.structure_cost,
+                                     cand.wcost));
   lines.push_back("lid: " + PosIdPrintUtil::IdToString(cand.lid));
   lines.push_back("rid: " + PosIdPrintUtil::IdToString(cand.rid));
   lines.push_back("attr: " + CandidateAttributesToString(cand.attributes));
   lines.push_back("num_style: " + NumberStyleToString(cand.style));
-  const string &segbdd_str = InnerSegmentBoundaryToString(cand);
+  const std::string &segbdd_str = InnerSegmentBoundaryToString(cand);
   if (!segbdd_str.empty()) {
     lines.push_back("segbdd: " + segbdd_str);
   }
@@ -231,7 +239,7 @@ void PrintSegment(size_t num, size_t segments_size, const Segment &segment,
         << SegmentTypeToString(segment.segment_type()) << "] ----------"
         << std::endl
         << segment.key() << std::endl;
-  if (FLAGS_show_meta_candidates) {
+  if (absl::GetFlag(FLAGS_show_meta_candidates)) {
     for (int i = 0; i < segment.meta_candidates_size(); ++i) {
       PrintCandidate(segment, -i - 1, segment.meta_candidate(i), os);
     }
@@ -247,26 +255,24 @@ void PrintSegments(const Segments &segments, std::ostream *os) {
   }
 }
 
-bool ExecCommand(const ConverterInterface &converter,
-                 Segments *segments,
-                 const string &line,
-                 const commands::Request &request) {
-  std::vector<string> fields;
+bool ExecCommand(const ConverterInterface &converter, Segments *segments,
+                 const std::string &line, const commands::Request &request) {
+  std::vector<std::string> fields;
   Util::SplitStringUsing(line, "\t ", &fields);
 
 #define CHECK_FIELDS_LENGTH(length) \
-  if (fields.size() < (length)) { \
-     return false; \
+  if (fields.size() < (length)) {   \
+    return false;                   \
   }
 
   CHECK_FIELDS_LENGTH(1);
 
-  const string &func = fields[0];
+  const std::string &func = fields[0];
 
   const Config config;
 
   segments->set_max_conversion_candidates_size(
-      FLAGS_max_conversion_candidates_size);
+      absl::GetFlag(FLAGS_max_conversion_candidates_size));
 
   if (func == "startconversion" || func == "start" || func == "s") {
     CHECK_FIELDS_LENGTH(2);
@@ -326,7 +332,7 @@ bool ExecCommand(const ConverterInterface &converter,
   } else if (func == "commitallandfinish") {
     for (int i = 0; i < segments->conversion_segments_size(); ++i) {
       if (segments->conversion_segment(i).segment_type() !=
-            Segment::FIXED_VALUE) {
+          Segment::FIXED_VALUE) {
         if (!(converter.CommitSegmentValue(segments, i, 0))) return false;
       }
     }
@@ -351,29 +357,25 @@ bool ExecCommand(const ConverterInterface &converter,
   } else if (func == "resizesegment" || func == "resize") {
     const ConversionRequest request;
     if (fields.size() == 3) {
-      return converter.ResizeSegment(segments,
-                                     request,
+      return converter.ResizeSegment(segments, request,
                                      NumberUtil::SimpleAtoi(fields[1]),
                                      NumberUtil::SimpleAtoi(fields[2]));
     } else if (fields.size() > 3) {
-      std::vector<uint8> new_arrays;
+      std::vector<uint8_t> new_arrays;
       for (size_t i = 3; i < fields.size(); ++i) {
         new_arrays.push_back(
-            static_cast<uint8>(NumberUtil::SimpleAtoi(fields[i])));
+            static_cast<uint8_t>(NumberUtil::SimpleAtoi(fields[i])));
       }
-      return converter.ResizeSegment(segments,
-                                     request,
-                                     NumberUtil::SimpleAtoi(fields[1]),
-                                     NumberUtil::SimpleAtoi(fields[2]),
-                                     &new_arrays[0],
-                                     new_arrays.size());
+      return converter.ResizeSegment(
+          segments, request, NumberUtil::SimpleAtoi(fields[1]),
+          NumberUtil::SimpleAtoi(fields[2]), &new_arrays[0], new_arrays.size());
     }
   } else if (func == "disableuserhistory") {
     segments->set_user_history_enabled(false);
   } else if (func == "enableuserhistory") {
     segments->set_user_history_enabled(true);
   } else {
-    LOG(WARNING) << "Unknown command: " <<  func;
+    LOG(WARNING) << "Unknown command: " << func;
     return false;
   }
 
@@ -381,36 +383,35 @@ bool ExecCommand(const ConverterInterface &converter,
   return true;
 }
 
-std::pair<string, string> SelectDataFileFromName(
-    const string &mozc_runfiles_dir, const string &engine_name) {
+std::pair<std::string, std::string> SelectDataFileFromName(
+    const std::string &mozc_runfiles_dir, const std::string &engine_name) {
   struct {
     const char *engine_name;
     const char *path;
     const char *magic;
   } kNameAndPath[] = {
-    {"default", "data_manager/oss/mozc.data", "\xEFMOZC\r\n"},
-    {"oss", "data_manager/oss/mozc.data", "\xEFMOZC\r\n"},
-    {"mock", "data_manager/testing/mock_mozc.data", "MOCK"},
+      {"default", "data_manager/oss/mozc.data", "\xEFMOZC\r\n"},
+      {"oss", "data_manager/oss/mozc.data", "\xEFMOZC\r\n"},
+      {"mock", "data_manager/testing/mock_mozc.data", "MOCK"},
   };
   for (const auto &entry : kNameAndPath) {
     if (engine_name == entry.engine_name) {
-      return std::pair<string, string>(
-          FileUtil::JoinPath(mozc_runfiles_dir, entry.path),
-          entry.magic);
+      return std::pair<std::string, std::string>(
+          FileUtil::JoinPath(mozc_runfiles_dir, entry.path), entry.magic);
     }
   }
-  return std::pair<string, string>("", "");
+  return std::pair<std::string, std::string>("", "");
 }
 
-string SelectIdDefFromName(const string &mozc_runfiles_dir,
-                           const string &engine_name) {
+std::string SelectIdDefFromName(const std::string &mozc_runfiles_dir,
+                                const std::string &engine_name) {
   struct {
     const char *engine_name;
     const char *path;
   } kNameAndPath[] = {
-    {"default", "data/dictionary_oss/id.def"},
-    {"oss", "data/dictionary_oss/id.def"},
-    {"mock", "data/test/dictionary/id.def"},
+      {"default", "data/dictionary_oss/id.def"},
+      {"oss", "data/dictionary_oss/id.def"},
+      {"mock", "data/test/dictionary/id.def"},
   };
   for (const auto &entry : kNameAndPath) {
     if (engine_name == entry.engine_name) {
@@ -420,62 +421,86 @@ string SelectIdDefFromName(const string &mozc_runfiles_dir,
   return "";
 }
 
+bool IsConsistentEngineNameAndType(const std::string &engine_name,
+                                   const std::string &engine_type) {
+  using NameAndTypeSet = std::set<std::pair<std::string, std::string>>;
+  static const NameAndTypeSet *kConsistentPairs =
+      new NameAndTypeSet({// 
+                          {"oss", "desktop"},
+                          {"mock", "desktop"},
+                          {"mock", "mobile"},
+                          {"default", "desktop"},
+                          {"", "desktop"},
+                          {"", "mobile"}});
+  return kConsistentPairs->find(std::make_pair(engine_name, engine_type)) !=
+         kConsistentPairs->end();
+}
+
 }  // namespace
 }  // namespace mozc
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
+  mozc::InitMozc(argv[0], &argc, &argv);
 
-  if (!FLAGS_user_profile_dir.empty()) {
-    mozc::SystemUtil::SetUserProfileDirectory(FLAGS_user_profile_dir);
+  if (!absl::GetFlag(FLAGS_user_profile_dir).empty()) {
+    mozc::SystemUtil::SetUserProfileDirectory(
+        absl::GetFlag(FLAGS_user_profile_dir));
   }
 
-  string mozc_runfiles_dir = ".";
-  if (FLAGS_engine_data.empty()) {
-    const auto path_and_magic = mozc::SelectDataFileFromName(mozc_runfiles_dir,
-                                                             FLAGS_engine);
-    FLAGS_engine_data = path_and_magic.first;
-    FLAGS_magic = path_and_magic.second;
+  std::string mozc_runfiles_dir = ".";
+  if (absl::GetFlag(FLAGS_engine_data_path).empty()) {
+    const auto path_and_magic = mozc::SelectDataFileFromName(
+        mozc_runfiles_dir, absl::GetFlag(FLAGS_engine_name));
+    absl::SetFlag(&FLAGS_engine_data_path, path_and_magic.first);
+    absl::SetFlag(&FLAGS_magic, path_and_magic.second);
   }
-  CHECK(!FLAGS_engine_data.empty())
-      << "--engine_data or --engine is invalid: "
-      << "--engine_data=" << FLAGS_engine_data << " "
-      << "--engine=" << FLAGS_engine;
+  CHECK(!absl::GetFlag(FLAGS_engine_data_path).empty())
+      << "--engine_data_path or --engine is invalid: "
+      << "--engine_data_path=" << absl::GetFlag(FLAGS_engine_data_path) << " "
+      << "--engine_name=" << absl::GetFlag(FLAGS_engine_name);
 
-  if (FLAGS_id_def.empty()) {
-    FLAGS_id_def = mozc::SelectIdDefFromName(mozc_runfiles_dir, FLAGS_engine);
+  if (absl::GetFlag(FLAGS_id_def).empty()) {
+    absl::SetFlag(&FLAGS_id_def,
+                  mozc::SelectIdDefFromName(mozc_runfiles_dir,
+                                            absl::GetFlag(FLAGS_engine_name)));
   }
 
-  std::cout << "Engine type: " << FLAGS_engine_type
-            << "\nData file: " << FLAGS_engine_data
-            << "\nid.def: " << FLAGS_id_def << std::endl;
+  std::cout << "Engine type: " << absl::GetFlag(FLAGS_engine_type)
+            << "\nData file: " << absl::GetFlag(FLAGS_engine_data_path)
+            << "\nid.def: " << absl::GetFlag(FLAGS_id_def) << std::endl;
 
   std::unique_ptr<mozc::DataManager> data_manager(new mozc::DataManager);
-  const auto status = data_manager->InitFromFile(FLAGS_engine_data,
-                                                 FLAGS_magic);
+  const auto status = data_manager->InitFromFile(
+      absl::GetFlag(FLAGS_engine_data_path), absl::GetFlag(FLAGS_magic));
   CHECK_EQ(status, mozc::DataManager::Status::OK);
 
   mozc::commands::Request request;
   std::unique_ptr<mozc::EngineInterface> engine;
-  if (FLAGS_engine_type == "desktop") {
-    engine = mozc::Engine::CreateDesktopEngine(std::move(data_manager));
-  } else if (FLAGS_engine_type == "mobile") {
-    engine = mozc::Engine::CreateMobileEngine(std::move(data_manager));
+  if (absl::GetFlag(FLAGS_engine_type) == "desktop") {
+    engine = mozc::Engine::CreateDesktopEngine(std::move(data_manager)).value();
+  } else if (absl::GetFlag(FLAGS_engine_type) == "mobile") {
+    engine = mozc::Engine::CreateMobileEngine(std::move(data_manager)).value();
     mozc::commands::RequestForUnitTest::FillMobileRequest(&request);
   } else {
-    LOG(FATAL) << "Invalid type: --engine_type=" << FLAGS_engine_type;
+    LOG(FATAL) << "Invalid type: --engine_type="
+               << absl::GetFlag(FLAGS_engine_type);
     return 0;
   }
 
   mozc::ConverterInterface *converter = engine->GetConverter();
   CHECK(converter);
 
-  mozc::Segments segments;
-  string line;
+  if (!mozc::IsConsistentEngineNameAndType(absl::GetFlag(FLAGS_engine_name),
+                                           absl::GetFlag(FLAGS_engine_type))) {
+    LOG(WARNING) << "Engine name and type do not match.";
+  }
 
-  while (!getline(std::cin, line).fail()) {
+  mozc::Segments segments;
+  std::string line;
+
+  while (!std::getline(std::cin, line).fail()) {
     if (mozc::ExecCommand(*converter, &segments, line, request)) {
-      if (FLAGS_output_debug_string) {
+      if (absl::GetFlag(FLAGS_output_debug_string)) {
         mozc::PrintSegments(segments, &std::cout);
       }
     } else {

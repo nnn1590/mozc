@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,16 +30,16 @@
 #include "gui/about_dialog/about_dialog.h"
 
 #include <QtGui/QtGui>
-
 #include <string>
 
-#include "base/const.h"
 #include "base/file_util.h"
 #include "base/process.h"
 #include "base/run_level.h"
 #include "base/system_util.h"
 #include "base/util.h"
 #include "base/version.h"
+#include "gui/base/util.h"
+#include "absl/memory/memory.h"
 
 namespace mozc {
 namespace gui {
@@ -47,37 +47,46 @@ namespace {
 
 void defaultLinkActivated(const QString &str) {
   QByteArray utf8 = str.toUtf8();
-  Process::OpenBrowser(string(utf8.data(), utf8.length()));
+  Process::OpenBrowser(std::string(utf8.data(), utf8.length()));
 }
 
-// set document file paths by adding <server_path>/documents/ to file name.
-bool AddLocalPath(string *str) {
-  const char *filenames[] = { "credits_en.html" };
-  for (size_t i = 0; i < arraysize(filenames); ++i) {
-    if (str->find(filenames[i]) != string::npos) {
-      string tmp;
-      const string file_path =
-          FileUtil::JoinPath(SystemUtil::GetDocumentDirectory(), filenames[i]);
-      Util::StringReplace(*str, filenames[i], file_path, false, &tmp);
-      *str = tmp;
-      return true;
-    }
-  }
-  return false;
+inline void Replace(QString &str, const char pattern[], const char repl[]) {
+  str.replace(QLatin1String(pattern), QLatin1String(repl));
+}
+
+inline void Replace(QString &str, const char pattern[], const QString &repl) {
+  str.replace(QLatin1String(pattern), repl);
+}
+
+QString ReplaceString(const QString &str) {
+  QString replaced(str);
+  Replace(replaced, "[ProductName]", GuiUtil::ProductName());
+
+#ifdef GOOGLE_JAPANESE_INPUT_BUILD
+  Replace(replaced, "[ProductUrl]", "https://www.google.co.jp/ime/");
+  Replace(replaced, "[ForumUrl]",
+          "https://support.google.com/gboard/community?hl=ja");
+  Replace(replaced, "[ForumName]", QObject::tr("issues"));
+#else
+  Replace(replaced, "[ProductUrl]", "https://github.com/google/mozc");
+  Replace(replaced, "[ForumUrl]", "https://github.com/google/mozc/issues");
+  Replace(replaced, "[ForumName]", QObject::tr("issues"));
+#endif  // GOOGLE_JAPANESE_INPUT_BUILD
+
+  const std::string credit_filepath =
+      FileUtil::JoinPath(SystemUtil::GetDocumentDirectory(), "credits_en.html");
+  Replace(replaced, "credits_en.html", credit_filepath.c_str());
+
+  return replaced;
 }
 
 void SetLabelText(QLabel *label) {
-  string label_text = label->text().toStdString();
-  if (AddLocalPath(&label_text)) {
-    label->setText(QString::fromStdString(label_text));
-  }
+  label->setText(ReplaceString(label->text()));
 }
-
 }  // namespace
 
 AboutDialog::AboutDialog(QWidget *parent)
-    : QDialog(parent),
-      callback_(NULL) {
+    : QDialog(parent), callback_(nullptr) {
   setupUi(this);
   setWindowFlags(Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
   setWindowModality(Qt::NonModal);
@@ -85,10 +94,9 @@ AboutDialog::AboutDialog(QWidget *parent)
   window_palette.setColor(QPalette::Window, QColor(255, 255, 255));
   setPalette(window_palette);
   setAutoFillBackground(true);
-  QString version_info("(");
-  version_info += Version::GetMozcVersion().c_str();
-  version_info += ")";
-  version_label->setText(version_info);
+  std::string version_info = "(" + Version::GetMozcVersion() + ")";
+  version_label->setText(QLatin1String(version_info.c_str()));
+  GuiUtil::ReplaceWidgetLabels(this);
 
   QPalette palette;
   palette.setColor(QPalette::Window, QColor(236, 233, 216));
@@ -101,16 +109,17 @@ AboutDialog::AboutDialog(QWidget *parent)
   font.setPointSize(22);
 #endif  // OS_WIN
 
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   font.setPointSize(26);
-#endif  // OS_MACOSX
+#endif  // __APPLE__
 
   label->setFont(font);
 
   SetLabelText(label_terms);
   SetLabelText(label_credits);
 
-  product_image_.reset(new QImage(":/product_logo.png"));
+  product_image_ =
+      absl::make_unique<QImage>(QLatin1String(":/product_logo.png"));
 }
 
 void AboutDialog::paintEvent(QPaintEvent *event) {
@@ -121,7 +130,7 @@ void AboutDialog::paintEvent(QPaintEvent *event) {
   const QRect draw_rect(std::max(5, width() - image_rect.width() - 15),
                         std::max(0, color_frame->y() - image_rect.height()),
                         image_rect.width(), image_rect.height());
-  painter.drawImage(draw_rect, *product_image_.get());
+  painter.drawImage(draw_rect, *product_image_);
 }
 
 void AboutDialog::SetLinkCallback(LinkCallbackInterface *callback) {
@@ -133,7 +142,7 @@ void AboutDialog::linkActivated(const QString &link) {
   if (!RunLevel::IsValidClientRunLevel()) {
     return;
   }
-  if (callback_ != NULL) {
+  if (callback_ != nullptr) {
     callback_->linkActivated(link);
   } else {
     defaultLinkActivated(link);

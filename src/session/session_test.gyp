@@ -1,4 +1,4 @@
-# Copyright 2010-2018, Google Inc.
+# Copyright 2010-2021, Google Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@
       ],
       'dependencies': [
         '../data_manager/testing/mock_data_manager.gyp:mock_data_manager',
-        '../engine/engine.gyp:engine_factory',
+        '../engine/engine.gyp:mock_data_engine_factory',
         '../testing/testing.gyp:gtest_main',
         'session.gyp:session',
         'session.gyp:session_server',
@@ -126,13 +126,6 @@
       'variables': {
         'test_size': 'small',
       },
-      'conditions': [
-        ['target_platform=="NaCl" and _toolset=="target"', {
-          'dependencies!': [
-            'session.gyp:session_server',
-          ],
-        }],
-      ],
     },
     {
       'target_name': 'session_converter_test',
@@ -182,7 +175,7 @@
       },
     },
     {
-      # Android is not supported.
+      # iOS is not supported.
       'target_name': 'session_watch_dog_test',
       'type': 'executable',
       'sources': [
@@ -252,6 +245,7 @@
         '../testing/testing.gyp:gtest_main',
         'session.gyp:random_keyevents_generator',
         'session.gyp:session',
+        'session.gyp:session_handler_tool',
         'session.gyp:session_server',
         'session_handler_test_util',
       ],
@@ -290,21 +284,6 @@
       },
     },
     {
-      'target_name': 'generic_storage_manager_test',
-      'type': 'executable',
-      'sources': [
-        'generic_storage_manager_test.cc'
-      ],
-      'dependencies': [
-        '../base/base.gyp:base',
-        '../testing/testing.gyp:gtest_main',
-        'session_base.gyp:generic_storage_manager',
-      ],
-      'variables': {
-        'test_size': 'small',
-      },
-    },
-    {
       'target_name': 'request_test_util_test',
       'type': 'executable',
       'sources': [
@@ -327,6 +306,7 @@
       ],
       'dependencies': [
         '../base/base.gyp:base',
+        '../base/base.gyp:status',
         '../data/test/session/scenario/scenario.gyp:install_session_handler_scenario_test_data',
         '../data/test/session/scenario/usage_stats/usage_stats.gyp:install_session_handler_usage_stats_scenario_test_data',
         '../engine/engine.gyp:mock_data_engine_factory',
@@ -335,6 +315,7 @@
         '../testing/testing.gyp:mozctest',
         '../usage_stats/usage_stats_test.gyp:usage_stats_testing_util',
         'session.gyp:session_handler',
+        'session.gyp:session_handler_tool',
         'session_base.gyp:request_test_util',
         'session_handler_test_util',
       ],
@@ -348,7 +329,6 @@
       'target_name': 'session_all_test',
       'type': 'none',
       'dependencies': [
-        'generic_storage_manager_test',
         'random_keyevents_generator_test',
         'request_test_util_test',
         'session_converter_stress_test',
@@ -365,18 +345,6 @@
         'session_watch_dog_test',
       ],
       'conditions': [
-        ['target_platform=="Android"', {
-          'dependencies!': [
-            'session_server_test',
-            'session_watch_dog_test',
-            # These tests have been disabled as it takes long execution time.
-            # In addition currently they fail.
-            # Here we also disable the tests temporarirly.
-            # TODO(matsuzakit): Reactivate them.
-            'session_handler_stress_test',
-            'session_regression_test',
-          ],
-        }],
       ],
     },
   ],

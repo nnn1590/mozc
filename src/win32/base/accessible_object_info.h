@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,10 @@ namespace win32 {
 struct AccessibleObjectInfo {
   AccessibleObjectInfo();
 
-  string role;   // utf8
+  std::string role;  // utf8
   bool is_builtin_role;
-  string name;   // utf8
-  string value;  // utf8
+  std::string name;   // utf8
+  std::string value;  // utf8
 };
 
 }  // namespace win32

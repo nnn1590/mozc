@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #include "rewriter/date_rewriter.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 
 #include "base/clock.h"
@@ -41,6 +42,7 @@
 #include "composer/table.h"
 #include "config/config_handler.h"
 #include "converter/segments.h"
+#include "dictionary/dictionary_mock.h"
 #include "protocol/commands.pb.h"
 #include "protocol/config.pb.h"
 #include "request/conversion_request.h"
@@ -50,9 +52,8 @@
 namespace mozc {
 namespace {
 
-void Expect2Results(const std::vector<string> &src,
-                    const string &exp1,
-                    const string &exp2) {
+void Expect2Results(const std::vector<std::string> &src,
+                    const std::string &exp1, const std::string &exp2) {
   EXPECT_EQ(2, src.size());
   EXPECT_NE(src[0], src[1]);
   for (int i = 0; i < 2; ++i) {
@@ -60,10 +61,9 @@ void Expect2Results(const std::vector<string> &src,
   }
 }
 
-void Expect3Results(const std::vector<string> &src,
-                    const string &exp1,
-                    const string &exp2,
-                    const string &exp3) {
+void Expect3Results(const std::vector<std::string> &src,
+                    const std::string &exp1, const std::string &exp2,
+                    const std::string &exp3) {
   EXPECT_EQ(3, src.size());
   EXPECT_NE(src[0], src[1]);
   EXPECT_NE(src[1], src[2]);
@@ -73,11 +73,9 @@ void Expect3Results(const std::vector<string> &src,
   }
 }
 
-void Expect4Results(const std::vector<string> &src,
-                    const string &exp1,
-                    const string &exp2,
-                    const string &exp3,
-                    const string &exp4) {
+void Expect4Results(const std::vector<std::string> &src,
+                    const std::string &exp1, const std::string &exp2,
+                    const std::string &exp3, const std::string &exp4) {
   EXPECT_EQ(4, src.size());
   EXPECT_NE(src[0], src[1]);
   EXPECT_NE(src[0], src[2]);
@@ -86,17 +84,15 @@ void Expect4Results(const std::vector<string> &src,
   EXPECT_NE(src[1], src[3]);
   EXPECT_NE(src[2], src[3]);
   for (int i = 0; i < 4; ++i) {
-    EXPECT_TRUE(src[i] == exp1 || src[i] == exp2 ||
-                src[i] == exp3 || src[i] == exp4);
+    EXPECT_TRUE(src[i] == exp1 || src[i] == exp2 || src[i] == exp3 ||
+                src[i] == exp4);
   }
 }
 
-void Expect5Results(const std::vector<string> &src,
-                    const string &exp1,
-                    const string &exp2,
-                    const string &exp3,
-                    const string &exp4,
-                    const string &exp5) {
+void Expect5Results(const std::vector<std::string> &src,
+                    const std::string &exp1, const std::string &exp2,
+                    const std::string &exp3, const std::string &exp4,
+                    const std::string &exp5) {
   EXPECT_EQ(5, src.size());
   EXPECT_NE(src[0], src[1]);
   EXPECT_NE(src[0], src[2]);
@@ -109,52 +105,50 @@ void Expect5Results(const std::vector<string> &src,
   EXPECT_NE(src[2], src[4]);
   EXPECT_NE(src[3], src[4]);
   for (int i = 0; i < 5; ++i) {
-    EXPECT_TRUE(src[i] == exp1 || src[i] == exp2 ||
-                src[i] == exp3 || src[i] == exp4 || src[i] == exp5);
+    EXPECT_TRUE(src[i] == exp1 || src[i] == exp2 || src[i] == exp3 ||
+                src[i] == exp4 || src[i] == exp5);
   }
 }
 
-void InitCandidate(const string &key, const string &value,
+void InitCandidate(const std::string &key, const std::string &value,
                    Segment::Candidate *candidate) {
   candidate->content_key = key;
   candidate->value = value;
   candidate->content_value = value;
 }
 
-void AppendSegment(const string &key, const string &value,
+void AppendSegment(const std::string &key, const std::string &value,
                    Segments *segments) {
   Segment *seg = segments->add_segment();
   seg->set_key(key);
   InitCandidate(key, value, seg->add_candidate());
 }
 
-void InitSegment(const string &key, const string &value,
+void InitSegment(const std::string &key, const std::string &value,
                  Segments *segments) {
   segments->Clear();
   AppendSegment(key, value, segments);
 }
 
-void InsertCandidate(const string &key,
-                     const string &value,
-                     const int position,
-                     Segment *segment) {
+void InsertCandidate(const std::string &key, const std::string &value,
+                     const int position, Segment *segment) {
   Segment::Candidate *cand = segment->insert_candidate(position);
   cand->content_key = key;
   cand->value = value;
   cand->content_value = value;
 }
 
-int CountDescription(const Segments &segments, const string &description) {
+int CountDescription(const Segments &segments, const std::string &description) {
   int num = 0;
   for (size_t i = 0; i < segments.segment(0).candidates_size(); ++i) {
     if (segments.segment(0).candidate(i).description == description) {
-        ++num;
-     }
+      ++num;
+    }
   }
   return num;
 }
 
-bool ContainCandidate(const Segments &segments, const string &candidate) {
+bool ContainCandidate(const Segments &segments, const std::string &candidate) {
   const Segment &segment = segments.segment(0);
 
   for (size_t i = 0; i < segment.candidates_size(); ++i) {
@@ -165,13 +159,13 @@ bool ContainCandidate(const Segments &segments, const string &candidate) {
   return false;
 }
 
-string GetNthCandidateValue(const Segments &segments, const int n) {
+std::string GetNthCandidateValue(const Segments &segments, const int n) {
   const Segment &segment = segments.segment(0);
   return segment.candidate(n).value;
 }
 
-bool IsStringContained(const string &key,
-                       const std::vector<string> &container) {
+bool IsStringContained(const std::string &key,
+                       const std::vector<std::string> &container) {
   for (size_t i = 0; i < container.size(); ++i) {
     if (key == container[i]) {
       return true;
@@ -180,8 +174,8 @@ bool IsStringContained(const string &key,
   return false;
 }
 
-bool AllElementsAreSame(const string &key,
-                        const std::vector<string> &container) {
+bool AllElementsAreSame(const std::string &key,
+                        const std::vector<std::string> &container) {
   for (size_t i = 0; i < container.size(); ++i) {
     if (key != container[i]) {
       return false;
@@ -191,9 +185,9 @@ bool AllElementsAreSame(const string &key,
 }
 
 // "2011-04-18 15:06:31 (Mon)" UTC
-const uint64 kTestSeconds =  1303139191uLL;
+const uint64_t kTestSeconds = 1303139191uLL;
 // micro seconds. it is random value.
-const uint32 kTestMicroSeconds = 588377u;
+const uint32_t kTestMicroSeconds = 588377u;
 
 }  // namespace
 
@@ -276,7 +270,7 @@ TEST_F(DateRewriterTest, DateRewriteTest) {
                                      "4月18日",
                                      "月曜日"};
 
-    // If initial count of candidate is 1, date rewrited candidate start from 1.
+    // If initial count of candidate is 1, date rewrote candidate start from 1.
     // "きょう", "今日"
     InitSegment("きょう", "今日", &segments);
     EXPECT_TRUE(rewriter.Rewrite(request, &segments));
@@ -289,7 +283,7 @@ TEST_F(DateRewriterTest, DateRewriteTest) {
     }
 
     // If initial count of candidate is 5 and target candidate is located at
-    // index 4, date rewrited candidate start from 5.
+    // index 4, date rewrote candidate start from 5.
     // "きょう", "今日"
     InitSegment("きょう", "今日", &segments);
 
@@ -310,7 +304,7 @@ TEST_F(DateRewriterTest, DateRewriteTest) {
     }
 
     // If initial count of candidate is 5 and target candidate is located at
-    // index 0, date rewrited candidate start from kMinimumDateCandidateIdx.
+    // index 0, date rewrote candidate start from kMinimumDateCandidateIdx.
     // "きょう", "今日"
     InitSegment("きょう", "今日", &segments);
 
@@ -336,7 +330,7 @@ TEST_F(DateRewriterTest, DateRewriteTest) {
 
 TEST_F(DateRewriterTest, ADToERA) {
   DateRewriter rewriter;
-  std::vector<string> results;
+  std::vector<std::string> results;
   const ConversionRequest request;
 
   results.clear();
@@ -353,50 +347,35 @@ TEST_F(DateRewriterTest, ADToERA) {
   results.clear();
   rewriter.AdToEra(646, &results);
   EXPECT_EQ(results.size(), 2);
-  Expect2Results(results,
-                 "大化2",
-                 "大化二");
-
+  Expect2Results(results, "大化2", "大化二");
 
   // AD.1976 is "昭和51(年)" or "昭和五十一(年)"
   results.clear();
   rewriter.AdToEra(1976, &results);
   EXPECT_EQ(results.size(), 2);
-  Expect2Results(results,
-                 "昭和51",
-                 "昭和五十一");
+  Expect2Results(results, "昭和51", "昭和五十一");
 
   // AD.1989 is "昭和64(年)" or "昭和六四(年)" or "平成元(年)"
   results.clear();
   rewriter.AdToEra(1989, &results);
-  Expect3Results(results,
-                 "昭和64",
-                 "昭和六十四",
-                 "平成元");
+  Expect3Results(results, "昭和64", "昭和六十四", "平成元");
 
   // AD.1990 is "平成2(年)" or "平成(二)年"
   results.clear();
   rewriter.AdToEra(1990, &results);
   EXPECT_EQ(results.size(), 2);
-  Expect2Results(results,
-                 "平成2",
-                 "平成二");
+  Expect2Results(results, "平成2", "平成二");
 
   // 2 courts era.
   // AD.1331 "元徳3(年)" or "元弘元(年)"
   results.clear();
   rewriter.AdToEra(1331, &results);
-  Expect3Results(results,
-                 "元徳3",
-                 "元徳三",
-                 "元弘元");
+  Expect3Results(results, "元徳3", "元徳三", "元弘元");
 
   // AD.1393 "明徳4(年)" or "明徳四(年)"
   results.clear();
   rewriter.AdToEra(1393, &results);
-  Expect2Results(results,
-                 "明徳4",
-                 "明徳四");
+  Expect2Results(results, "明徳4", "明徳四");
 
   // AD.1375
   // South: "文中4(年)" or "文中四(年)", "天授元(年)"
@@ -412,22 +391,13 @@ TEST_F(DateRewriterTest, ADToERA) {
   results.clear();
   rewriter.AdToEra(1332, &results);
   EXPECT_EQ(results.size(), 5);
-  Expect5Results(results,
-                 "元弘2",
-                 "元弘二",
-                 "正慶元",
-                 "元徳4",
-                 "元徳四");
+  Expect5Results(results, "元弘2", "元弘二", "正慶元", "元徳4", "元徳四");
   // AD.1333
   // South: "元弘3" or "元弘三(年)"
   // North: "正慶2" or "正慶二(年)"
   results.clear();
   rewriter.AdToEra(1333, &results);
-  Expect4Results(results,
-                 "元弘3",
-                 "元弘三",
-                 "正慶2",
-                 "正慶二");
+  Expect4Results(results, "元弘3", "元弘三", "正慶2", "正慶二");
 
   // AD.1334
   // South: "元弘4" or "元弘四(年)", "建武元"
@@ -435,50 +405,75 @@ TEST_F(DateRewriterTest, ADToERA) {
   results.clear();
   rewriter.AdToEra(1334, &results);
   EXPECT_EQ(results.size(), 5);
-  Expect5Results(results,
-                 "元弘4",
-                 "元弘四",
-                 "建武元",
-                 "正慶三",
-                 "正慶3");
+  Expect5Results(results, "元弘4", "元弘四", "建武元", "正慶三", "正慶3");
 
   // AD.1997
   // "平成九年"
   results.clear();
   rewriter.AdToEra(1997, &results);
   EXPECT_EQ(results.size(), 2);
-  Expect2Results(results,
-                 "平成9",
-                 "平成九");
+  Expect2Results(results, "平成9", "平成九");
 
   // AD.2011
   // "平成二十三年"
   results.clear();
   rewriter.AdToEra(2011, &results);
   EXPECT_EQ(results.size(), 2);
-  Expect2Results(results,
-                 "平成23",
-                 "平成二十三");
+  Expect2Results(results, "平成23", "平成二十三");
+
+  // AD.2019
+  // Show both "平成三十一年", "令和元年" when month is not specified.
+  results.clear();
+  rewriter.AdToEra(2019, 0, &results);
+  EXPECT_EQ(results.size(), 3);
+  Expect3Results(results, "令和元", "平成31", "平成三十一");
+
+  // Changes the era depending on the month.
+  for (int m = 1; m <= 4; ++m) {
+    results.clear();
+    rewriter.AdToEra(2019, m, &results);
+    EXPECT_EQ(results.size(), 2);
+    Expect2Results(results, "平成31", "平成三十一");
+  }
+
+  for (int m = 5; m <= 12; ++m) {
+    results.clear();
+    rewriter.AdToEra(2019, m, &results);
+    EXPECT_EQ(results.size(), 1);
+    EXPECT_EQ(results[0], "令和元");
+  }
+
+  // AD.2020
+  results.clear();
+  rewriter.AdToEra(2020, &results);
+  EXPECT_EQ(results.size(), 2);
+  Expect2Results(results, "令和2", "令和二");
+
+  // AD.2030
+  results.clear();
+  rewriter.AdToEra(2030, &results);
+  EXPECT_EQ(results.size(), 2);
+  Expect2Results(results, "令和12", "令和十二");
 
   // AD.1998
   // "平成十年" or "平成10年"
   results.clear();
   rewriter.AdToEra(1998, &results);
   EXPECT_EQ(results.size(), 2);
-  Expect2Results(results,
-                 "平成10",
-                 "平成十");
+  Expect2Results(results, "平成10", "平成十");
 
   // Negative Test
   // Too big number or negative number input are expected false return
   results.clear();
-  EXPECT_FALSE(rewriter.AdToEra(2100, &results));
+  EXPECT_TRUE(rewriter.AdToEra(2020, &results));
+  EXPECT_TRUE(rewriter.AdToEra(2100, &results));
+  EXPECT_FALSE(rewriter.AdToEra(2201, &results));
   EXPECT_FALSE(rewriter.AdToEra(-100, &results));
 }
 
 TEST_F(DateRewriterTest, ERAToAD) {
   DateRewriter rewriter;
-  std::vector<string> results, descriptions;
+  std::vector<std::string> results, descriptions;
   const ConversionRequest request;
   // "1234", "１２３４", "一二三四"
   const int kNumYearRepresentation = 3;
@@ -520,10 +515,10 @@ TEST_F(DateRewriterTest, ERAToAD) {
     EXPECT_EQ("正和2年", descriptions[i]);
     EXPECT_EQ("昭和2年", descriptions[i + kNumYearRepresentation]);
   }
-  std::vector<string> first(results.begin(),
-                            results.begin() + kNumYearRepresentation);
-  std::vector<string> second(results.begin() + kNumYearRepresentation,
-                             results.end());
+  std::vector<std::string> first(results.begin(),
+                                 results.begin() + kNumYearRepresentation);
+  std::vector<std::string> second(results.begin() + kNumYearRepresentation,
+                                  results.end());
   EXPECT_TRUE(IsStringContained("1313年", first));
   EXPECT_TRUE(IsStringContained("１３１３年", first));
   EXPECT_TRUE(IsStringContained("一三一三年", first));
@@ -567,6 +562,18 @@ TEST_F(DateRewriterTest, ERAToAD) {
   EXPECT_TRUE(IsStringContained("2012年", results));
 
   // "元年" test
+  // "れいわがんねん" is AD.2019
+  results.clear();
+  descriptions.clear();
+  EXPECT_TRUE(rewriter.EraToAd("れいわがんねん", &results, &descriptions));
+  EXPECT_EQ(kNumYearRepresentation, results.size());
+  EXPECT_EQ(kNumYearRepresentation, descriptions.size());
+  EXPECT_TRUE(IsStringContained("2019年", results));
+  EXPECT_TRUE(IsStringContained("２０１９年", results));
+  EXPECT_TRUE(IsStringContained("二〇一九年", results));
+  EXPECT_TRUE(AllElementsAreSame("令和元年", descriptions));
+
+  // "元年" test
   // "へいせいがんねん" is AD.1989
   results.clear();
   descriptions.clear();
@@ -604,7 +611,7 @@ TEST_F(DateRewriterTest, ERAToAD) {
 
 TEST_F(DateRewriterTest, ConvertTime) {
   DateRewriter rewriter;
-  std::vector<string> results;
+  std::vector<std::string> results;
   const ConversionRequest request;
 
   results.clear();
@@ -657,7 +664,7 @@ TEST_F(DateRewriterTest, ConvertTime) {
 
 TEST_F(DateRewriterTest, ConvertDateTest) {
   DateRewriter rewriter;
-  std::vector<string> results;
+  std::vector<std::string> results;
 
   results.clear();
   EXPECT_TRUE(rewriter.ConvertDateWithYear(2011, 4, 17, &results));
@@ -672,30 +679,16 @@ TEST_F(DateRewriterTest, ConvertDateTest) {
   const struct {
     int month;
     int days;
-  } month_days_test_data[] = {
-    { 1, 31 },
-    { 3, 31 },
-    { 4, 30 },
-    { 5, 31 },
-    { 6, 30 },
-    { 7, 31 },
-    { 8, 31 },
-    { 9, 30 },
-    { 10, 31 },
-    { 11, 30 },
-    { 12, 31 }
-  };
+  } month_days_test_data[] = {{1, 31},  {3, 31},  {4, 30}, {5, 31},
+                              {6, 30},  {7, 31},  {8, 31}, {9, 30},
+                              {10, 31}, {11, 30}, {12, 31}};
 
   for (size_t i = 0; i < arraysize(month_days_test_data); ++i) {
-    EXPECT_TRUE(rewriter.ConvertDateWithYear(
-        2001,
-        month_days_test_data[i].month,
-        month_days_test_data[i].days,
-        &results));
+    EXPECT_TRUE(
+        rewriter.ConvertDateWithYear(2001, month_days_test_data[i].month,
+                                     month_days_test_data[i].days, &results));
     EXPECT_FALSE(rewriter.ConvertDateWithYear(
-        2001,
-        month_days_test_data[i].month,
-        month_days_test_data[i].days+1,
+        2001, month_days_test_data[i].month, month_days_test_data[i].days + 1,
         &results));
   }
 
@@ -740,15 +733,14 @@ TEST_F(DateRewriterTest, NumberRewriterTest) {
 
   // Not targets of rewrite.
   const char *kNonTargetCases[] = {
-    "", "0", "1", "01234", "00000",  // Invalid number of digits.
-    "hello", "123xyz",  // Not numbers.
-    "660", "999", "3400"  // Neither date nor time.
+      "",      "0",      "1",   "01234", "00000",  // Invalid number of digits.
+      "hello", "123xyz",                           // Not numbers.
+      "660",   "999",    "3400"                    // Neither date nor time.
   };
   for (const char *input : kNonTargetCases) {
     InitSegment(input, input, &segments);
     EXPECT_FALSE(rewriter.Rewrite(conversion_request, &segments))
-        << "Input: " << input
-        << "\nSegments: " << segments.DebugString();
+        << "Input: " << input << "\nSegments: " << segments.DebugString();
   }
 
 // Macro for {"M/D", "日付"}

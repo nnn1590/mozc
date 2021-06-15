@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ struct CandidateInfo {
 
   DWORD count;
   DWORD selection;
-  bool  show_candidate;
+  bool show_candidate;
   std::vector<DWORD> offsets;
   std::vector<wchar_t> text_buffer;
 };
@@ -66,21 +66,21 @@ struct CandidateInfo {
 class CandidateInfoUtil {
  public:
   // Returns an Input Method Context Component (IMCC) handle with initializing
-  // it with an empty CANDIDATEINFO data.  Returns NULL if fails.
+  // it with an empty CANDIDATEINFO data.  Returns nullptr if fails.
   // You can specify the previously used handle in |current_handle| to transfer
   // the ownership so that this method can reuse the handle and its memory
-  // block.  If NULL is specified in |current_handle|, this method allocates a
-  // new memory block.  The caller is responsible for the lifetime management
+  // block.  If nullptr is specified in |current_handle|, this method allocates
+  // a new memory block.  The caller is responsible for the lifetime management
   // of the returned handle either way.
   static HIMCC Initialize(HIMCC current_handle);
 
   // Returns an Input Method Context Component (IMCC) handle with filling
   // candidate list information based on the Mozc output specified in |output|.
-  // Returns NULL if fails.
+  // Returns nullptr if fails.
   // You can specify the previously used handle in |current_handle| to transfer
   // the ownership so that this method can reuse the handle and its memory
-  // block.  If NULL is specified in |current_handle|, this method allocates a
-  // new memory block.  The caller is responsible for the lifetime management
+  // block.  If nullptr is specified in |current_handle|, this method allocates
+  // a new memory block.  The caller is responsible for the lifetime management
   // of the returned handle either way.
   static HIMCC Update(HIMCC current_handle,
                       const mozc::commands::Output &output,

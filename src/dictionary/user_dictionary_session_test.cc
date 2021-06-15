@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@
 
 #include "dictionary/user_dictionary_session.h"
 
+#include <cstdint>
+
 #ifndef OS_WIN
 #include <sys/stat.h>
 #endif  // OS_WIN
@@ -37,10 +39,10 @@
 #include "base/system_util.h"
 #include "dictionary/user_dictionary_storage.h"
 #include "protocol/user_dictionary_storage.pb.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
 #include "testing/base/public/testing_util.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace {
 
@@ -61,7 +63,7 @@ class UserDictionarySessionTest : public ::testing::Test {
  protected:
   void SetUp() override {
     original_user_profile_directory_ = SystemUtil::GetUserProfileDirectory();
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
     FileUtil::Unlink(GetUserDictionaryFile());
   }
 
@@ -70,16 +72,15 @@ class UserDictionarySessionTest : public ::testing::Test {
     SystemUtil::SetUserProfileDirectory(original_user_profile_directory_);
   }
 
-  static string GetUserDictionaryFile() {
+  static std::string GetUserDictionaryFile() {
 #ifndef OS_WIN
-    chmod(FLAGS_test_tmpdir.c_str(), 0777);
+    chmod(absl::GetFlag(FLAGS_test_tmpdir).c_str(), 0777);
 #endif  // OS_WIN
-    return FileUtil::JoinPath(FLAGS_test_tmpdir, "test.db");
+    return FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "test.db");
   }
 
-  void ResetEntry(
-      const string &key, const string &value, UserDictionary::PosType pos,
-      UserDictionary::Entry *entry) {
+  void ResetEntry(const std::string &key, const std::string &value,
+                  UserDictionary::PosType pos, UserDictionary::Entry *entry) {
     entry->Clear();
     entry->set_key(key);
     entry->set_value(value);
@@ -87,7 +88,7 @@ class UserDictionarySessionTest : public ::testing::Test {
   }
 
  private:
-  string original_user_profile_directory_;
+  std::string original_user_profile_directory_;
 };
 
 TEST_F(UserDictionarySessionTest, SaveAndLoad) {
@@ -95,12 +96,12 @@ TEST_F(UserDictionarySessionTest, SaveAndLoad) {
 
   ASSERT_EQ(UserDictionaryCommandStatus::FILE_NOT_FOUND, session.Load());
 
-  session.mutable_storage()->set_version(10);
+  session.mutable_storage()->GetProto().set_version(10);
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.Save());
 
   // Clear once, in order to make sure that Load is actually working.
-  session.mutable_storage()->Clear();
+  session.mutable_storage()->GetProto().Clear();
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.Load());
 
@@ -115,9 +116,7 @@ TEST_F(UserDictionarySessionTest, LoadWithEnsuringNonEmptyStorage) {
   ASSERT_EQ(UserDictionaryCommandStatus::FILE_NOT_FOUND,
             session.LoadWithEnsuringNonEmptyStorage());
 
-  EXPECT_PROTO_PEQ(
-      "dictionaries: < name: \"abcde\" >",
-      session.storage());
+  EXPECT_PROTO_PEQ("dictionaries: < name: \"abcde\" >", session.storage());
 }
 
 // Unfortunately the limit size of the stored file is hard coded in
@@ -130,7 +129,7 @@ TEST_F(UserDictionarySessionTest, DISABLED_HugeFileSave) {
 
   // Create huge dummy data.
   {
-    UserDictionaryStorage *storage = session.mutable_storage();
+    UserDictionaryStorage *storage = &session.mutable_storage()->GetProto();
     for (int i = 0; i < 100; ++i) {
       UserDictionary *dictionary = storage->add_dictionaries();
       for (int j = 0; j < 1000; ++j) {
@@ -147,7 +146,7 @@ TEST_F(UserDictionarySessionTest, DISABLED_HugeFileSave) {
   ASSERT_EQ(UserDictionaryCommandStatus::FILE_SIZE_LIMIT_EXCEEDED,
             session.Save());
 
-  session.mutable_storage()->Clear();
+  session.mutable_storage()->GetProto().Clear();
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.Load());
 
@@ -156,31 +155,31 @@ TEST_F(UserDictionarySessionTest, DISABLED_HugeFileSave) {
 
 TEST_F(UserDictionarySessionTest, UndoWithoutHistory) {
   UserDictionarySession session(GetUserDictionaryFile());
-  EXPECT_EQ(UserDictionaryCommandStatus::NO_UNDO_HISTORY,
-            session.Undo());
+  EXPECT_EQ(UserDictionaryCommandStatus::NO_UNDO_HISTORY, session.Undo());
 }
 
 TEST_F(UserDictionarySessionTest, CreateDictionary) {
   UserDictionarySession session(GetUserDictionaryFile());
 
-  uint64 dictionary_id;
+  uint64_t dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("user dictionary", &dictionary_id));
   {
-    const UserDictionaryStorage& storage = session.storage();
+    const UserDictionaryStorage &storage = session.storage();
     EXPECT_EQ(1, storage.dictionaries_size());
     EXPECT_EQ("user dictionary", storage.dictionaries(0).name());
     EXPECT_EQ(dictionary_id, storage.dictionaries(0).id());
   }
 
-  uint64 dummy_dictionary_id;
+  uint64_t dummy_dictionary_id;
   EXPECT_EQ(UserDictionaryCommandStatus::DICTIONARY_NAME_EMPTY,
             session.CreateDictionary("", &dummy_dictionary_id));
-  EXPECT_EQ(UserDictionaryCommandStatus::DICTIONARY_NAME_TOO_LONG,
-            session.CreateDictionary(string(500, 'a'), &dummy_dictionary_id));
-  EXPECT_EQ(UserDictionaryCommandStatus
-                ::DICTIONARY_NAME_CONTAINS_INVALID_CHARACTER,
-            session.CreateDictionary("a\nb", &dummy_dictionary_id));
+  EXPECT_EQ(
+      UserDictionaryCommandStatus::DICTIONARY_NAME_TOO_LONG,
+      session.CreateDictionary(std::string(500, 'a'), &dummy_dictionary_id));
+  EXPECT_EQ(
+      UserDictionaryCommandStatus ::DICTIONARY_NAME_CONTAINS_INVALID_CHARACTER,
+      session.CreateDictionary("a\nb", &dummy_dictionary_id));
   EXPECT_EQ(UserDictionaryCommandStatus::DICTIONARY_NAME_DUPLICATED,
             session.CreateDictionary("user dictionary", &dummy_dictionary_id));
 
@@ -191,7 +190,7 @@ TEST_F(UserDictionarySessionTest, CreateDictionary) {
 
   while (session.storage().dictionaries_size() <
          ::mozc::UserDictionaryStorage::max_dictionary_size()) {
-    session.mutable_storage()->add_dictionaries();
+    session.mutable_storage()->GetProto().add_dictionaries();
   }
   EXPECT_EQ(UserDictionaryCommandStatus::DICTIONARY_SIZE_LIMIT_EXCEEDED,
             session.CreateDictionary("dictionary 2", &dummy_dictionary_id));
@@ -201,10 +200,10 @@ TEST_F(UserDictionarySessionTest, DeleteDictionary) {
   UserDictionarySession session(GetUserDictionaryFile());
 
   // Add dummy dictionary.
-  const uint64 kDummyId = 10;
+  const uint64_t kDummyId = 10;
   {
     UserDictionary *user_dictionary =
-        session.mutable_storage()->add_dictionaries();
+        session.mutable_storage()->GetProto().add_dictionaries();
     user_dictionary->set_id(kDummyId);
   }
 
@@ -220,26 +219,26 @@ TEST_F(UserDictionarySessionTest, DeleteDictionary) {
   EXPECT_EQ(kDummyId, session.storage().dictionaries(0).id());
 }
 
-TEST_F(UserDictionarySessionTest,
-       DeleteDictionaryWithEnsuringNonEmptyStroage) {
+TEST_F(UserDictionarySessionTest, DeleteDictionaryWithEnsuringNonEmptyStorage) {
   UserDictionarySession session(GetUserDictionaryFile());
   session.SetDefaultDictionaryName("abcde");
 
   // Add dummy dictionary.
-  const uint64 kDummyId = 10;
+  const uint64_t kDummyId = 10;
   {
     UserDictionary *user_dictionary =
-        session.mutable_storage()->add_dictionaries();
+        session.mutable_storage()->GetProto().add_dictionaries();
     user_dictionary->set_id(kDummyId);
   }
 
   EXPECT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.DeleteDictionaryWithEnsuringNonEmptyStorage(kDummyId));
 
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  name: \"abcde\"\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  name: \"abcde\"\n"
+      ">\n",
+      session.storage());
 
   // Test undo for DeleteDictionaryWithEnsuringNonEmptyStorage.
   EXPECT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
@@ -252,7 +251,7 @@ TEST_F(UserDictionarySessionTest, RenameDictionary) {
   UserDictionarySession session(GetUserDictionaryFile());
 
   // Prepare the targeet dictionary.
-  uint64 dictionary_id;
+  uint64_t dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("user dictionary", &dictionary_id));
 
@@ -263,16 +262,16 @@ TEST_F(UserDictionarySessionTest, RenameDictionary) {
   EXPECT_EQ(UserDictionaryCommandStatus::DICTIONARY_NAME_EMPTY,
             session.RenameDictionary(dictionary_id, ""));
   EXPECT_EQ(UserDictionaryCommandStatus::DICTIONARY_NAME_TOO_LONG,
-            session.RenameDictionary(dictionary_id, string(500, 'a')));
-  EXPECT_EQ(UserDictionaryCommandStatus
-                ::DICTIONARY_NAME_CONTAINS_INVALID_CHARACTER,
-            session.RenameDictionary(dictionary_id, "a\nb"));
+            session.RenameDictionary(dictionary_id, std::string(500, 'a')));
+  EXPECT_EQ(
+      UserDictionaryCommandStatus ::DICTIONARY_NAME_CONTAINS_INVALID_CHARACTER,
+      session.RenameDictionary(dictionary_id, "a\nb"));
 
   // OK to rename to the same name.
   EXPECT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.RenameDictionary(dictionary_id, "new name"));
 
-  uint64 dummy_dictionary_id;
+  uint64_t dummy_dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("another name", &dummy_dictionary_id));
   // NG to rename to the name of another dictionary.
@@ -299,38 +298,40 @@ TEST_F(UserDictionarySessionTest, AddEntry) {
   UserDictionarySession session(GetUserDictionaryFile());
   UserDictionary::Entry entry;
 
-  uint64 dictionary_id;
+  uint64_t dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("user dictionary", &dictionary_id));
 
   ResetEntry("reading", "word", UserDictionary::NOUN, &entry);
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.AddEntry(dictionary_id, entry));
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 
   ResetEntry("reading2", "word2", UserDictionary::PREFIX, &entry);
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.AddEntry(dictionary_id, entry));
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading2\"\n"
-                   "    value: \"word2\"\n"
-                   "    pos: PREFIX\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading2\"\n"
+      "    value: \"word2\"\n"
+      "    pos: PREFIX\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 
   ResetEntry("", "word3", UserDictionary::NOUN, &entry);
   EXPECT_EQ(UserDictionaryCommandStatus::READING_EMPTY,
@@ -344,21 +345,22 @@ TEST_F(UserDictionarySessionTest, AddEntry) {
   // Test undo for AddEntry.
   EXPECT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.Undo());
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 }
 
 TEST_F(UserDictionarySessionTest, AddEntryLimitExceeded) {
   UserDictionarySession session(GetUserDictionaryFile());
   UserDictionary::Entry entry;
 
-  uint64 dictionary_id;
+  uint64_t dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("user dictionary", &dictionary_id));
   ResetEntry("reading", "word", UserDictionary::NOUN, &entry);
@@ -376,7 +378,7 @@ TEST_F(UserDictionarySessionTest, EditEntry) {
   UserDictionarySession session(GetUserDictionaryFile());
   UserDictionary::Entry entry;
 
-  uint64 dictionary_id;
+  uint64_t dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("user dictionary", &dictionary_id));
 
@@ -386,36 +388,38 @@ TEST_F(UserDictionarySessionTest, EditEntry) {
   ResetEntry("reading2", "word2", UserDictionary::PREFIX, &entry);
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.AddEntry(dictionary_id, entry));
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading2\"\n"
-                   "    value: \"word2\"\n"
-                   "    pos: PREFIX\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading2\"\n"
+      "    value: \"word2\"\n"
+      "    pos: PREFIX\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 
   ResetEntry("reading3", "word3", UserDictionary::ADVERB, &entry);
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.EditEntry(dictionary_id, 0, entry));
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading3\"\n"
-                   "    value: \"word3\"\n"
-                   "    pos: ADVERB\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading2\"\n"
-                   "    value: \"word2\"\n"
-                   "    pos: PREFIX\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading3\"\n"
+      "    value: \"word3\"\n"
+      "    pos: ADVERB\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading2\"\n"
+      "    value: \"word2\"\n"
+      "    pos: PREFIX\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 
   // Test for index out of bounds.
   ResetEntry("reading4", "word4", UserDictionary::NOUN, &entry);
@@ -435,26 +439,27 @@ TEST_F(UserDictionarySessionTest, EditEntry) {
   // Test undo for EditEntry.
   EXPECT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.Undo());
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading2\"\n"
-                   "    value: \"word2\"\n"
-                   "    pos: PREFIX\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading2\"\n"
+      "    value: \"word2\"\n"
+      "    pos: PREFIX\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 }
 
 TEST_F(UserDictionarySessionTest, DeleteEntry) {
   UserDictionarySession session(GetUserDictionaryFile());
   UserDictionary::Entry entry;
 
-  uint64 dictionary_id;
+  uint64_t dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("user dictionary", &dictionary_id));
 
@@ -474,131 +479,134 @@ TEST_F(UserDictionarySessionTest, DeleteEntry) {
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.AddEntry(dictionary_id, entry));
 
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading2\"\n"
-                   "    value: \"word2\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading3\"\n"
-                   "    value: \"word3\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading4\"\n"
-                   "    value: \"word4\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading5\"\n"
-                   "    value: \"word5\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
-
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading2\"\n"
+      "    value: \"word2\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading3\"\n"
+      "    value: \"word3\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading4\"\n"
+      "    value: \"word4\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading5\"\n"
+      "    value: \"word5\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 
   std::vector<int> index_list;
   index_list.push_back(1);
   index_list.push_back(3);
   EXPECT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
-            session.DeleteEntry(dictionary_id, index_list));
+            session.DeleteEntry(dictionary_id, std::move(index_list)));
 
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading3\"\n"
-                   "    value: \"word3\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading5\"\n"
-                   "    value: \"word5\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading3\"\n"
+      "    value: \"word3\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading5\"\n"
+      "    value: \"word5\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 
   // Test for index out of bounds.
   index_list.clear();
   index_list.push_back(0);
   index_list.push_back(100);
   EXPECT_EQ(UserDictionaryCommandStatus::ENTRY_INDEX_OUT_OF_RANGE,
-            session.DeleteEntry(dictionary_id, index_list));
+            session.DeleteEntry(dictionary_id, std::move(index_list)));
 
   // The contents shouldn't be changed.
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading3\"\n"
-                   "    value: \"word3\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading5\"\n"
-                   "    value: \"word5\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading3\"\n"
+      "    value: \"word3\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading5\"\n"
+      "    value: \"word5\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 
   // Test for invalid dictionary id.
   index_list.clear();
   index_list.push_back(0);
   EXPECT_EQ(UserDictionaryCommandStatus::UNKNOWN_DICTIONARY_ID,
-            session.DeleteEntry(0, index_list));
+            session.DeleteEntry(0, std::move(index_list)));
 
   // Test undo for delete entries.
   EXPECT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.Undo());
-  EXPECT_PROTO_PEQ("dictionaries: <\n"
-                   "  entries: <\n"
-                   "    key: \"reading\"\n"
-                   "    value: \"word\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading2\"\n"
-                   "    value: \"word2\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading3\"\n"
-                   "    value: \"word3\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading4\"\n"
-                   "    value: \"word4\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   "  entries: <\n"
-                   "    key: \"reading5\"\n"
-                   "    value: \"word5\"\n"
-                   "    pos: NOUN\n"
-                   "  >\n"
-                   ">\n",
-                   session.storage());
+  EXPECT_PROTO_PEQ(
+      "dictionaries: <\n"
+      "  entries: <\n"
+      "    key: \"reading\"\n"
+      "    value: \"word\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading2\"\n"
+      "    value: \"word2\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading3\"\n"
+      "    value: \"word3\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading4\"\n"
+      "    value: \"word4\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      "  entries: <\n"
+      "    key: \"reading5\"\n"
+      "    value: \"word5\"\n"
+      "    pos: NOUN\n"
+      "  >\n"
+      ">\n",
+      session.storage());
 }
 
 TEST_F(UserDictionarySessionTest, ImportFromString) {
   UserDictionarySession session(GetUserDictionaryFile());
 
-  uint64 dictionary_id;
+  uint64_t dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("user dictionary", &dictionary_id));
 
@@ -646,7 +654,7 @@ TEST_F(UserDictionarySessionTest, ImportFromString) {
 TEST_F(UserDictionarySessionTest, ImportToNewDictionaryFromString) {
   UserDictionarySession session(GetUserDictionaryFile());
 
-  uint64 dictionary_id;
+  uint64_t dictionary_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.ImportToNewDictionaryFromString(
                 "user dictionary", kDictionaryData, &dictionary_id));
@@ -689,11 +697,11 @@ TEST_F(UserDictionarySessionTest, ImportToNewDictionaryFromStringFailure) {
 
   // Try to create a new dictionary with a name containing
   // an invalid character.
-  uint64 dictionary_id;
-  ASSERT_EQ(UserDictionaryCommandStatus
-                ::DICTIONARY_NAME_CONTAINS_INVALID_CHARACTER,
-            session.ImportToNewDictionaryFromString(
-                "a\nb", kDictionaryData, &dictionary_id));
+  uint64_t dictionary_id;
+  ASSERT_EQ(
+      UserDictionaryCommandStatus ::DICTIONARY_NAME_CONTAINS_INVALID_CHARACTER,
+      session.ImportToNewDictionaryFromString("a\nb", kDictionaryData,
+                                              &dictionary_id));
 
   EXPECT_EQ(0, session.storage().dictionaries_size());
 }
@@ -701,7 +709,7 @@ TEST_F(UserDictionarySessionTest, ImportToNewDictionaryFromStringFailure) {
 TEST_F(UserDictionarySessionTest, ClearDictionariesAndUndoHistory) {
   UserDictionarySession session(GetUserDictionaryFile());
 
-  uint64 dic_id;
+  uint64_t dic_id;
   ASSERT_EQ(UserDictionaryCommandStatus::USER_DICTIONARY_COMMAND_SUCCESS,
             session.CreateDictionary("dic1", &dic_id));
 

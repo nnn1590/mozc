@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@
 #include "testing/base/public/gmock.h"
 #include "testing/base/public/gunit.h"
 
+using ::testing::_;
 using ::testing::DoAll;
 using ::testing::Expectation;
 using ::testing::Ne;
@@ -53,17 +54,16 @@ using ::testing::Return;
 using ::testing::SetArgPointee;
 using ::testing::StrEq;
 using ::testing::StrictMock;
-using ::testing::_;
 
 namespace mozc {
 namespace renderer {
 namespace gtk {
 
 namespace {
-// Following variable is used testing and it is contant but due to API
+// Following variable is used testing and it is constant but due to API
 // restriction, can not modify const modifier.
-GtkWidget *kDummyWindow = reinterpret_cast<GtkWidget*>(0x12345678);
-GtkWidget *kDummyCanvas = reinterpret_cast<GtkWidget*>(0x87654321);
+GtkWidget *kDummyWindow = reinterpret_cast<GtkWidget *>(0x12345678);
+GtkWidget *kDummyCanvas = reinterpret_cast<GtkWidget *>(0x87654321);
 
 const char kSampleValue[] = "VALUE";
 const char kSampleShortcut[] = "SHORTCUT";
@@ -77,40 +77,33 @@ MATCHER_P(PointEq, expected_point, "The expected point does not match") {
 
 MATCHER_P(SizeEq, expected_size, "The expected size does not match") {
   return (arg.width == expected_size.width) &&
-      (arg.height == expected_size.height);
+         (arg.height == expected_size.height);
 }
 
 MATCHER_P(RectEq, expected_rect, "The expected rect does not match") {
   return (arg.origin.x == expected_rect.origin.x) &&
-      (arg.origin.y == expected_rect.origin.y) &&
-      (arg.size.width == expected_rect.size.width) &&
-      (arg.size.height == expected_rect.size.height);
+         (arg.origin.y == expected_rect.origin.y) &&
+         (arg.size.width == expected_rect.size.width) &&
+         (arg.size.height == expected_rect.size.height);
 }
 
 MATCHER_P(RGBAEq, expected_rgba, "The expected RGBA does not match") {
-  return (arg.red == expected_rgba.red) &&
-      (arg.green == expected_rgba.green) &&
-      (arg.blue == expected_rgba.blue) &&
-      (arg.alpha == expected_rgba.alpha);
+  return (arg.red == expected_rgba.red) && (arg.green == expected_rgba.green) &&
+         (arg.blue == expected_rgba.blue) && (arg.alpha == expected_rgba.alpha);
 }
 
-void SetTestCandidates(uint32 count,
-                       bool has_value,
-                       bool has_shortcut,
-                       bool has_description,
-                       bool has_prefix,
-                       bool has_suffix,
+void SetTestCandidates(uint32 count, bool has_value, bool has_shortcut,
+                       bool has_description, bool has_prefix, bool has_suffix,
                        commands::Candidates *candidates) {
   candidates->Clear();
   candidates->set_size(count);
 
   for (uint32 i = 0; i < count; ++i) {
-    commands::Candidates_Candidate *candidate
-        = candidates->add_candidate();
+    commands::Candidates_Candidate *candidate = candidates->add_candidate();
     candidate->set_index(i);
     candidate->set_id(i * 0x10);
 
-    const string id_str = std::to_string(i);
+    const std::string id_str = std::to_string(i);
 
     if (has_value) {
       candidate->set_value(kSampleValue + id_str);
@@ -136,13 +129,13 @@ void SetTestCandidates(uint32 count,
   }
 }
 
-string GetExpectedValue(int index, bool has_prefix, bool has_suffix) {
-  string result;
+std::string GetExpectedValue(int index, bool has_prefix, bool has_suffix) {
+  std::string result;
 
-  const string id_str = std::to_string(index);
-  const string expected_prefix = kSamplePrefix + id_str;
-  const string expected_value = kSampleValue + id_str;
-  const string expected_suffix = kSampleSuffix + id_str;
+  const std::string id_str = std::to_string(index);
+  const std::string expected_prefix = kSamplePrefix + id_str;
+  const std::string expected_value = kSampleValue + id_str;
+  const std::string expected_suffix = kSampleSuffix + id_str;
   if (has_prefix) {
     result.append(expected_prefix);
   }
@@ -153,20 +146,22 @@ string GetExpectedValue(int index, bool has_prefix, bool has_suffix) {
   return result;
 }
 
-string GetExpectedShortcut(int index) {
-  const string id_str = std::to_string(index);
+std::string GetExpectedShortcut(int index) {
+  const std::string id_str = std::to_string(index);
   return kSampleShortcut + id_str;
 }
 
-string GetExpectedDescription(int index) {
-  const string id_str = std::to_string(index);
+std::string GetExpectedDescription(int index) {
+  const std::string id_str = std::to_string(index);
   return kSampleDescription + id_str;
 }
 
 class SendCommandInterfaceMock : public client::SendCommandInterface {
  public:
-  MOCK_METHOD2(SendCommand, bool(const commands::SessionCommand &command,
-                                 commands::Output *output));
+  MOCK_METHOD(bool, SendCommand,
+              (const commands::SessionCommand &command,
+               commands::Output *output),
+              (override));
 };
 
 MATCHER_P(SelectCommandEq, id, "") {
@@ -207,7 +202,7 @@ class MouseHandlingTestableCandidateWindow : public CandidateWindow {
                         cairo_factory) {}
   virtual ~MouseHandlingTestableCandidateWindow() {}
 
-  MOCK_CONST_METHOD1(GetSelectedRowIndex, int(const Point &pos));
+  MOCK_METHOD(int, GetSelectedRowIndex, (const Point &pos), (const));
   using CandidateWindow::OnMouseLeftUp;
 };
 
@@ -225,8 +220,7 @@ class CandidateWindowTest : public testing::Test {
     WindowType *window;
   };
 
-  typedef GenericCandidateWindowTestKit<CandidateWindow>
-      CandidateWindowTestKit;
+  typedef GenericCandidateWindowTestKit<CandidateWindow> CandidateWindowTestKit;
   typedef GenericCandidateWindowTestKit<MouseHandlingTestableCandidateWindow>
       MouseHandlingTestableCandidateWindowTestKit;
 
@@ -245,15 +239,13 @@ class CandidateWindowTest : public testing::Test {
   }
 
   static MouseHandlingTestableCandidateWindowTestKit
-      SetUpMouseHandlingTestableCandidateWindow() {
-    return SetUpTestKit<MouseHandlingTestableCandidateWindow>(
-        kUseVanillaMock);
+  SetUpMouseHandlingTestableCandidateWindow() {
+    return SetUpTestKit<MouseHandlingTestableCandidateWindow>(kUseVanillaMock);
   }
 
   static MouseHandlingTestableCandidateWindowTestKit
-      SetUpMouseHandlingTestableCandidateWindowWithStrictMock() {
-    return SetUpTestKit<MouseHandlingTestableCandidateWindow>(
-        kUseStrictMock);
+  SetUpMouseHandlingTestableCandidateWindowWithStrictMock() {
+    return SetUpTestKit<MouseHandlingTestableCandidateWindow>(kUseStrictMock);
   }
 
  private:
@@ -271,18 +263,18 @@ class CandidateWindowTest : public testing::Test {
         .WillOnce(Return(kDummyWindow));
     EXPECT_CALL(*testkit->gtk_mock, GtkDrawingAreaNew())
         .WillOnce(Return(kDummyCanvas));
-    EXPECT_CALL(*testkit->gtk_mock, GSignalConnect(
-        kDummyWindow, StrEq("destroy"),
-        G_CALLBACK(GtkWindowBase::OnDestroyThunk), _));
-    EXPECT_CALL(*testkit->gtk_mock, GSignalConnect(
-        kDummyWindow, StrEq("button-press-event"),
-        G_CALLBACK(GtkWindowBase::OnMouseDownThunk), _));
-    EXPECT_CALL(*testkit->gtk_mock, GSignalConnect(
-        kDummyWindow, StrEq("button-release-event"),
-        G_CALLBACK(GtkWindowBase::OnMouseUpThunk), _));
-    EXPECT_CALL(*testkit->gtk_mock, GSignalConnect(
-        kDummyCanvas, StrEq("expose-event"),
-        G_CALLBACK(GtkWindowBase::OnPaintThunk), _));
+    EXPECT_CALL(*testkit->gtk_mock,
+                GSignalConnect(kDummyWindow, StrEq("destroy"),
+                               G_CALLBACK(GtkWindowBase::OnDestroyThunk), _));
+    EXPECT_CALL(*testkit->gtk_mock,
+                GSignalConnect(kDummyWindow, StrEq("button-press-event"),
+                               G_CALLBACK(GtkWindowBase::OnMouseDownThunk), _));
+    EXPECT_CALL(*testkit->gtk_mock,
+                GSignalConnect(kDummyWindow, StrEq("button-release-event"),
+                               G_CALLBACK(GtkWindowBase::OnMouseUpThunk), _));
+    EXPECT_CALL(*testkit->gtk_mock,
+                GSignalConnect(kDummyCanvas, StrEq("expose-event"),
+                               G_CALLBACK(GtkWindowBase::OnPaintThunk), _));
     EXPECT_CALL(*testkit->gtk_mock,
                 GtkContainerAdd(kDummyWindow, kDummyCanvas));
     EXPECT_CALL(*testkit->gtk_mock,
@@ -290,9 +282,9 @@ class CandidateWindowTest : public testing::Test {
     EXPECT_CALL(*testkit->gtk_mock,
                 GtkWidgetAddEvents(kDummyWindow, GDK_BUTTON_RELEASE_MASK));
     EXPECT_CALL(*testkit->gtk_mock, GtkWidgetRealize(kDummyWindow));
-    EXPECT_CALL(*testkit->gtk_mock,
-                GdkWindowSetTypeHint(kDummyWindow,
-                                     GDK_WINDOW_TYPE_HINT_POPUP_MENU));
+    EXPECT_CALL(
+        *testkit->gtk_mock,
+        GdkWindowSetTypeHint(kDummyWindow, GDK_WINDOW_TYPE_HINT_POPUP_MENU));
   }
 
   template <class TargetMockType>
@@ -309,26 +301,22 @@ class CandidateWindowTest : public testing::Test {
   }
 
   template <class WindowType>
-  static GenericCandidateWindowTestKit<WindowType>
-      SetUpTestKit(MockWrapperType mock_wrapper_type) {
+  static GenericCandidateWindowTestKit<WindowType> SetUpTestKit(
+      MockWrapperType mock_wrapper_type) {
     GenericCandidateWindowTestKit<WindowType> testkit;
     testkit.gtk_mock = CreateMock<GtkWrapperMock>(mock_wrapper_type);
-    testkit.table_layout_mock =
-        CreateMock<TableLayoutMock>(mock_wrapper_type);
+    testkit.table_layout_mock = CreateMock<TableLayoutMock>(mock_wrapper_type);
     testkit.text_renderer_mock =
         CreateMock<TextRendererMock>(mock_wrapper_type);
-    testkit.draw_tool_mock =
-        CreateMock<DrawToolMock>(mock_wrapper_type);
+    testkit.draw_tool_mock = CreateMock<DrawToolMock>(mock_wrapper_type);
     testkit.cairo_factory_mock =
         CreateMock<CairoFactoryMock>(mock_wrapper_type);
 
     SetUpCandidateWindowConstractorCallExpectations(&testkit);
 
-    testkit.window = new WindowType(testkit.table_layout_mock,
-                                    testkit.text_renderer_mock,
-                                    testkit.draw_tool_mock,
-                                    testkit.gtk_mock,
-                                    testkit.cairo_factory_mock);
+    testkit.window = new WindowType(
+        testkit.table_layout_mock, testkit.text_renderer_mock,
+        testkit.draw_tool_mock, testkit.gtk_mock, testkit.cairo_factory_mock);
     return testkit;
   }
 };
@@ -337,14 +325,14 @@ TEST_F(CandidateWindowTest, DrawBackgroundTest) {
   CandidateWindowTestKit testkit = SetUpCandidateWindow();
 
   const Size assumed_size(15, 25);
-  EXPECT_CALL(*testkit.gtk_mock, GtkWindowGetSize(kDummyWindow, _, _)).
-      WillOnce(DoAll(SetArgPointee<1>(assumed_size.width),
-                     SetArgPointee<2>(assumed_size.height)));
+  EXPECT_CALL(*testkit.gtk_mock, GtkWindowGetSize(kDummyWindow, _, _))
+      .WillOnce(DoAll(SetArgPointee<1>(assumed_size.width),
+                      SetArgPointee<2>(assumed_size.height)));
 
   const Rect expect_rendering_area(Point(0, 0), assumed_size);
-  EXPECT_CALL(*testkit.draw_tool_mock,
-              FillRect(RectEq(expect_rendering_area),
-                       RGBAEq(kDefaultBackgroundColor)));
+  EXPECT_CALL(
+      *testkit.draw_tool_mock,
+      FillRect(RectEq(expect_rendering_area), RGBAEq(kDefaultBackgroundColor)));
   testkit.window->DrawBackground();
   FinalizeTestKit(&testkit);
 }
@@ -352,7 +340,7 @@ TEST_F(CandidateWindowTest, DrawBackgroundTest) {
 TEST_F(CandidateWindowTest, DrawShortcutBackgroundTest) {
   LOG(INFO) << __FUNCTION__ << ":" << __LINE__;
   {
-    // Instanciate strict mock to detect unintended call.
+    // Instantiate strict mock to detect unintended call.
     SCOPED_TRACE("Empty column test, expected to do nothing.");
     CandidateWindowTestKit testkit = SetUpCandidateWindowWithStrictMock();
 
@@ -364,7 +352,7 @@ TEST_F(CandidateWindowTest, DrawShortcutBackgroundTest) {
   }
   return;
   {
-    // Instanciate strict mock to detect unintended call.
+    // Instantiate strict mock to detect unintended call.
     SCOPED_TRACE("GetColumnRect returns empty rectangle.");
     CandidateWindowTestKit testkit = SetUpCandidateWindowWithStrictMock();
 
@@ -382,7 +370,7 @@ TEST_F(CandidateWindowTest, DrawShortcutBackgroundTest) {
     FinalizeTestKit(&testkit);
   }
   {
-    // Instanciate strict mock to detect unintended call.
+    // Instantiate strict mock to detect unintended call.
     SCOPED_TRACE("GetRowRect returns empty rectangle.");
     CandidateWindowTestKit testkit = SetUpCandidateWindowWithStrictMock();
 
@@ -400,7 +388,7 @@ TEST_F(CandidateWindowTest, DrawShortcutBackgroundTest) {
     FinalizeTestKit(&testkit);
   }
   {
-    // Instanciate strict mock to detect unintended call.
+    // Instantiate strict mock to detect unintended call.
     SCOPED_TRACE("Both GetColumnRect and GetRowRect return empty rectangle.");
     CandidateWindowTestKit testkit = SetUpCandidateWindowWithStrictMock();
 
@@ -431,9 +419,9 @@ TEST_F(CandidateWindowTest, DrawShortcutBackgroundTest) {
 
     const Rect rendering_target(first_row_rect.origin, first_column_rect.size);
 
-    EXPECT_CALL(*testkit.draw_tool_mock,
-                FillRect(RectEq(rendering_target),
-                         RGBAEq(kShortcutBackgroundColor)));
+    EXPECT_CALL(
+        *testkit.draw_tool_mock,
+        FillRect(RectEq(rendering_target), RGBAEq(kShortcutBackgroundColor)));
 
     testkit.window->DrawShortcutBackground();
     FinalizeTestKit(&testkit);
@@ -453,13 +441,12 @@ TEST_F(CandidateWindowTest, DrawSelectedRectTest) {
     const Rect rendering_area(10, 20, 30, 40);
     EXPECT_CALL(*testkit.table_layout_mock, GetRowRect(assume_focused_id))
         .WillOnce(Return(rendering_area));
-    EXPECT_CALL(*testkit.draw_tool_mock,
-                FillRect(RectEq(rendering_area),
-                         RGBAEq(kSelectedRowBackgroundColor)));
-    EXPECT_CALL(*testkit.draw_tool_mock,
-                FrameRect(RectEq(rendering_area),
-                          RGBAEq(kSelectedRowFrameColor),
-                                           1.0));
+    EXPECT_CALL(
+        *testkit.draw_tool_mock,
+        FillRect(RectEq(rendering_area), RGBAEq(kSelectedRowBackgroundColor)));
+    EXPECT_CALL(
+        *testkit.draw_tool_mock,
+        FrameRect(RectEq(rendering_area), RGBAEq(kSelectedRowFrameColor), 1.0));
     SetTestCandidates(10, true, true, true, true, true,
                       &testkit.window->candidates_);
     testkit.window->candidates_.set_focused_index(assume_focused_id);
@@ -469,11 +456,11 @@ TEST_F(CandidateWindowTest, DrawSelectedRectTest) {
 }
 
 TEST_F(CandidateWindowTest, GetDisplayStringTest) {
-  string expected_prefixed_value = kSamplePrefix;
+  std::string expected_prefixed_value = kSamplePrefix;
   expected_prefixed_value.append(kSampleValue);
-  string expected_suffixed_value = kSampleValue;
+  std::string expected_suffixed_value = kSampleValue;
   expected_suffixed_value.append(kSampleSuffix);
-  string expected_presuffixed_value = kSamplePrefix;
+  std::string expected_presuffixed_value = kSamplePrefix;
   expected_presuffixed_value.append(kSampleValue);
   expected_presuffixed_value.append(kSampleSuffix);
 
@@ -481,7 +468,7 @@ TEST_F(CandidateWindowTest, GetDisplayStringTest) {
     SCOPED_TRACE("Candidate does not have value.");
     commands::Candidates::Candidate candidate;
 
-    string value, shortcut, description;
+    std::string value, shortcut, description;
     CandidateWindow::GetDisplayString(candidate, &shortcut, &value,
                                       &description);
 
@@ -495,7 +482,7 @@ TEST_F(CandidateWindowTest, GetDisplayStringTest) {
     commands::Candidates::Candidate candidate;
     candidate.set_value(kSampleValue);
 
-    string value, shortcut, description;
+    std::string value, shortcut, description;
     CandidateWindow::GetDisplayString(candidate, &shortcut, &value,
                                       &description);
 
@@ -511,7 +498,7 @@ TEST_F(CandidateWindowTest, GetDisplayStringTest) {
     candidate.set_value(kSampleValue);
     annotation->set_shortcut(kSampleShortcut);
 
-    string value, shortcut, description;
+    std::string value, shortcut, description;
     CandidateWindow::GetDisplayString(candidate, &shortcut, &value,
                                       &description);
 
@@ -526,7 +513,7 @@ TEST_F(CandidateWindowTest, GetDisplayStringTest) {
     candidate.set_value(kSampleValue);
     annotation->set_prefix(kSamplePrefix);
 
-    string value, shortcut, description;
+    std::string value, shortcut, description;
     CandidateWindow::GetDisplayString(candidate, &shortcut, &value,
                                       &description);
 
@@ -541,7 +528,7 @@ TEST_F(CandidateWindowTest, GetDisplayStringTest) {
     candidate.set_value(kSampleValue);
     annotation->set_suffix(kSampleSuffix);
 
-    string value, shortcut, description;
+    std::string value, shortcut, description;
     CandidateWindow::GetDisplayString(candidate, &shortcut, &value,
                                       &description);
 
@@ -557,7 +544,7 @@ TEST_F(CandidateWindowTest, GetDisplayStringTest) {
     annotation->set_prefix(kSamplePrefix);
     annotation->set_suffix(kSampleSuffix);
 
-    string value, shortcut, description;
+    std::string value, shortcut, description;
     CandidateWindow::GetDisplayString(candidate, &shortcut, &value,
                                       &description);
 
@@ -580,33 +567,36 @@ TEST_F(CandidateWindowTest, DrawCellsTest) {
 
     for (int i = 0; i < 10; ++i) {
       const Rect value_render_area(i * 2, i * 3, i * 4, i * 5);
-      Expectation get_value_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
-          .WillOnce(Return(value_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock, RenderText(
-          GetExpectedValue(i, false, false), RectEq(value_render_area),
-          FontSpecInterface::FONTSET_CANDIDATE))
+      Expectation get_value_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
+              .WillOnce(Return(value_render_area));
+      EXPECT_CALL(*testkit.text_renderer_mock,
+                  RenderText(GetExpectedValue(i, false, false),
+                             RectEq(value_render_area),
+                             FontSpecInterface::FONTSET_CANDIDATE))
           .After(get_value_cell_rect);
 
       const Rect shortcut_render_area(i * 3, i * 4, i * 5, i * 6);
-      Expectation get_shortcut_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
-          .WillOnce(Return(shortcut_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock, RenderText(
-          GetExpectedShortcut(i), RectEq(shortcut_render_area),
-          FontSpecInterface::FONTSET_SHORTCUT))
+      Expectation get_shortcut_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
+              .WillOnce(Return(shortcut_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedShortcut(i), RectEq(shortcut_render_area),
+                     FontSpecInterface::FONTSET_SHORTCUT))
           .After(get_shortcut_cell_rect);
 
       const Rect desc_render_area(i * 4, i * 5, i * 6, i * 7);
-      Expectation get_desc_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
-          .WillOnce(Return(desc_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock, RenderText(
-          GetExpectedDescription(i), RectEq(desc_render_area),
-          FontSpecInterface::FONTSET_DESCRIPTION))
+      Expectation get_desc_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
+              .WillOnce(Return(desc_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedDescription(i), RectEq(desc_render_area),
+                     FontSpecInterface::FONTSET_DESCRIPTION))
           .After(get_desc_cell_rect);
     }
 
@@ -622,35 +612,36 @@ TEST_F(CandidateWindowTest, DrawCellsTest) {
 
     for (int i = 0; i < 10; ++i) {
       const Rect value_render_area(i * 2, i * 3, i * 4, i * 5);
-      Expectation get_value_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
-          .WillOnce(Return(value_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock, RenderText(
-          GetExpectedValue(i, true, false), RectEq(value_render_area),
-          FontSpecInterface::FONTSET_CANDIDATE))
+      Expectation get_value_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
+              .WillOnce(Return(value_render_area));
+      EXPECT_CALL(*testkit.text_renderer_mock,
+                  RenderText(GetExpectedValue(i, true, false),
+                             RectEq(value_render_area),
+                             FontSpecInterface::FONTSET_CANDIDATE))
           .After(get_value_cell_rect);
 
       const Rect shortcut_render_area(i * 3, i * 4, i * 5, i * 6);
-      Expectation get_shortcut_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
-          .WillOnce(Return(shortcut_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedShortcut(i),
-                             RectEq(shortcut_render_area),
-                             FontSpecInterface::FONTSET_SHORTCUT))
+      Expectation get_shortcut_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
+              .WillOnce(Return(shortcut_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedShortcut(i), RectEq(shortcut_render_area),
+                     FontSpecInterface::FONTSET_SHORTCUT))
           .After(get_shortcut_cell_rect);
 
       const Rect desc_render_area(i * 4, i * 5, i * 6, i * 7);
-      Expectation get_desc_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
-          .WillOnce(Return(desc_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedDescription(i),
-                             RectEq(desc_render_area),
-                             FontSpecInterface::FONTSET_DESCRIPTION))
+      Expectation get_desc_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
+              .WillOnce(Return(desc_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedDescription(i), RectEq(desc_render_area),
+                     FontSpecInterface::FONTSET_DESCRIPTION))
           .After(get_desc_cell_rect);
     }
 
@@ -666,10 +657,10 @@ TEST_F(CandidateWindowTest, DrawCellsTest) {
 
     for (int i = 0; i < 10; ++i) {
       const Rect value_render_area(i * 2, i * 3, i * 4, i * 5);
-      Expectation get_value_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
-          .WillOnce(Return(value_render_area));
+      Expectation get_value_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
+              .WillOnce(Return(value_render_area));
       EXPECT_CALL(*testkit.text_renderer_mock,
                   RenderText(GetExpectedValue(i, false, true),
                              RectEq(value_render_area),
@@ -677,25 +668,25 @@ TEST_F(CandidateWindowTest, DrawCellsTest) {
           .After(get_value_cell_rect);
 
       const Rect shortcut_render_area(i * 3, i * 4, i * 5, i * 6);
-      Expectation get_shortcut_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
-          .WillOnce(Return(shortcut_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedShortcut(i),
-                             RectEq(shortcut_render_area),
-                             FontSpecInterface::FONTSET_SHORTCUT))
+      Expectation get_shortcut_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
+              .WillOnce(Return(shortcut_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedShortcut(i), RectEq(shortcut_render_area),
+                     FontSpecInterface::FONTSET_SHORTCUT))
           .After(get_shortcut_cell_rect);
 
       const Rect desc_render_area(i * 4, i * 5, i * 6, i * 7);
-      Expectation get_desc_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
-          .WillOnce(Return(desc_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedDescription(i),
-                             RectEq(desc_render_area),
-                             FontSpecInterface::FONTSET_DESCRIPTION))
+      Expectation get_desc_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
+              .WillOnce(Return(desc_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedDescription(i), RectEq(desc_render_area),
+                     FontSpecInterface::FONTSET_DESCRIPTION))
           .After(get_desc_cell_rect);
     }
 
@@ -711,36 +702,36 @@ TEST_F(CandidateWindowTest, DrawCellsTest) {
 
     for (int i = 0; i < 10; ++i) {
       const Rect value_render_area(i * 2, i * 3, i * 4, i * 5);
-      Expectation get_value_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
-          .WillOnce(Return(value_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedValue(i, true, true),
-                             RectEq(value_render_area),
-                             FontSpecInterface::FONTSET_CANDIDATE))
+      Expectation get_value_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
+              .WillOnce(Return(value_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedValue(i, true, true), RectEq(value_render_area),
+                     FontSpecInterface::FONTSET_CANDIDATE))
           .After(get_value_cell_rect);
 
       const Rect shortcut_render_area(i * 3, i * 4, i * 5, i * 6);
-      Expectation get_shortcut_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
-          .WillOnce(Return(shortcut_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedShortcut(i),
-                             RectEq(shortcut_render_area),
-                             FontSpecInterface::FONTSET_SHORTCUT))
+      Expectation get_shortcut_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
+              .WillOnce(Return(shortcut_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedShortcut(i), RectEq(shortcut_render_area),
+                     FontSpecInterface::FONTSET_SHORTCUT))
           .After(get_shortcut_cell_rect);
 
       const Rect desc_render_area(i * 4, i * 5, i * 6, i * 7);
-      Expectation get_desc_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
-          .WillOnce(Return(desc_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedDescription(i),
-                             RectEq(desc_render_area),
-                             FontSpecInterface::FONTSET_DESCRIPTION))
+      Expectation get_desc_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
+              .WillOnce(Return(desc_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedDescription(i), RectEq(desc_render_area),
+                     FontSpecInterface::FONTSET_DESCRIPTION))
           .After(get_desc_cell_rect);
     }
 
@@ -756,14 +747,14 @@ TEST_F(CandidateWindowTest, DrawCellsTest) {
 
     for (int i = 0; i < 10; ++i) {
       const Rect value_render_area(i * 2, i * 3, i * 4, i * 5);
-      Expectation get_value_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
-          .WillOnce(Return(value_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedValue(i, true, true),
-                             RectEq(value_render_area),
-                             FontSpecInterface::FONTSET_CANDIDATE))
+      Expectation get_value_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
+              .WillOnce(Return(value_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedValue(i, true, true), RectEq(value_render_area),
+                     FontSpecInterface::FONTSET_CANDIDATE))
           .After(get_value_cell_rect);
     }
 
@@ -794,25 +785,25 @@ TEST_F(CandidateWindowTest, DrawCellsTest) {
 
     for (int i = 0; i < 10; ++i) {
       const Rect value_render_area(i * 2, i * 3, i * 4, i * 5);
-      Expectation get_value_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
-          .WillOnce(Return(value_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedValue(i, true, true),
-                             RectEq(value_render_area),
-                             FontSpecInterface::FONTSET_CANDIDATE))
+      Expectation get_value_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
+              .WillOnce(Return(value_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedValue(i, true, true), RectEq(value_render_area),
+                     FontSpecInterface::FONTSET_CANDIDATE))
           .After(get_value_cell_rect);
 
       const Rect shortcut_render_area(i * 3, i * 4, i * 5, i * 6);
-      Expectation get_shortcut_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
-          .WillOnce(Return(shortcut_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedShortcut(i),
-                             RectEq(shortcut_render_area),
-                             FontSpecInterface::FONTSET_SHORTCUT))
+      Expectation get_shortcut_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_SHORTCUT))
+              .WillOnce(Return(shortcut_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedShortcut(i), RectEq(shortcut_render_area),
+                     FontSpecInterface::FONTSET_SHORTCUT))
           .After(get_shortcut_cell_rect);
     }
 
@@ -835,24 +826,25 @@ TEST_F(CandidateWindowTest, DrawCellsTest) {
 
     for (int i = 0; i < 10; ++i) {
       const Rect value_render_area(i * 2, i * 3, i * 4, i * 5);
-      Expectation get_value_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
-          .WillOnce(Return(value_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock, RenderText(
-          GetExpectedValue(i, true, true), RectEq(value_render_area),
-          FontSpecInterface::FONTSET_CANDIDATE))
+      Expectation get_value_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_CANDIDATE))
+              .WillOnce(Return(value_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedValue(i, true, true), RectEq(value_render_area),
+                     FontSpecInterface::FONTSET_CANDIDATE))
           .After(get_value_cell_rect);
 
       const Rect desc_render_area(i * 4, i * 5, i * 6, i * 7);
-      Expectation get_desc_cell_rect
-          = EXPECT_CALL(*testkit.table_layout_mock,
-                        GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
-          .WillOnce(Return(desc_render_area));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  RenderText(GetExpectedDescription(i),
-                             RectEq(desc_render_area),
-                             FontSpecInterface::FONTSET_DESCRIPTION))
+      Expectation get_desc_cell_rect =
+          EXPECT_CALL(*testkit.table_layout_mock,
+                      GetCellRect(i, CandidateWindow::COLUMN_DESCRIPTION))
+              .WillOnce(Return(desc_render_area));
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          RenderText(GetExpectedDescription(i), RectEq(desc_render_area),
+                     FontSpecInterface::FONTSET_DESCRIPTION))
           .After(get_desc_cell_rect);
     }
 
@@ -881,26 +873,23 @@ TEST_F(CandidateWindowTest, DrawInformationIconTest) {
     candidate->set_id(i * 0x10);
     if (Util::Random(2) == 0) {
       candidate->set_information_id(i * 0x20);
-      const Rect row_rect(i * 10, i * 20, i * 30, i *40);
-      const Rect expected_icon_rect(row_rect.origin.x + row_rect.size.width -6,
-                                    row_rect.origin.y + 2,
-                                    4,
+      const Rect row_rect(i * 10, i * 20, i * 30, i * 40);
+      const Rect expected_icon_rect(row_rect.origin.x + row_rect.size.width - 6,
+                                    row_rect.origin.y + 2, 4,
                                     row_rect.size.height - 4);
-      Expectation get_row_rect = EXPECT_CALL(*testkit.table_layout_mock,
-                                             GetRowRect(i))
-          .WillOnce(Return(row_rect));
-      Expectation fill_rect
-          = EXPECT_CALL(*testkit.draw_tool_mock,
-                        FillRect(RectEq(expected_icon_rect),
-                                 RGBAEq(kIndicatorColor)))
-          .After(get_row_rect);
-      EXPECT_CALL(*testkit.draw_tool_mock, FrameRect(RectEq(expected_icon_rect),
-                                                     RGBAEq(kIndicatorColor),
-                                                     1))
+      Expectation get_row_rect =
+          EXPECT_CALL(*testkit.table_layout_mock, GetRowRect(i))
+              .WillOnce(Return(row_rect));
+      Expectation fill_rect = EXPECT_CALL(*testkit.draw_tool_mock,
+                                          FillRect(RectEq(expected_icon_rect),
+                                                   RGBAEq(kIndicatorColor)))
+                                  .After(get_row_rect);
+      EXPECT_CALL(
+          *testkit.draw_tool_mock,
+          FrameRect(RectEq(expected_icon_rect), RGBAEq(kIndicatorColor), 1))
           .After(fill_rect);
     } else {
-      EXPECT_CALL(*testkit.table_layout_mock, GetRowRect(i))
-          .Times(0);
+      EXPECT_CALL(*testkit.table_layout_mock, GetRowRect(i)).Times(0);
     }
   }
 
@@ -942,15 +931,12 @@ TEST_F(CandidateWindowTest, DrawFooterSeparatorTest) {
   const Point expect_line_from = footer_rect.origin;
   const Point expect_line_to(footer_rect.Right(), footer_rect.Top());
   EXPECT_CALL(*testkit.draw_tool_mock,
-              DrawLine(PointEq(expect_line_from),
-                       PointEq(expect_line_to),
-                       RGBAEq(kFrameColor),
-                       kFooterSeparatorHeight));
+              DrawLine(PointEq(expect_line_from), PointEq(expect_line_to),
+                       RGBAEq(kFrameColor), kFooterSeparatorHeight));
 
-  const Rect expect_rest_area(footer_rect.Left(),
-                              footer_rect.Top() + kFooterSeparatorHeight,
-                              footer_rect.Width(),
-                              footer_rect.Height() - kFooterSeparatorHeight);
+  const Rect expect_rest_area(
+      footer_rect.Left(), footer_rect.Top() + kFooterSeparatorHeight,
+      footer_rect.Width(), footer_rect.Height() - kFooterSeparatorHeight);
   Rect result = footer_rect;
   testkit.window->DrawFooterSeparator(&result);
   EXPECT_EQ(expect_rest_area.origin.x, result.origin.x);
@@ -1027,16 +1013,14 @@ TEST_F(CandidateWindowTest, DrawFooterIndexTest) {
     const int total_items = 7;
     std::stringstream footer_string;
     footer_string << focused_index + 1 << "/" << total_items << " ";
-    const string index_guide_string = footer_string.str();
+    const std::string index_guide_string = footer_string.str();
     const Size index_guide_size(10, 20);
     const Rect index_rect(
         original_footer_content_area.Right() - index_guide_size.width,
-        original_footer_content_area.Top(),
-        index_guide_size.width,
+        original_footer_content_area.Top(), index_guide_size.width,
         original_footer_content_area.Height());
     const Rect expect_remaining_rect(
-        original_footer_content_area.Left(),
-        original_footer_content_area.Top(),
+        original_footer_content_area.Left(), original_footer_content_area.Top(),
         original_footer_content_area.Width() - index_guide_size.width,
         original_footer_content_area.Height());
 
@@ -1051,8 +1035,7 @@ TEST_F(CandidateWindowTest, DrawFooterIndexTest) {
         .WillOnce(Return(index_guide_size));
 
     EXPECT_CALL(*testkit.text_renderer_mock,
-                RenderText(index_guide_string,
-                           RectEq(index_rect),
+                RenderText(index_guide_string, RectEq(index_rect),
                            FontSpecInterface::FONTSET_FOOTER_INDEX));
 
     Rect footer_content_area = original_footer_content_area;
@@ -1091,11 +1074,10 @@ TEST_F(CandidateWindowTest, DrawFooterLabelTest) {
     CandidateWindowTestKit testkit = SetUpCandidateWindow();
     const Rect footer_content_area(10, 20, 30, 40);
 
-    const string label_str = "LABEL";
+    const std::string label_str = "LABEL";
     testkit.window->candidates_.mutable_footer()->set_label(label_str);
     EXPECT_CALL(*testkit.text_renderer_mock,
-                RenderText(label_str,
-                           RectEq(footer_content_area),
+                RenderText(label_str, RectEq(footer_content_area),
                            FontSpecInterface::FONTSET_FOOTER_LABEL));
 
     testkit.window->DrawFooterLabel(footer_content_area);
@@ -1106,11 +1088,10 @@ TEST_F(CandidateWindowTest, DrawFooterLabelTest) {
     CandidateWindowTestKit testkit = SetUpCandidateWindow();
     const Rect footer_content_area(10, 20, 30, 40);
 
-    const string sub_label_str = "SUBLABEL";
+    const std::string sub_label_str = "SUBLABEL";
     testkit.window->candidates_.mutable_footer()->set_sub_label(sub_label_str);
     EXPECT_CALL(*testkit.text_renderer_mock,
-                RenderText(sub_label_str,
-                           RectEq(footer_content_area),
+                RenderText(sub_label_str, RectEq(footer_content_area),
                            FontSpecInterface::FONTSET_FOOTER_SUBLABEL));
 
     testkit.window->DrawFooterLabel(footer_content_area);
@@ -1121,17 +1102,15 @@ TEST_F(CandidateWindowTest, DrawFooterLabelTest) {
     CandidateWindowTestKit testkit = SetUpCandidateWindow();
     const Rect footer_content_area(10, 20, 30, 40);
 
-    const string label_str = "LABEL";
-    const string sub_label_str = "SUBLABEL";
+    const std::string label_str = "LABEL";
+    const std::string sub_label_str = "SUBLABEL";
     testkit.window->candidates_.mutable_footer()->set_label(label_str);
     testkit.window->candidates_.mutable_footer()->set_sub_label(sub_label_str);
     EXPECT_CALL(*testkit.text_renderer_mock,
-                RenderText(label_str,
-                           RectEq(footer_content_area),
+                RenderText(label_str, RectEq(footer_content_area),
                            FontSpecInterface::FONTSET_FOOTER_LABEL));
     EXPECT_CALL(*testkit.text_renderer_mock,
-                RenderText(sub_label_str,
-                           RectEq(footer_content_area),
+                RenderText(sub_label_str, RectEq(footer_content_area),
                            FontSpecInterface::FONTSET_FOOTER_SUBLABEL))
         .Times(0);
 
@@ -1164,9 +1143,9 @@ TEST_F(CandidateWindowTest, UpdateGap1SizeTest) {
               GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE, " "))
       .WillOnce(Return(spacing_size));
 
-  EXPECT_CALL(*testkit.table_layout_mock,
-              EnsureCellSize(CandidateWindow::COLUMN_GAP1,
-                             SizeEq(spacing_size)));
+  EXPECT_CALL(
+      *testkit.table_layout_mock,
+      EnsureCellSize(CandidateWindow::COLUMN_GAP1, SizeEq(spacing_size)));
 
   testkit.window->UpdateGap1Size();
   FinalizeTestKit(&testkit);
@@ -1191,11 +1170,11 @@ TEST_F(CandidateWindowTest, UpdateCandidatesSizeTest) {
                       &testkit.window->candidates_);
 
     for (int i = 0; i < candidate_count; ++i) {
-      const string expected_value = GetExpectedValue(i, true, true);
+      const std::string expected_value = GetExpectedValue(i, true, true);
       const Size value_size(10 * i, 20 * i);
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE,
-                               expected_value))
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE, expected_value))
           .WillOnce(Return(value_size));
       EXPECT_CALL(*testkit.table_layout_mock,
                   EnsureCellSize(CandidateWindow::COLUMN_CANDIDATE,
@@ -1216,22 +1195,22 @@ TEST_F(CandidateWindowTest, UpdateCandidatesSizeTest) {
                       &testkit.window->candidates_);
 
     for (int i = 0; i < candidate_count; ++i) {
-      const string expected_value = GetExpectedValue(i, true, true);
+      const std::string expected_value = GetExpectedValue(i, true, true);
 
       // Shortcut string is padded with one spacing character.
       std::stringstream shortcut_stream;
       shortcut_stream << " " << GetExpectedShortcut(i) << " ";
 
-      const string expected_shortcut = shortcut_stream.str();
+      const std::string expected_shortcut = shortcut_stream.str();
       const Size value_size(10 * i, 20 * i);
       const Size shortcut_size(11 * i, 21 * i);
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE,
-                               expected_value))
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE, expected_value))
           .WillOnce(Return(value_size));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  GetPixelSize(FontSpecInterface::FONTSET_SHORTCUT,
-                               expected_shortcut))
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          GetPixelSize(FontSpecInterface::FONTSET_SHORTCUT, expected_shortcut))
           .WillOnce(Return(shortcut_size));
 
       EXPECT_CALL(*testkit.table_layout_mock,
@@ -1256,18 +1235,18 @@ TEST_F(CandidateWindowTest, UpdateCandidatesSizeTest) {
                       &testkit.window->candidates_);
 
     for (int i = 0; i < candidate_count; ++i) {
-      const string expected_value = GetExpectedValue(i, true, true);
+      const std::string expected_value = GetExpectedValue(i, true, true);
 
       // Description string is end-padded with one spacing character.
       std::stringstream description_stream;
       description_stream << GetExpectedDescription(i) << " ";
 
-      const string expected_description = description_stream.str();
+      const std::string expected_description = description_stream.str();
       const Size value_size(10 * i, 20 * i);
       const Size description_size(11 * i, 21 * i);
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE,
-                               expected_value))
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE, expected_value))
           .WillOnce(Return(value_size));
       EXPECT_CALL(*testkit.text_renderer_mock,
                   GetPixelSize(FontSpecInterface::FONTSET_DESCRIPTION,
@@ -1296,29 +1275,29 @@ TEST_F(CandidateWindowTest, UpdateCandidatesSizeTest) {
                       &testkit.window->candidates_);
 
     for (int i = 0; i < candidate_count; ++i) {
-      const string expected_value = GetExpectedValue(i, true, true);
+      const std::string expected_value = GetExpectedValue(i, true, true);
 
       // Shortcut string is padded with one spacing character.
       std::stringstream shortcut_stream;
       shortcut_stream << " " << GetExpectedShortcut(i) << " ";
-      const string expected_shortcut = shortcut_stream.str();
+      const std::string expected_shortcut = shortcut_stream.str();
 
       // Description string is end-padded with one spacing character.
       std::stringstream description_stream;
       description_stream << GetExpectedDescription(i) << " ";
-      const string expected_description = description_stream.str();
+      const std::string expected_description = description_stream.str();
 
       const Size value_size(10 * i, 20 * i);
       const Size description_size(11 * i, 21 * i);
       const Size shortcut_size(12 * i, 22 * i);
 
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE,
-                               expected_value))
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE, expected_value))
           .WillOnce(Return(value_size));
-      EXPECT_CALL(*testkit.text_renderer_mock,
-                  GetPixelSize(FontSpecInterface::FONTSET_SHORTCUT,
-                               expected_shortcut))
+      EXPECT_CALL(
+          *testkit.text_renderer_mock,
+          GetPixelSize(FontSpecInterface::FONTSET_SHORTCUT, expected_shortcut))
           .WillOnce(Return(shortcut_size));
       EXPECT_CALL(*testkit.text_renderer_mock,
                   GetPixelSize(FontSpecInterface::FONTSET_DESCRIPTION,
@@ -1353,9 +1332,9 @@ TEST_F(CandidateWindowTest, UpdateGap2SizeTest) {
                 GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE, "   "))
         .WillOnce(Return(spacing_size));
 
-    EXPECT_CALL(*testkit.table_layout_mock,
-                EnsureCellSize(CandidateWindow::COLUMN_GAP2,
-                               SizeEq(spacing_size)));
+    EXPECT_CALL(
+        *testkit.table_layout_mock,
+        EnsureCellSize(CandidateWindow::COLUMN_GAP2, SizeEq(spacing_size)));
 
     testkit.window->UpdateGap2Size(true);
     FinalizeTestKit(&testkit);
@@ -1369,9 +1348,9 @@ TEST_F(CandidateWindowTest, UpdateGap2SizeTest) {
                 GetPixelSize(FontSpecInterface::FONTSET_CANDIDATE, " "))
         .WillOnce(Return(spacing_size));
 
-    EXPECT_CALL(*testkit.table_layout_mock,
-                EnsureCellSize(CandidateWindow::COLUMN_GAP2,
-                               SizeEq(spacing_size)));
+    EXPECT_CALL(
+        *testkit.table_layout_mock,
+        EnsureCellSize(CandidateWindow::COLUMN_GAP2, SizeEq(spacing_size)));
 
     testkit.window->UpdateGap2Size(false);
     FinalizeTestKit(&testkit);
@@ -1416,7 +1395,7 @@ TEST_F(CandidateWindowTest, OnMouseLeftUpTest) {
     FinalizeTestKit(&testkit);
   }
   {
-    SCOPED_TRACE("Exepcted ID will be set by candidate index.");
+    SCOPED_TRACE("Expected ID will be set by candidate index.");
     const size_t kTestRound = 10;
     for (size_t i = 0; i < kTestRound; ++i) {
       SendCommandInterfaceMock interface_mock;
@@ -1468,8 +1447,7 @@ TEST_F(CandidateWindowTest, GetSelectedRowIndexTest) {
 TEST_F(CandidateWindowTest, ReloadFontConfigTest) {
   CandidateWindowTestKit testkit = SetUpCandidateWindow();
   const char dummy_font[] = "Foo,Bar,Baz";
-  EXPECT_CALL(*testkit.text_renderer_mock,
-              ReloadFontConfig(StrEq(dummy_font)));
+  EXPECT_CALL(*testkit.text_renderer_mock, ReloadFontConfig(StrEq(dummy_font)));
   testkit.window->ReloadFontConfig(dummy_font);
   FinalizeTestKit(&testkit);
 }

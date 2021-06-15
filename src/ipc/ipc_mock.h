@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,9 @@
 #ifndef MOZC_IPC_IPC_MOCK_H_
 #define MOZC_IPC_IPC_MOCK_H_
 
+#include <cstdint>
 #include <string>
+
 #include "ipc/ipc.h"
 
 namespace mozc {
@@ -40,47 +42,36 @@ class IPCClientFactoryMock;  // declared below.
 class IPCClientMock : public IPCClientInterface {
  public:
   explicit IPCClientMock(IPCClientFactoryMock *caller);
-  virtual bool Connected() const;
-  virtual uint32 GetServerProtocolVersion() const;
-  virtual const string &GetServerProductVersion() const;
-  virtual uint32 GetServerProcessId() const;
-  virtual bool Call(const char *request,
-                    size_t request_size,
-                    char *response,
-                    size_t *response_size,
-                    int32 timeout);
+  bool Connected() const override;
+  uint32_t GetServerProtocolVersion() const override;
+  const std::string &GetServerProductVersion() const override;
+  uint32_t GetServerProcessId() const override;
+  bool Call(const char *request, size_t request_size, char *response,
+            size_t *response_size, int32_t timeout) override;
 
-  virtual IPCErrorType GetLastIPCError() const {
-    return IPC_NO_ERROR;
-  }
+  IPCErrorType GetLastIPCError() const override { return IPC_NO_ERROR; }
 
-  void set_connection(const bool connection) {
-    connected_ = connection;
-  }
-  void set_result(const bool result) {
-    result_ = result;
-  }
-  void set_server_protocol_version(const uint32 server_protocol_version) {
+  void set_connection(const bool connection) { connected_ = connection; }
+  void set_result(const bool result) { result_ = result; }
+  void set_server_protocol_version(const uint32_t server_protocol_version) {
     server_protocol_version_ = server_protocol_version;
   }
-  void set_server_product_version(const string &server_product_version) {
+  void set_server_product_version(const std::string &server_product_version) {
     server_product_version_ = server_product_version;
   }
-  void set_server_process_id(const uint32 server_process_id) {
+  void set_server_process_id(const uint32_t server_process_id) {
     server_process_id_ = server_process_id;
   }
-  void set_response(const string &response) {
-    response_ = response;
-  }
+  void set_response(const std::string &response) { response_ = response; }
 
  private:
-  IPCClientFactoryMock* caller_;
+  IPCClientFactoryMock *caller_;
   bool connected_;
-  uint32 server_protocol_version_;
-  string server_product_version_;
-  uint32 server_process_id_;
+  uint32_t server_protocol_version_;
+  std::string server_product_version_;
+  uint32_t server_process_id_;
   bool result_;
-  string response_;
+  std::string response_;
 
   DISALLOW_COPY_AND_ASSIGN(IPCClientMock);
 };
@@ -89,19 +80,19 @@ class IPCClientFactoryMock : public IPCClientFactoryInterface {
  public:
   IPCClientFactoryMock();
 
-  virtual IPCClientInterface *NewClient(const string &unused_name,
-                                        const string &path_name);
+  IPCClientInterface *NewClient(const std::string &unused_name,
+                                const std::string &path_name) override;
 
-  virtual IPCClientInterface *NewClient(const string &unused_name);
+  IPCClientInterface *NewClient(const std::string &unused_name) override;
 
   // This function is supporsed to be used by unittests.
-  const string &GetGeneratedRequest() const;
+  const std::string &GetGeneratedRequest() const;
 
   // This function is supporsed to be used by IPCClientMock
-  void SetGeneratedRequest(const string &request);
+  void SetGeneratedRequest(const std::string &request);
 
   // This function is supporsed to be used by unittests.
-  void SetMockResponse(const string &response);
+  void SetMockResponse(const std::string &response);
 
   // This function is supporsed to be used by unittests.
   void SetConnection(const bool connection);
@@ -110,24 +101,24 @@ class IPCClientFactoryMock : public IPCClientFactoryInterface {
   void SetResult(const bool result);
 
   // This function is supporsed to be used by unittests.
-  void SetServerProtocolVersion(const uint32 server_protocol_version);
+  void SetServerProtocolVersion(const uint32_t server_protocol_version);
 
   // This function is supporsed to be used by unittests.
-  void SetServerProductVersion(const string &server_protocol_version);
+  void SetServerProductVersion(const std::string &server_product_version);
 
   // This function is supporsed to be used by unittests.
-  void SetServerProcessId(const uint32 server_process_id);
+  void SetServerProcessId(const uint32_t server_process_id);
 
  private:
   IPCClientMock *NewClientMock();
 
   bool connection_;
   bool result_;
-  uint32 server_protocol_version_;
-  string server_product_version_;
-  uint32 server_process_id_;
-  string request_;
-  string response_;
+  uint32_t server_protocol_version_;
+  std::string server_product_version_;
+  uint32_t server_process_id_;
+  std::string request_;
+  std::string response_;
 
   DISALLOW_COPY_AND_ASSIGN(IPCClientFactoryMock);
 };

@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,46 +34,47 @@
 #include "base/logging.h"
 
 namespace mozc {
-#ifdef OS_MACOSX
+#ifdef __APPLE__
 TestMachPortManager::TestMachPortManager() {
   ipc_space_t self_task = mach_task_self();
   // Create a new mach port with receive right.
   CHECK_EQ(KERN_SUCCESS,
            mach_port_allocate(self_task, MACH_PORT_RIGHT_RECEIVE, &port_));
   // Add send right to the new mach port.
-  CHECK_EQ(KERN_SUCCESS,
-           mach_port_insert_right(
-               self_task, port_, port_, MACH_MSG_TYPE_MAKE_SEND));
+  CHECK_EQ(KERN_SUCCESS, mach_port_insert_right(self_task, port_, port_,
+                                                MACH_MSG_TYPE_MAKE_SEND));
 }
 
 TestMachPortManager::~TestMachPortManager() {
   mach_port_destroy(mach_task_self(), port_);
 }
 
-bool TestMachPortManager::GetMachPort(const string &name, mach_port_t *port) {
+bool TestMachPortManager::GetMachPort(const std::string &name,
+                                      mach_port_t *port) {
   *port = port_;
   return true;
 }
 
 // Server is always running for test because both client and server is
 // running in a same process.
-bool TestMachPortManager::IsServerRunning(const string &name) const {
+bool TestMachPortManager::IsServerRunning(const std::string &name) const {
   return true;
 }
 #endif
 
 IPCClientInterface *IPCClientFactoryOnMemory::NewClient(
-    const string &name, const string &path_name) {
+    const std::string &name, const std::string &path_name) {
   IPCClient *new_client = new IPCClient(name, path_name);
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   new_client->SetMachPortManager(&mach_manager_);
 #endif
   return new_client;
 }
 
-IPCClientInterface *IPCClientFactoryOnMemory::NewClient(const string &name) {
+IPCClientInterface *IPCClientFactoryOnMemory::NewClient(
+    const std::string &name) {
   IPCClient *new_client = new IPCClient(name);
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   new_client->SetMachPortManager(&mach_manager_);
 #endif
   return new_client;

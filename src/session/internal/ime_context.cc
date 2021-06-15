@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -50,8 +50,7 @@ ImeContext::ImeContext()
       state_(NONE),
       request_(&Request::default_instance()),
       config_(&config::ConfigHandler::DefaultConfig()),
-      keymap_(config::ConfigHandler::GetDefaultKeyMap()) {
-}
+      keymap_(config::ConfigHandler::GetDefaultKeyMap()) {}
 ImeContext::~ImeContext() {}
 
 const composer::Composer &ImeContext::composer() const {
@@ -126,9 +125,9 @@ void ImeContext::CopyContext(const ImeContext &src, ImeContext *dest) {
   dest->SetRequest(src.request_);
   dest->SetConfig(src.config_);
 
-  dest->mutable_client_capability()->CopyFrom(src.client_capability());
-  dest->mutable_application_info()->CopyFrom(src.application_info());
-  dest->mutable_output()->CopyFrom(src.output());
+  *dest->mutable_client_capability() = src.client_capability();
+  *dest->mutable_application_info() = src.application_info();
+  *dest->mutable_output() = src.output();
 }
 
 }  // namespace session

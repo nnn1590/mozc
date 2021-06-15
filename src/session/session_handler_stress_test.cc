@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "session/session_handler.h"
-
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -39,41 +38,41 @@
 #include "engine/engine_factory.h"
 #include "protocol/commands.pb.h"
 #include "session/random_keyevents_generator.h"
-#include "session/session_handler_test_util.h"
+#include "session/session_handler.h"
+#include "session/session_handler_tool.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/flags/flag.h"
 
 namespace {
-uint32 GenerateRandomSeed() {
-  uint32 seed = 0;
-  mozc::Util::GetRandomSequence(reinterpret_cast<char *>(&seed),
-                                sizeof(seed));
+uint32_t GenerateRandomSeed() {
+  uint32_t seed = 0;
+  mozc::Util::GetRandomSequence(reinterpret_cast<char *>(&seed), sizeof(seed));
   return seed;
 }
 }  // namespace
 
 // There is no DEFINE_uint32.
-DEFINE_uint64(random_seed, GenerateRandomSeed(),
-              "Random seed value. "
-              "This value will be interpreted as uint32.");
-DECLARE_string(test_srcdir);
-DECLARE_string(test_tmpdir);
+ABSL_FLAG(uint64_t, random_seed, GenerateRandomSeed(),
+          "Random seed value. "
+          "This value will be interpreted as uint32.");
 
 namespace mozc {
 namespace {
 
-using session::testing::SessionHandlerTestBase;
-using session::testing::TestSessionClient;
+using session::SessionHandlerTool;
 
 TEST(SessionHandlerStressTest, BasicStressTest) {
   std::vector<commands::KeyEvent> keys;
   commands::Output output;
   std::unique_ptr<Engine> engine(EngineFactory::Create());
-  TestSessionClient client(std::move(engine));
+  SessionHandlerTool client(std::move(engine));
   size_t keyevents_size = 0;
   const size_t kMaxEventSize = 2500;
   ASSERT_TRUE(client.CreateSession());
 
-  const uint32 random_seed = static_cast<uint32>(FLAGS_random_seed);
+  const uint32_t random_seed =
+      static_cast<uint32_t>(absl::GetFlag(FLAGS_random_seed));
   LOG(INFO) << "Random seed: " << random_seed;
   session::RandomKeyEventsGenerator::InitSeed(random_seed);
   while (keyevents_size < kMaxEventSize) {

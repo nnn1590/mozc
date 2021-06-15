@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
 #include "testing/base/public/mozctest.h"
+#include "absl/flags/flag.h"
 
 namespace mozc {
 namespace {
@@ -54,7 +55,7 @@ class EngineBuilderTest : public ::testing::Test {
     response_.Clear();
   }
 
-  const string mock_data_path_;
+  const std::string mock_data_path_;
   EngineBuilder builder_;
   EngineReloadRequest request_;
   EngineReloadResponse response_;
@@ -62,9 +63,6 @@ class EngineBuilderTest : public ::testing::Test {
  private:
   const testing::ScopedTmpUserProfileDirectory scoped_profile_dir_;
 };
-
-// Most of tests are disabled on NaCl as it uses mock file system for tests.
-#ifndef OS_NACL
 
 TEST_F(EngineBuilderTest, PrepareAsync) {
   {
@@ -84,11 +82,12 @@ TEST_F(EngineBuilderTest, PrepareAsync) {
   {
     // Test request with install.  Since the requested file is moved,
     // |mock_data_path_| is copied to a temporary file.
-    const string src_path = FileUtil::JoinPath({FLAGS_test_tmpdir, "src.data"});
+    const std::string src_path =
+        FileUtil::JoinPath({absl::GetFlag(FLAGS_test_tmpdir), "src.data"});
     ASSERT_TRUE(FileUtil::CopyFile(mock_data_path_, src_path));
 
-    const string install_path =
-        FileUtil::JoinPath({FLAGS_test_tmpdir, "dst.data"});
+    const std::string install_path =
+        FileUtil::JoinPath({absl::GetFlag(FLAGS_test_tmpdir), "dst.data"});
     request_.set_engine_type(EngineReloadRequest::MOBILE);
     request_.set_file_path(src_path);
     request_.set_install_location(install_path);
@@ -152,9 +151,10 @@ TEST_F(EngineBuilderTest, AsyncBuildWithInstall) {
       {EngineReloadRequest::DESKTOP, "DefaultPredictor"},
       {EngineReloadRequest::MOBILE, "MobilePredictor"},
   };
-  const string &tmp_src = FileUtil::JoinPath({FLAGS_test_tmpdir, "src.data"});
-  const string install_path =
-      FileUtil::JoinPath({FLAGS_test_tmpdir, "dst.data"});
+  const std::string &tmp_src =
+      FileUtil::JoinPath({absl::GetFlag(FLAGS_test_tmpdir), "src.data"});
+  const std::string install_path =
+      FileUtil::JoinPath({absl::GetFlag(FLAGS_test_tmpdir), "dst.data"});
 
   for (const auto &test_case : kTestCases) {
     Clear();
@@ -209,8 +209,6 @@ TEST_F(EngineBuilderTest, FailureCase_DataBroken) {
   builder_.GetResponse(&response_);
   ASSERT_EQ(EngineReloadResponse::DATA_BROKEN, response_.status());
 }
-
-#endif  // !OS_NACL
 
 TEST_F(EngineBuilderTest, FailureCase_FileDoesNotExist) {
   // Test the case where input file doesn't exist.

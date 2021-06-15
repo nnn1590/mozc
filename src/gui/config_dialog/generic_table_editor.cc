@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,13 @@
 #include <algorithm>  // for unique
 #include <cctype>
 #include <sstream>
+#include <set>
 #include <string>
-#include <vector>
 
 #include "base/file_stream.h"
 #include "base/logging.h"
 #include "base/util.h"
+#include "gui/base/util.h"
 #include "protocol/commands.pb.h"
 
 namespace mozc {
@@ -53,23 +54,20 @@ const size_t kMaxEntrySize = 10000;
 
 int GetTableHeight(QTableWidget *widget) {
   // Dragon Hack:
-  // Here we use "龍" to calc font size, as it looks almsot square
-  const char kHexBaseChar[] = "龍";
+  // Here we use "龍" to calc font size, as it looks almost square
   const QRect rect =
-      QFontMetrics(widget->font()).boundingRect(QObject::trUtf8(kHexBaseChar));
+      QFontMetrics(widget->font()).boundingRect(QString::fromUtf8("龍"));
 #ifdef OS_WIN
   return static_cast<int>(rect.height() * 1.3);
 #else
   return static_cast<int>(rect.height() * 1.4);
-#endif   // OS_WIN
+#endif  // OS_WIN
 }
 }  // namespace
 
 GenericTableEditorDialog::GenericTableEditorDialog(QWidget *parent,
                                                    size_t column_size)
-    : QDialog(parent),
-      edit_menu_(new QMenu(this)),
-      column_size_(column_size) {
+    : QDialog(parent), edit_menu_(new QMenu(this)), column_size_(column_size) {
   setupUi(this);
   editorTableWidget->setAlternatingRowColors(true);
   setWindowFlags(Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint |
@@ -79,24 +77,20 @@ GenericTableEditorDialog::GenericTableEditorDialog(QWidget *parent,
   CHECK_GT(column_size_, 0);
 
   // Mac style
-#ifdef OS_MACOSX
+#ifdef __APPLE__
   editorTableWidget->setShowGrid(false);
   layout()->setContentsMargins(0, 0, 0, 4);
   gridLayout->setHorizontalSpacing(12);
   gridLayout->setVerticalSpacing(12);
-#endif  // OS_MACOSX
+#endif  // __APPLE__
 
   editButton->setText(tr("Edit"));
   editButton->setMenu(edit_menu_);
 
-  QObject::connect(edit_menu_,
-                   SIGNAL(triggered(QAction *)),
-                   this,
+  QObject::connect(edit_menu_, SIGNAL(triggered(QAction *)), this,
                    SLOT(OnEditMenuAction(QAction *)));
 
-  QObject::connect(editorButtonBox,
-                   SIGNAL(clicked(QAbstractButton *)),
-                   this,
+  QObject::connect(editorButtonBox, SIGNAL(clicked(QAbstractButton *)), this,
                    SLOT(Clicked(QAbstractButton *)));
 
   editorTableWidget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -117,6 +111,7 @@ GenericTableEditorDialog::GenericTableEditorDialog(QWidget *parent,
   editorTableWidget->verticalHeader()->setDefaultSectionSize(
       GetTableHeight(editorTableWidget));
 
+  GuiUtil::ReplaceWidgetLabels(this);
   UpdateMenuStatus();
 }
 
@@ -126,61 +121,50 @@ QTableWidget *GenericTableEditorDialog::mutable_table_widget() {
   return editorTableWidget;
 }
 
-const string &GenericTableEditorDialog::table() const {
-  return table_;
-}
+const std::string &GenericTableEditorDialog::table() const { return table_; }
 
-string *GenericTableEditorDialog::mutable_table() {
-  return &table_;
-}
+std::string *GenericTableEditorDialog::mutable_table() { return &table_; }
 
-QMenu *GenericTableEditorDialog::mutable_edit_menu() {
-  return edit_menu_;
-}
+QMenu *GenericTableEditorDialog::mutable_edit_menu() { return edit_menu_; }
 
-bool GenericTableEditorDialog::LoadFromString(const string &str) {
+bool GenericTableEditorDialog::LoadFromString(const std::string &str) {
   std::istringstream istr(str);
   return LoadFromStream(&istr);
 }
 
 void GenericTableEditorDialog::DeleteSelectedItems() {
-  std::vector<int> rows;
-  QList<QTableWidgetItem *> selected =
-      editorTableWidget->selectedItems();
+  std::set<int> rows;
+  QList<QTableWidgetItem *> selected = editorTableWidget->selectedItems();
 
-  // remember the last column as user chooses the
-  // last rows from top to bottom in general.
-  const int column = selected.isEmpty() ? 0 :
-      selected.back()->column();
-
-  for (int i = 0; i < selected.size(); ++i) {
-    rows.push_back(selected[i]->row());
+  for (auto item : selected) {
+    rows.insert(item->row());
   }
 
-  std::vector<int>::iterator last = unique(rows.begin(), rows.end());
-  rows.erase(last, rows.end());
-
   if (rows.empty()) {
-    QMessageBox::warning(this,
-                         windowTitle(),
-                         tr("No entry is selected"));
+    QMessageBox::warning(this, windowTitle(), tr("No entry is selected"));
     return;
   }
 
-  // Choose next or prev item.
-  QTableWidgetItem *item = editorTableWidget->item(rows.back() + 1, column);
-  if (item == NULL) {
-    item = editorTableWidget->item(rows.back() - 1, column);
+  // Keep the current cursor position after the deletion.
+  {
+    // remember the last column as user chooses the
+    // last rows from top to bottom in general.
+    const int cur_col = selected.back()->column();
+    const int cur_row = selected.back()->row();
+    QTableWidgetItem *cur_item = editorTableWidget->item(cur_row + 1, cur_col);
+    if (cur_item == nullptr) {
+      cur_item = editorTableWidget->item(cur_row - 1, cur_col);
+    }
+
+    // select item
+    if (cur_item != nullptr) {
+      editorTableWidget->setCurrentItem(cur_item);
+    }
   }
 
-  // select item
-  if (item != NULL) {
-    editorTableWidget->setCurrentItem(item);
-  }
-
-  // remove from the buttom
-  for (int i = rows.size() - 1; i >= 0; --i) {
-    editorTableWidget->removeRow(rows[i]);
+  // remove from the bottom
+  for (auto rit = rows.rbegin(); rit != rows.rend(); ++rit) {
+    editorTableWidget->removeRow(*rit);
   }
 
   UpdateMenuStatus();
@@ -201,13 +185,12 @@ void GenericTableEditorDialog::InsertEmptyItem(int row) {
 
   editorTableWidget->insertRow(row);
   for (size_t i = 0; i < column_size_; ++i) {
-    editorTableWidget->setItem(row, i, new QTableWidgetItem(""));
+    editorTableWidget->setItem(row, i, new QTableWidgetItem(QLatin1String("")));
   }
   QTableWidgetItem *item = editorTableWidget->item(row, 0);
-  if (item != NULL) {
+  if (item != nullptr) {
     editorTableWidget->setCurrentItem(item);
-    editorTableWidget->scrollToItem(item,
-                                    QAbstractItemView::PositionAtCenter);
+    editorTableWidget->scrollToItem(item, QAbstractItemView::PositionAtCenter);
     editorTableWidget->editItem(item);
   }
 
@@ -216,8 +199,8 @@ void GenericTableEditorDialog::InsertEmptyItem(int row) {
     // From the usability perspective, auto-sorting should be disabled until
     // a user explicitly enables it again by clicking the table header.
     // To achieve it, set -1 to the |logicalIndex| in setSortIndicator.
-    editorTableWidget->horizontalHeader()->setSortIndicator(
-        -1, Qt::AscendingOrder);
+    editorTableWidget->horizontalHeader()->setSortIndicator(-1,
+                                                            Qt::AscendingOrder);
     editorTableWidget->setSortingEnabled(true);
   }
 
@@ -226,10 +209,8 @@ void GenericTableEditorDialog::InsertEmptyItem(int row) {
 
 void GenericTableEditorDialog::InsertItem() {
   QTableWidgetItem *current = editorTableWidget->currentItem();
-  if (current == NULL) {
-    QMessageBox::warning(this,
-                         windowTitle(),
-                         tr("No entry is selected"));
+  if (current == nullptr) {
+    QMessageBox::warning(this, windowTitle(), tr("No entry is selected"));
     return;
   }
   InsertEmptyItem(current->row() + 1);
@@ -238,8 +219,7 @@ void GenericTableEditorDialog::InsertItem() {
 void GenericTableEditorDialog::AddNewItem() {
   if (editorTableWidget->rowCount() >= max_entry_size()) {
     QMessageBox::warning(
-        this,
-        windowTitle(),
+        this, windowTitle(),
         tr("You can't have more than %1 entries").arg(max_entry_size()));
     return;
   }
@@ -248,34 +228,28 @@ void GenericTableEditorDialog::AddNewItem() {
 }
 
 void GenericTableEditorDialog::Import() {
-  const QString filename =
-  QFileDialog::getOpenFileName(this, tr("import from file"),
-                               QDir::homePath());
+  const QString filename = QFileDialog::getOpenFileName(
+      this, tr("import from file"), QDir::homePath());
   if (filename.isEmpty()) {
     return;
   }
 
   QFile file(filename);
   if (!file.exists()) {
-    QMessageBox::warning(this,
-                         windowTitle(),
-                         tr("File not found"));
+    QMessageBox::warning(this, windowTitle(), tr("File not found"));
     return;
   }
 
   const qint64 kMaxSize = 100 * 1024;
   if (file.size() >= kMaxSize) {
-    QMessageBox::warning(this,
-                         windowTitle(),
+    QMessageBox::warning(this, windowTitle(),
                          tr("The specified file is too large (>=100K byte)"));
     return;
   }
 
   InputFileStream ifs(filename.toStdString().c_str());
   if (!LoadFromStream(&ifs)) {
-    QMessageBox::warning(this,
-                         windowTitle(),
-                         tr("Import failed"));
+    QMessageBox::warning(this, windowTitle(), tr("Import failed"));
     return;
   }
 }
@@ -285,19 +259,17 @@ void GenericTableEditorDialog::Export() {
     return;
   }
 
-  const QString filename =
-      QFileDialog::getSaveFileName(this, tr("export to file"),
-          QDir::homePath() + QDir::separator() +
-          QString(GetDefaultFilename().c_str()));
+  const QString filename = QFileDialog::getSaveFileName(
+      this, tr("export to file"),
+      QDir::homePath() + QDir::separator() +
+          QString::fromUtf8(GetDefaultFilename().c_str()));
   if (filename.isEmpty()) {
     return;
   }
 
   OutputFileStream ofs(filename.toStdString().c_str());
   if (!ofs) {
-    QMessageBox::warning(this,
-                         windowTitle(),
-                         tr("Export failed"));
+    QMessageBox::warning(this, windowTitle(), tr("Export failed"));
     return;
   }
 
@@ -325,12 +297,12 @@ void GenericTableEditorDialog::Clicked(QAbstractButton *button) {
 
 void GenericTableEditorDialog::OnContextMenuRequested(const QPoint &pos) {
   QTableWidgetItem *item = editorTableWidget->itemAt(pos);
-  if (item == NULL) {
+  if (item == nullptr) {
     return;
   }
 
   QMenu *menu = new QMenu(this);
-  QAction *edit_action = NULL;
+  QAction *edit_action = nullptr;
   const QList<QTableWidgetItem *> selected_items =
       editorTableWidget->selectedItems();
   if (selected_items.count() == 1) {
@@ -340,7 +312,7 @@ void GenericTableEditorDialog::OnContextMenuRequested(const QPoint &pos) {
   QAction *delete_action = menu->addAction(tr("Remove entry"));
   QAction *selected_action = menu->exec(QCursor::pos());
 
-  if (edit_action != NULL && selected_action == edit_action) {
+  if (edit_action != nullptr && selected_action == edit_action) {
     editorTableWidget->editItem(selected_items[0]);
   } else if (selected_action == rename_action) {
     AddNewItem();
@@ -351,7 +323,7 @@ void GenericTableEditorDialog::OnContextMenuRequested(const QPoint &pos) {
 
 void GenericTableEditorDialog::UpdateOKButton(bool status) {
   QPushButton *button = editorButtonBox->button(QDialogButtonBox::Ok);
-  if (button != NULL) {
+  if (button != nullptr) {
     button->setEnabled(status);
   }
 }
@@ -360,13 +332,9 @@ size_t GenericTableEditorDialog::max_entry_size() const {
   return kMaxEntrySize;
 }
 
-bool GenericTableEditorDialog::LoadFromStream(std::istream *is) {
-  return true;
-}
+bool GenericTableEditorDialog::LoadFromStream(std::istream *is) { return true; }
 
-bool GenericTableEditorDialog::Update() {
-  return true;
-}
+bool GenericTableEditorDialog::Update() { return true; }
 
 void GenericTableEditorDialog::UpdateMenuStatus() {}
 

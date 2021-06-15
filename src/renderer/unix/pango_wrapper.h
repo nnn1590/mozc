@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ class PangoLayoutWrapper : public PangoLayoutWrapperInterface {
  public:
   explicit PangoLayoutWrapper(PangoContext *context);
   virtual ~PangoLayoutWrapper();
-  virtual void SetText(const string &text);
+  virtual void SetText(const std::string &text);
   virtual void SetAlignment(PangoAlignment align);
   virtual void SetAttributes(PangoAttrList *attr);
   virtual void SetFontDescription(const PangoFontDescription *font_description);
@@ -49,6 +49,7 @@ class PangoLayoutWrapper : public PangoLayoutWrapperInterface {
   virtual void SetHeight(int height);
   virtual Size GetPixelSize() const;
   virtual PangoLayout *GetPangoLayout();
+
  private:
   PangoLayout *layout_;
   DISALLOW_COPY_AND_ASSIGN(PangoLayoutWrapper);
@@ -58,11 +59,12 @@ class PangoWrapper : public PangoWrapperInterface {
  public:
   explicit PangoWrapper(GdkDrawable *drawable);
   virtual ~PangoWrapper();
-  virtual void RendererDrawLayout(PangoLayoutWrapperInterface *layout,
-                                  int x, int y);
+  virtual void RendererDrawLayout(PangoLayoutWrapperInterface *layout, int x,
+                                  int y);
   virtual PangoAttrList *CopyAttributes(PangoAttrList *attr);
   virtual void AttributesUnref(PangoAttrList *attr);
   virtual PangoContext *GetContext();
+
  private:
   PangoRenderer *renderer_;
   PangoContext *context_;

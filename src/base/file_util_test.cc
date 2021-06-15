@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,9 @@
 #include "base/file_stream.h"
 #include "base/logging.h"
 #include "base/util.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
+#include "absl/flags/flag.h"
 
 // Ad-hoc workadound against macro problem on Windows.
 // On Windows, following macros, defined when you include <Windows.h>,
@@ -56,16 +58,12 @@
 #undef CopyFile
 #endif  // CopyFile
 
-DECLARE_string(test_srcdir);
-DECLARE_string(test_tmpdir);
-
 namespace mozc {
 
-class FileUtilTest : public testing::Test {
-};
+class FileUtilTest : public testing::Test {};
 
 namespace {
-void CreateTestFile(const string &filename, const string &data) {
+void CreateTestFile(const std::string &filename, const std::string &data) {
   OutputFileStream ofs(filename.c_str(), std::ios::binary | std::ios::trunc);
   ofs << data;
   EXPECT_TRUE(ofs.good());
@@ -73,9 +71,10 @@ void CreateTestFile(const string &filename, const string &data) {
 }  // namespace
 
 TEST_F(FileUtilTest, CreateDirectory) {
-  EXPECT_TRUE(FileUtil::DirectoryExists(FLAGS_test_tmpdir));
+  EXPECT_TRUE(FileUtil::DirectoryExists(absl::GetFlag(FLAGS_test_tmpdir)));
   // dirpath = FLAGS_test_tmpdir/testdir
-  const string dirpath = FileUtil::JoinPath(FLAGS_test_tmpdir, "testdir");
+  const std::string dirpath =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "testdir");
 
   // Delete dirpath, if it exists.
   if (FileUtil::FileExists(dirpath)) {
@@ -93,8 +92,9 @@ TEST_F(FileUtilTest, CreateDirectory) {
 }
 
 TEST_F(FileUtilTest, DirectoryExists) {
-  EXPECT_TRUE(FileUtil::DirectoryExists(FLAGS_test_tmpdir));
-  const string filepath = FileUtil::JoinPath(FLAGS_test_tmpdir, "testfile");
+  EXPECT_TRUE(FileUtil::DirectoryExists(absl::GetFlag(FLAGS_test_tmpdir)));
+  const std::string filepath =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "testfile");
 
   // Delete filepath, if it exists.
   if (FileUtil::FileExists(filepath)) {
@@ -113,7 +113,8 @@ TEST_F(FileUtilTest, DirectoryExists) {
 }
 
 TEST_F(FileUtilTest, Unlink) {
-  const string filepath = FileUtil::JoinPath(FLAGS_test_tmpdir, "testfile");
+  const std::string filepath =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "testfile");
   FileUtil::Unlink(filepath);
   EXPECT_FALSE(FileUtil::FileExists(filepath));
 
@@ -124,14 +125,10 @@ TEST_F(FileUtilTest, Unlink) {
 
 #ifdef OS_WIN
   const DWORD kTestAttributeList[] = {
-    FILE_ATTRIBUTE_ARCHIVE,
-    FILE_ATTRIBUTE_HIDDEN,
-    FILE_ATTRIBUTE_NORMAL,
-    FILE_ATTRIBUTE_NOT_CONTENT_INDEXED,
-    FILE_ATTRIBUTE_OFFLINE,
-    FILE_ATTRIBUTE_READONLY,
-    FILE_ATTRIBUTE_SYSTEM,
-    FILE_ATTRIBUTE_TEMPORARY,
+      FILE_ATTRIBUTE_ARCHIVE, FILE_ATTRIBUTE_HIDDEN,
+      FILE_ATTRIBUTE_NORMAL,  FILE_ATTRIBUTE_NOT_CONTENT_INDEXED,
+      FILE_ATTRIBUTE_OFFLINE, FILE_ATTRIBUTE_READONLY,
+      FILE_ATTRIBUTE_SYSTEM,  FILE_ATTRIBUTE_TEMPORARY,
   };
 
   std::wstring wfilepath;
@@ -152,7 +149,8 @@ TEST_F(FileUtilTest, Unlink) {
 
 #ifdef OS_WIN
 TEST_F(FileUtilTest, HideFile) {
-  const string filename = FileUtil::JoinPath(FLAGS_test_tmpdir, "testfile");
+  const std::string filename =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "testfile");
   FileUtil::Unlink(filename);
 
   EXPECT_FALSE(FileUtil::HideFile(filename));
@@ -167,14 +165,14 @@ TEST_F(FileUtilTest, HideFile) {
             ::SetFileAttributesW(wfilename.c_str(), FILE_ATTRIBUTE_NORMAL));
   EXPECT_TRUE(FileUtil::HideFile(filename));
   EXPECT_EQ(FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM |
-            FILE_ATTRIBUTE_NOT_CONTENT_INDEXED,
+                FILE_ATTRIBUTE_NOT_CONTENT_INDEXED,
             ::GetFileAttributesW(wfilename.c_str()));
 
   EXPECT_NE(FALSE,
             ::SetFileAttributesW(wfilename.c_str(), FILE_ATTRIBUTE_ARCHIVE));
   EXPECT_TRUE(FileUtil::HideFile(filename));
   EXPECT_EQ(FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM |
-            FILE_ATTRIBUTE_NOT_CONTENT_INDEXED | FILE_ATTRIBUTE_ARCHIVE,
+                FILE_ATTRIBUTE_NOT_CONTENT_INDEXED | FILE_ATTRIBUTE_ARCHIVE,
             ::GetFileAttributesW(wfilename.c_str()));
 
   EXPECT_NE(FALSE,
@@ -182,7 +180,7 @@ TEST_F(FileUtilTest, HideFile) {
   EXPECT_TRUE(FileUtil::HideFileWithExtraAttributes(filename,
                                                     FILE_ATTRIBUTE_TEMPORARY));
   EXPECT_EQ(FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM |
-            FILE_ATTRIBUTE_NOT_CONTENT_INDEXED | FILE_ATTRIBUTE_TEMPORARY,
+                FILE_ATTRIBUTE_NOT_CONTENT_INDEXED | FILE_ATTRIBUTE_TEMPORARY,
             ::GetFileAttributesW(wfilename.c_str()));
 
   EXPECT_NE(FALSE,
@@ -190,8 +188,8 @@ TEST_F(FileUtilTest, HideFile) {
   EXPECT_TRUE(FileUtil::HideFileWithExtraAttributes(filename,
                                                     FILE_ATTRIBUTE_TEMPORARY));
   EXPECT_EQ(FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM |
-            FILE_ATTRIBUTE_NOT_CONTENT_INDEXED | FILE_ATTRIBUTE_ARCHIVE |
-            FILE_ATTRIBUTE_TEMPORARY,
+                FILE_ATTRIBUTE_NOT_CONTENT_INDEXED | FILE_ATTRIBUTE_ARCHIVE |
+                FILE_ATTRIBUTE_TEMPORARY,
             ::GetFileAttributesW(wfilename.c_str()));
 
   FileUtil::Unlink(filename);
@@ -199,8 +197,10 @@ TEST_F(FileUtilTest, HideFile) {
 #endif  // OS_WIN
 
 TEST_F(FileUtilTest, IsEqualFile) {
-  const string filename1 = FileUtil::JoinPath(FLAGS_test_tmpdir, "test1");
-  const string filename2 = FileUtil::JoinPath(FLAGS_test_tmpdir, "test2");
+  const std::string filename1 =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "test1");
+  const std::string filename2 =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "test2");
   FileUtil::Unlink(filename1);
   FileUtil::Unlink(filename2);
   EXPECT_FALSE(FileUtil::IsEqualFile(filename1, filename2));
@@ -223,8 +223,10 @@ TEST_F(FileUtilTest, IsEqualFile) {
 
 TEST_F(FileUtilTest, CopyFile) {
   // just test rename operation works as intended
-  const string from = FileUtil::JoinPath(FLAGS_test_tmpdir, "copy_from");
-  const string to = FileUtil::JoinPath(FLAGS_test_tmpdir, "copy_to");
+  const std::string from =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "copy_from");
+  const std::string to =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "copy_to");
   FileUtil::Unlink(from);
   FileUtil::Unlink(to);
 
@@ -238,30 +240,29 @@ TEST_F(FileUtilTest, CopyFile) {
 
 #ifdef OS_WIN
   struct TestData {
-    TestData(DWORD from, DWORD to)
-        : from_attributes(from), to_attributes(to) {}
+    TestData(DWORD from, DWORD to) : from_attributes(from), to_attributes(to) {}
     const DWORD from_attributes;
     const DWORD to_attributes;
   };
   const TestData kTestDataList[] = {
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_ARCHIVE),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_HIDDEN),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_NORMAL),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_NOT_CONTENT_INDEXED),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_OFFLINE),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_READONLY),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_SYSTEM),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_TEMPORARY),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_ARCHIVE),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_HIDDEN),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_NORMAL),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_NOT_CONTENT_INDEXED),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_OFFLINE),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_READONLY),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_SYSTEM),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_TEMPORARY),
 
-    TestData(FILE_ATTRIBUTE_READONLY, FILE_ATTRIBUTE_NORMAL),
-    TestData(FILE_ATTRIBUTE_NORMAL,
-             FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_READONLY),
-    TestData(FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM,
-             FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM),
+      TestData(FILE_ATTRIBUTE_READONLY, FILE_ATTRIBUTE_NORMAL),
+      TestData(FILE_ATTRIBUTE_NORMAL,
+               FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_READONLY),
+      TestData(FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM,
+               FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM),
   };
 
   for (size_t i = 0; i < arraysize(kTestDataList); ++i) {
-    const string test_label =
+    const std::string test_label =
         "overwrite test with attributes " + std::to_string(i);
     SCOPED_TRACE(test_label);
     CreateTestFile(from, test_label);
@@ -291,10 +292,10 @@ TEST_F(FileUtilTest, CopyFile) {
 
 TEST_F(FileUtilTest, AtomicRename) {
   // just test rename operation works as intended
-  const string from = FileUtil::JoinPath(FLAGS_test_tmpdir,
-                                         "atomic_rename_test_from");
-  const string to = FileUtil::JoinPath(FLAGS_test_tmpdir,
-                                       "atomic_rename_test_to");
+  const std::string from = FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir),
+                                              "atomic_rename_test_from");
+  const std::string to = FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir),
+                                            "atomic_rename_test_to");
   FileUtil::Unlink(from);
   FileUtil::Unlink(to);
 
@@ -310,8 +311,8 @@ TEST_F(FileUtilTest, AtomicRename) {
   {
     InputFileStream ifs(to.c_str());
     EXPECT_TRUE(ifs.good());
-    string line;
-    getline(ifs, line);
+    std::string line;
+    std::getline(ifs, line);
     EXPECT_EQ("test", line);
   }
 
@@ -327,30 +328,29 @@ TEST_F(FileUtilTest, AtomicRename) {
 
 #ifdef OS_WIN
   struct TestData {
-    TestData(DWORD from, DWORD to)
-        : from_attributes(from), to_attributes(to) {}
+    TestData(DWORD from, DWORD to) : from_attributes(from), to_attributes(to) {}
     const DWORD from_attributes;
     const DWORD to_attributes;
   };
   const TestData kTestDataList[] = {
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_ARCHIVE),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_HIDDEN),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_NORMAL),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_NOT_CONTENT_INDEXED),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_OFFLINE),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_READONLY),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_SYSTEM),
-    TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_TEMPORARY),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_ARCHIVE),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_HIDDEN),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_NORMAL),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_NOT_CONTENT_INDEXED),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_OFFLINE),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_READONLY),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_SYSTEM),
+      TestData(FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_TEMPORARY),
 
-    TestData(FILE_ATTRIBUTE_READONLY, FILE_ATTRIBUTE_NORMAL),
-    TestData(FILE_ATTRIBUTE_NORMAL,
-             FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_READONLY),
-    TestData(FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM,
-             FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM),
+      TestData(FILE_ATTRIBUTE_READONLY, FILE_ATTRIBUTE_NORMAL),
+      TestData(FILE_ATTRIBUTE_NORMAL,
+               FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_READONLY),
+      TestData(FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM,
+               FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM),
   };
 
   for (size_t i = 0; i < arraysize(kTestDataList); ++i) {
-    const string test_label =
+    const std::string test_label =
         "overwrite file with attributes " + std::to_string(i);
     SCOPED_TRACE(test_label);
     CreateTestFile(from, test_label);
@@ -454,7 +454,8 @@ TEST_F(FileUtilTest, GetModificationTime) {
   FileTimeStamp time_stamp = 0;
   EXPECT_FALSE(FileUtil::GetModificationTime("not_existent_file", &time_stamp));
 
-  const string &path = FileUtil::JoinPath(FLAGS_test_tmpdir, "testfile");
+  const std::string &path =
+      FileUtil::JoinPath(absl::GetFlag(FLAGS_test_tmpdir), "testfile");
   CreateTestFile(path, "content");
   EXPECT_TRUE(FileUtil::GetModificationTime(path, &time_stamp));
   EXPECT_NE(0, time_stamp);

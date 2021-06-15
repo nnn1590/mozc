@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,7 @@
 
 #if defined(OS_WIN)
 #include <windows.h>
-#elif defined(OS_NACL)
-#include <ppapi/c/pp_file_info.h>
-#else  // OS_WIN or OS_NACL
+#else  // OS_WIN
 #include <sys/types.h>
 #endif
 
@@ -42,7 +40,7 @@
 #include <vector>
 
 #include "base/port.h"
-#include "base/string_piece.h"
+#include "absl/strings/string_view.h"
 
 // Ad-hoc workaround against macro problem on Windows.
 // On Windows, following macros, defined when you include <Windows.h>,
@@ -63,76 +61,101 @@ namespace mozc {
 
 #if defined(OS_WIN)
 using FileTimeStamp = uint64;
-#elif defined(OS_NACL)
-using FileTimeStamp = PP_Time;
 #else
 using FileTimeStamp = time_t;
-#endif  // OS_WIN or OS_NACL
+#endif  // OS_WIN
+
+class FileUtilInterface {
+ public:
+  virtual ~FileUtilInterface() = default;
+
+  virtual bool CreateDirectory(const std::string &path) const = 0;
+  virtual bool RemoveDirectory(const std::string &dirname) const = 0;
+  virtual bool Unlink(const std::string &filename) const = 0;
+  virtual bool FileExists(const std::string &filename) const = 0;
+  virtual bool DirectoryExists(const std::string &dirname) const = 0;
+  virtual bool CopyFile(const std::string &from,
+                        const std::string &to) const = 0;
+  virtual bool IsEqualFile(const std::string &filename1,
+                          const std::string &filename2) const = 0;
+  virtual bool AtomicRename(const std::string &from,
+                            const std::string &to) const = 0;
+  virtual bool GetModificationTime(const std::string &filename,
+                                  FileTimeStamp *modified_at) const = 0;
+
+ protected:
+  FileUtilInterface() = default;
+};
 
 class FileUtil {
  public:
   // Creates a directory. Does not create directories in the way to the path.
-  static bool CreateDirectory(const string &path);
+  static bool CreateDirectory(const std::string &path);
 
   // Removes an empty directory.
-  static bool RemoveDirectory(const string &dirname);
+  static bool RemoveDirectory(const std::string &dirname);
 
   // Removes a file.
-  static bool Unlink(const string &filename);
+  static bool Unlink(const std::string &filename);
 
   // Returns true if a file or a directory with the name exists.
-  static bool FileExists(const string &filename);
+  static bool FileExists(const std::string &filename);
 
   // Returns true if the directory exists.
-  static bool DirectoryExists(const string &filename);
+  static bool DirectoryExists(const std::string &dirname);
 
 #ifdef OS_WIN
   // Adds file attributes to the file to hide it.
   // FILE_ATTRIBUTE_NORMAL will be removed.
-  static bool HideFile(const string &filename);
-  static bool HideFileWithExtraAttributes(const string &filename,
+  static bool HideFile(const std::string &filename);
+  static bool HideFileWithExtraAttributes(const std::string &filename,
                                           DWORD extra_attributes);
 #endif  // OS_WIN
 
   // Copies a file to another file, using mmap internally.
   // The destination file will be overwritten if exists.
   // Returns true if the file is copied successfully.
-  static bool CopyFile(const string &from, const string &to);
+  static bool CopyFile(const std::string &from, const std::string &to);
 
   // Compares the contents of two given files. Ignores the difference between
   // their path strings.
   // Returns true if both files have same contents.
-  static bool IsEqualFile(const string &filename1, const string &filename2);
+  static bool IsEqualFile(const std::string &filename1,
+                          const std::string &filename2);
 
   // Moves/Renames a file atomically.
   // Returns true if the file is renamed successfully.
-  static bool AtomicRename(const string &from, const string &to);
+  static bool AtomicRename(const std::string &from, const std::string &to);
 
   // Joins the give path components using the OS-specific path delimiter.
-  static string JoinPath(const std::vector<StringPiece> &components);
-  static void JoinPath(const std::vector<StringPiece> &components,
-                       string *output);
+  static std::string JoinPath(const std::vector<absl::string_view> &components);
+  static void JoinPath(const std::vector<absl::string_view> &components,
+                       std::string *output);
 
   // Joins the given two path components using the OS-specific path delimiter.
-  static string JoinPath(const string &path1, const string &path2) {
+  static std::string JoinPath(const std::string &path1,
+                              const std::string &path2) {
     return JoinPath({path1, path2});
   }
-  static void JoinPath(const string &path1, const string &path2,
-                       string *output) {
+  static void JoinPath(const std::string &path1, const std::string &path2,
+                       std::string *output) {
     JoinPath({path1, path2}, output);
   }
 
-  static string Basename(const string &filename);
-  static string Dirname(const string &filename);
+  static std::string Basename(const std::string &filename);
+  static std::string Dirname(const std::string &filename);
 
   // Returns the normalized path by replacing '/' with '\\' on Windows.
   // Does nothing on other platforms.
-  static string NormalizeDirectorySeparator(const string &path);
+  static std::string NormalizeDirectorySeparator(const std::string &path);
 
   // Returns the modification time in `modified_at`.
   // Returns false if something went wrong.
-  static bool GetModificationTime(const string &filename,
+  static bool GetModificationTime(const std::string &filename,
                                   FileTimeStamp *modified_at);
+
+  // Sets a mock for unittest.
+  static void SetMockForUnitTest(FileUtilInterface *mock);
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(FileUtil);

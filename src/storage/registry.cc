@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -48,13 +48,13 @@ Mutex g_mutex;
 #ifdef OS_WIN
 const char kRegistryFileName[] = "registry.db";
 #else
-const char kRegistryFileName[] = ".registry.db";   // hidden file
+const char kRegistryFileName[] = ".registry.db";  // hidden file
 #endif
 
 class StorageInitializer {
  public:
-  StorageInitializer() :
-      default_storage_(TinyStorage::New()), current_storage_(NULL) {
+  StorageInitializer()
+      : default_storage_(TinyStorage::New()), current_storage_(nullptr) {
     if (!default_storage_->Open(FileUtil::JoinPath(
             SystemUtil::GetUserProfileDirectory(), kRegistryFileName))) {
       LOG(ERROR) << "cannot open registry";
@@ -62,16 +62,14 @@ class StorageInitializer {
   }
 
   StorageInterface *GetStorage() const {
-    if (current_storage_ == NULL) {
+    if (current_storage_ == nullptr) {
       return default_storage_.get();
     } else {
       return current_storage_;
     }
   }
 
-  void SetStorage(StorageInterface *storage) {
-    current_storage_ = storage;
-  }
+  void SetStorage(StorageInterface *storage) { current_storage_ = storage; }
 
  private:
   std::unique_ptr<StorageInterface> default_storage_;
@@ -79,7 +77,7 @@ class StorageInitializer {
 };
 }  // namespace
 
-bool Registry::Erase(const string &key) {
+bool Registry::Erase(const std::string &key) {
   scoped_lock l(&g_mutex);
   return Singleton<StorageInitializer>::get()->GetStorage()->Erase(key);
 }
@@ -101,12 +99,13 @@ void Registry::SetStorage(StorageInterface *handler) {
   Singleton<StorageInitializer>::get()->SetStorage(handler);
 }
 
-bool Registry::LookupInternal(const string &key, string *value) {
-  scoped_lock l(&g_mutex);   // just for safe
+bool Registry::LookupInternal(const std::string &key, std::string *value) {
+  scoped_lock l(&g_mutex);  // just for safe
   return Singleton<StorageInitializer>::get()->GetStorage()->Lookup(key, value);
 }
 
-bool Registry::InsertInternal(const string &key, const string &value) {
+bool Registry::InsertInternal(const std::string &key,
+                              const std::string &value) {
   scoped_lock l(&g_mutex);
   return Singleton<StorageInitializer>::get()->GetStorage()->Insert(key, value);
 }

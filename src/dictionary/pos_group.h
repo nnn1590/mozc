@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 #ifndef MOZC_DICTIONARY_POS_GROUP_H_
 #define MOZC_DICTIONARY_POS_GROUP_H_
 
+#include <cstdint>
+
 #include "base/port.h"
 
 namespace mozc {
@@ -38,15 +40,17 @@ namespace dictionary {
 // Manages pos grouping rule.
 class PosGroup {
  public:
-  explicit PosGroup(const uint8 *lid_group) : lid_group_(lid_group) {}
+  explicit PosGroup(const uint8_t *lid_group) : lid_group_(lid_group) {}
   ~PosGroup() {}
 
   // Returns grouped pos id based on an array pre-generated from
   // data/rules/user_segment_history_pos_group.def.
-  inline uint8 GetPosGroup(const uint16 lid) const { return lid_group_[lid]; }
+  inline uint8_t GetPosGroup(const uint16_t lid) const {
+    return lid_group_[lid];
+  }
 
  private:
-  const uint8 *const lid_group_;
+  const uint8_t *const lid_group_;
   DISALLOW_COPY_AND_ASSIGN(PosGroup);
 };
 

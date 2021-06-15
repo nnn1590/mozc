@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,27 @@
 #include <iostream>  // NOLINT
 #include <string>
 
-#include "base/flags.h"
 #include "base/init_mozc.h"
 #include "base/util.h"
 #include "storage/lru_cache.h"
+#include "absl/flags/flag.h"
 
 int main(int argc, char **argv) {
-  mozc::InitMozc(argv[0], &argc, &argv, false);
-  mozc::storage::LRUCache<string, string> cache(5);
+  mozc::InitMozc(argv[0], &argc, &argv);
+  mozc::storage::LRUCache<std::string, std::string> cache(5);
 
-  string line;
+  std::string line;
   while (getline(cin, line)) {
-    std::vector<string> fields;
+    std::vector<std::string> fields;
     mozc::Util::SplitStringUsing(line, "\t ", &fields);
     if (fields[0] == "i") {
       cache.Insert(fields[1], fields[2]);
     } else if (fields[0] == "f") {
-      const string *v = cache.Lookup(fields[1]);
+      const std::string *v = cache.Lookup(fields[1]);
       if (v == NULL) {
-        cout << "NULL" << endl;
+        std::cout << "NULL" << std::endl;
       } else {
-        cout << *v << endl;
+        std::cout << *v << std::endl;
       }
     }
   }

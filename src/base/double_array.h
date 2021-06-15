@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,14 +30,16 @@
 #ifndef MOZC_BASE_DOUBLE_ARRAY_H_
 #define MOZC_BASE_DOUBLE_ARRAY_H_
 
+#include <cstdint>
+
 #include "base/port.h"
 
 namespace mozc {
 namespace japanese_util_rule {
 
 struct DoubleArray {
-  int32 base;
-  uint32 check;
+  int32_t base;
+  uint32_t check;
 };
 
 }  // namespace japanese_util_rule

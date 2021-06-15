@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ class MacServer : public RendererServer {
  public:
   MacServer(int argc, const char **argv);
 
-  virtual bool AsyncExecCommand(string *proto_message);
+  virtual bool AsyncExecCommand(std::string *proto_message);
   virtual int StartMessageLoop();
 
   // This method is called when an asynchronous exec-command message
@@ -63,10 +63,11 @@ class MacServer : public RendererServer {
 
   // Initialize the application status.
   static void Init();
+
  private:
   Mutex mutex_;
   pthread_cond_t event_;
-  string message_;
+  std::string message_;
   std::unique_ptr<CandidateController> controller_;
   int argc_;
   const char **argv_;

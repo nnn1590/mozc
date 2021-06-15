@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_DICTIONARY_SYSTEM_KEY_EXPANSION_TABLE_H_
 #define MOZC_DICTIONARY_SYSTEM_KEY_EXPANSION_TABLE_H_
 
+#include <cstdint>
 #include <cstring>
 #include <string>
 
@@ -43,15 +44,14 @@ namespace dictionary {
 // Note that this class is very small so it's ok to be copied.
 class ExpandedKey {
  public:
-  explicit ExpandedKey(const uint32 *data) : data_(data) {
-  }
+  explicit ExpandedKey(const uint32_t *data) : data_(data) {}
 
   bool IsHit(char value) const {
     return (data_[value / 32] >> (value % 32)) & 1;
   }
 
  private:
-  const uint32 *data_;
+  const uint32_t *data_;
 };
 
 // Table to keep the key expanding information.
@@ -73,7 +73,7 @@ class KeyExpansionTable {
   }
 
   // Add expanding data of the given key.
-  void Add(char key, const string &data) {
+  void Add(char key, const std::string &data) {
     for (size_t i = 0; i < data.length(); ++i) {
       SetBit(key, data[i]);
     }
@@ -97,7 +97,7 @@ class KeyExpansionTable {
   }
 
   // 256x256 (key -> value) bit map matrix.
-  uint32 table_[256][256 / 32];
+  uint32_t table_[256][256 / 32];
 
   DISALLOW_COPY_AND_ASSIGN(KeyExpansionTable);
 };

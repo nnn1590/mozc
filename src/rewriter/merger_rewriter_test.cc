@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@
 #include "converter/segments.h"
 #include "protocol/config.pb.h"
 #include "request/conversion_request.h"
+#include "testing/base/public/googletest.h"
 #include "testing/base/public/gunit.h"
-
-DECLARE_string(test_tmpdir);
+#include "absl/flags/flag.h"
 
 namespace mozc {
 
@@ -46,70 +46,69 @@ namespace mozc {
 // and what value should be returned.
 class TestRewriter : public RewriterInterface {
  public:
-  TestRewriter(string *buffer, const string &name, bool return_value)
-      : buffer_(buffer), name_(name), return_value_(return_value),
+  TestRewriter(std::string *buffer, const std::string &name, bool return_value)
+      : buffer_(buffer),
+        name_(name),
+        return_value_(return_value),
         capability_(RewriterInterface::CONVERSION) {}
 
-  TestRewriter(string *buffer, const string &name, bool return_value,
+  TestRewriter(std::string *buffer, const std::string &name, bool return_value,
                int capability)
-      : buffer_(buffer), name_(name), return_value_(return_value),
+      : buffer_(buffer),
+        name_(name),
+        return_value_(return_value),
         capability_(capability) {}
 
-  virtual bool Rewrite(const ConversionRequest &request,
-                       Segments *segments) const {
+  bool Rewrite(const ConversionRequest &request,
+               Segments *segments) const override {
     buffer_->append(name_ + ".Rewrite();");
     return return_value_;
   }
 
-  virtual void set_capability(int capability) {
-    capability_ = capability;
-  }
+  virtual void set_capability(int capability) { capability_ = capability; }
 
-  virtual int capability(const ConversionRequest &request) const {
+  int capability(const ConversionRequest &request) const override {
     return capability_;
   }
 
-  virtual bool Focus(Segments *segments,
-                     size_t segment_index,
-                     int candidate_index) const {
+  bool Focus(Segments *segments, size_t segment_index,
+             int candidate_index) const override {
     buffer_->append(name_ + ".Focus();");
     return return_value_;
   }
 
-  virtual void Finish(const ConversionRequest &request, Segments *segments) {
+  void Finish(const ConversionRequest &request, Segments *segments) override {
     buffer_->append(name_ + ".Finish();");
   }
 
-  virtual bool Sync() {
+  bool Sync() override {
     buffer_->append(name_ + ".Sync();");
     return return_value_;
   }
 
-  virtual bool Reload() {
+  bool Reload() override {
     buffer_->append(name_ + ".Reload();");
     return return_value_;
   }
 
-  virtual void Clear() {
-    buffer_->append(name_ + ".Clear();");
-  }
+  void Clear() override { buffer_->append(name_ + ".Clear();"); }
 
  private:
-  string *buffer_;
-  const string name_;
+  std::string *buffer_;
+  const std::string name_;
   const bool return_value_;
   int capability_;
 };
 
 class MergerRewriterTest : public testing::Test {
  protected:
-  virtual void SetUp() {
-    SystemUtil::SetUserProfileDirectory(FLAGS_test_tmpdir);
+  void SetUp() override {
+    SystemUtil::SetUserProfileDirectory(absl::GetFlag(FLAGS_test_tmpdir));
   }
 };
 
 TEST_F(MergerRewriterTest, Rewrite) {
-  string call_result;
+  std::string call_result;
   MergerRewriter merger;
   Segments segments;
   const ConversionRequest request;
@@ -119,22 +118,24 @@ TEST_F(MergerRewriterTest, Rewrite) {
   merger.AddRewriter(new TestRewriter(&call_result, "b", false));
   merger.AddRewriter(new TestRewriter(&call_result, "c", false));
   EXPECT_FALSE(merger.Rewrite(request, &segments));
-  EXPECT_EQ("a.Rewrite();"
-            "b.Rewrite();"
-            "c.Rewrite();",
-            call_result);
+  EXPECT_EQ(
+      "a.Rewrite();"
+      "b.Rewrite();"
+      "c.Rewrite();",
+      call_result);
   merger.AddRewriter(new TestRewriter(&call_result, "d", true));
   call_result.clear();
   EXPECT_TRUE(merger.Rewrite(request, &segments));
-  EXPECT_EQ("a.Rewrite();"
-            "b.Rewrite();"
-            "c.Rewrite();"
-            "d.Rewrite();",
-            call_result);
+  EXPECT_EQ(
+      "a.Rewrite();"
+      "b.Rewrite();"
+      "c.Rewrite();"
+      "d.Rewrite();",
+      call_result);
 }
 
 TEST_F(MergerRewriterTest, RewriteSuggestion) {
-  string call_result;
+  std::string call_result;
   MergerRewriter merger;
   Segments segments;
   const ConversionRequest request;
@@ -162,7 +163,7 @@ TEST_F(MergerRewriterTest, RewriteSuggestion) {
 }
 
 TEST_F(MergerRewriterTest, RewriteSuggestionWithMixedConversion) {
-  string call_result;
+  std::string call_result;
   MergerRewriter merger;
   Segments segments;
 
@@ -198,162 +199,171 @@ TEST_F(MergerRewriterTest, RewriteSuggestionWithMixedConversion) {
 }
 
 TEST_F(MergerRewriterTest, RewriteCheckTest) {
-  string call_result;
+  std::string call_result;
   MergerRewriter merger;
   Segments segments;
   const ConversionRequest request;
-  merger.AddRewriter(new TestRewriter(
-      &call_result, "a", false,
-      RewriterInterface::CONVERSION));
-  merger.AddRewriter(new TestRewriter(
-      &call_result, "b", false,
-      RewriterInterface::SUGGESTION));
-  merger.AddRewriter(new TestRewriter(
-      &call_result, "c", false,
-      RewriterInterface::PREDICTION));
+  merger.AddRewriter(new TestRewriter(&call_result, "a", false,
+                                      RewriterInterface::CONVERSION));
+  merger.AddRewriter(new TestRewriter(&call_result, "b", false,
+                                      RewriterInterface::SUGGESTION));
+  merger.AddRewriter(new TestRewriter(&call_result, "c", false,
+                                      RewriterInterface::PREDICTION));
   merger.AddRewriter(new TestRewriter(
       &call_result, "d", false,
-      RewriterInterface::PREDICTION |
-      RewriterInterface::CONVERSION));
-  merger.AddRewriter(new TestRewriter(
-      &call_result, "e", false,
-      RewriterInterface::ALL));
+      RewriterInterface::PREDICTION | RewriterInterface::CONVERSION));
+  merger.AddRewriter(
+      new TestRewriter(&call_result, "e", false, RewriterInterface::ALL));
 
   segments.set_request_type(Segments::CONVERSION);
   EXPECT_FALSE(merger.Rewrite(request, &segments));
-  EXPECT_EQ("a.Rewrite();"
-            "d.Rewrite();"
-            "e.Rewrite();",
-            call_result);
+  EXPECT_EQ(
+      "a.Rewrite();"
+      "d.Rewrite();"
+      "e.Rewrite();",
+      call_result);
   call_result.clear();
 
   segments.set_request_type(Segments::PREDICTION);
   EXPECT_FALSE(merger.Rewrite(request, &segments));
-  EXPECT_EQ("c.Rewrite();"
-            "d.Rewrite();"
-            "e.Rewrite();",
-            call_result);
+  EXPECT_EQ(
+      "c.Rewrite();"
+      "d.Rewrite();"
+      "e.Rewrite();",
+      call_result);
   call_result.clear();
 
   segments.set_request_type(Segments::SUGGESTION);
   EXPECT_FALSE(merger.Rewrite(request, &segments));
-  EXPECT_EQ("b.Rewrite();"
-            "e.Rewrite();",
-            call_result);
+  EXPECT_EQ(
+      "b.Rewrite();"
+      "e.Rewrite();",
+      call_result);
   call_result.clear();
 
   segments.set_request_type(Segments::PARTIAL_SUGGESTION);
   EXPECT_FALSE(merger.Rewrite(request, &segments));
-  EXPECT_EQ("b.Rewrite();"
-            "e.Rewrite();",
-            call_result);
+  EXPECT_EQ(
+      "b.Rewrite();"
+      "e.Rewrite();",
+      call_result);
   call_result.clear();
 
   segments.set_request_type(Segments::PARTIAL_PREDICTION);
   EXPECT_FALSE(merger.Rewrite(request, &segments));
-  EXPECT_EQ("c.Rewrite();"
-            "d.Rewrite();"
-            "e.Rewrite();",
-            call_result);
+  EXPECT_EQ(
+      "c.Rewrite();"
+      "d.Rewrite();"
+      "e.Rewrite();",
+      call_result);
   call_result.clear();
 }
 
 TEST_F(MergerRewriterTest, Focus) {
-  string call_result;
+  std::string call_result;
   MergerRewriter merger;
   merger.AddRewriter(new TestRewriter(&call_result, "a", false));
   merger.AddRewriter(new TestRewriter(&call_result, "b", false));
   merger.AddRewriter(new TestRewriter(&call_result, "c", false));
-  EXPECT_FALSE(merger.Focus(NULL, 0, 0));
-  EXPECT_EQ("a.Focus();"
-            "b.Focus();"
-            "c.Focus();",
-            call_result);
+  EXPECT_FALSE(merger.Focus(nullptr, 0, 0));
+  EXPECT_EQ(
+      "a.Focus();"
+      "b.Focus();"
+      "c.Focus();",
+      call_result);
   merger.AddRewriter(new TestRewriter(&call_result, "d", true));
   call_result.clear();
-  EXPECT_TRUE(merger.Focus(NULL, 0, 0));
-  EXPECT_EQ("a.Focus();"
-            "b.Focus();"
-            "c.Focus();"
-            "d.Focus();",
-            call_result);
+  EXPECT_TRUE(merger.Focus(nullptr, 0, 0));
+  EXPECT_EQ(
+      "a.Focus();"
+      "b.Focus();"
+      "c.Focus();"
+      "d.Focus();",
+      call_result);
 }
 
 TEST_F(MergerRewriterTest, Finish) {
-  string call_result;
+  std::string call_result;
   const ConversionRequest request;
   MergerRewriter merger;
   merger.AddRewriter(new TestRewriter(&call_result, "a", false));
   merger.AddRewriter(new TestRewriter(&call_result, "b", false));
   merger.AddRewriter(new TestRewriter(&call_result, "c", false));
-  merger.Finish(request, NULL);
-  EXPECT_EQ("a.Finish();"
-            "b.Finish();"
-            "c.Finish();",
-            call_result);
+  merger.Finish(request, nullptr);
+  EXPECT_EQ(
+      "a.Finish();"
+      "b.Finish();"
+      "c.Finish();",
+      call_result);
 }
 
 TEST_F(MergerRewriterTest, Sync) {
-  string call_result;
+  std::string call_result;
   MergerRewriter merger;
   merger.AddRewriter(new TestRewriter(&call_result, "a", false));
   merger.AddRewriter(new TestRewriter(&call_result, "b", false));
   merger.AddRewriter(new TestRewriter(&call_result, "c", false));
   EXPECT_FALSE(merger.Sync());
-  EXPECT_EQ("a.Sync();"
-            "b.Sync();"
-            "c.Sync();",
-            call_result);
+  EXPECT_EQ(
+      "a.Sync();"
+      "b.Sync();"
+      "c.Sync();",
+      call_result);
   merger.AddRewriter(new TestRewriter(&call_result, "d", true));
   call_result.clear();
   EXPECT_TRUE(merger.Sync());
-  EXPECT_EQ("a.Sync();"
-            "b.Sync();"
-            "c.Sync();"
-            "d.Sync();",
-            call_result);
+  EXPECT_EQ(
+      "a.Sync();"
+      "b.Sync();"
+      "c.Sync();"
+      "d.Sync();",
+      call_result);
 }
 
 TEST_F(MergerRewriterTest, Reload) {
-  string call_result;
+  std::string call_result;
   MergerRewriter merger;
   merger.AddRewriter(new TestRewriter(&call_result, "a", false));
   merger.AddRewriter(new TestRewriter(&call_result, "b", false));
   merger.AddRewriter(new TestRewriter(&call_result, "c", false));
   EXPECT_FALSE(merger.Reload());
-  EXPECT_EQ("a.Reload();"
-            "b.Reload();"
-            "c.Reload();",
-            call_result);
+  EXPECT_EQ(
+      "a.Reload();"
+      "b.Reload();"
+      "c.Reload();",
+      call_result);
   merger.AddRewriter(new TestRewriter(&call_result, "d", true));
   call_result.clear();
   EXPECT_TRUE(merger.Reload());
-  EXPECT_EQ("a.Reload();"
-            "b.Reload();"
-            "c.Reload();"
-            "d.Reload();",
-            call_result);
+  EXPECT_EQ(
+      "a.Reload();"
+      "b.Reload();"
+      "c.Reload();"
+      "d.Reload();",
+      call_result);
 }
 
 TEST_F(MergerRewriterTest, Clear) {
-  string call_result;
+  std::string call_result;
   MergerRewriter merger;
   merger.AddRewriter(new TestRewriter(&call_result, "a", false));
   merger.AddRewriter(new TestRewriter(&call_result, "b", false));
   merger.AddRewriter(new TestRewriter(&call_result, "c", false));
   merger.Clear();
-  EXPECT_EQ("a.Clear();"
-            "b.Clear();"
-            "c.Clear();",
-            call_result);
+  EXPECT_EQ(
+      "a.Clear();"
+      "b.Clear();"
+      "c.Clear();",
+      call_result);
   merger.AddRewriter(new TestRewriter(&call_result, "d", true));
   call_result.clear();
   merger.Clear();
-  EXPECT_EQ("a.Clear();"
-            "b.Clear();"
-            "c.Clear();"
-            "d.Clear();",
-            call_result);
+  EXPECT_EQ(
+      "a.Clear();"
+      "b.Clear();"
+      "c.Clear();"
+      "d.Clear();",
+      call_result);
 }
 
 }  // namespace mozc

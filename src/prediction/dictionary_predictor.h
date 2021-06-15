@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_PREDICTION_DICTIONARY_PREDICTOR_H_
 #define MOZC_PREDICTION_DICTIONARY_PREDICTOR_H_
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
@@ -58,13 +59,12 @@ class DictionaryPredictor : public PredictorInterface {
  public:
   // Initializes a predictor with given references to submodules. Note that
   // pointers are not owned by the class and to be deleted by the caller.
-  DictionaryPredictor(const DataManagerInterface& data_manager,
+  DictionaryPredictor(const DataManagerInterface &data_manager,
                       const ConverterInterface *converter,
                       const ImmutableConverterInterface *immutable_converter,
                       const dictionary::DictionaryInterface *dictionary,
                       const dictionary::DictionaryInterface *suffix_dictionary,
-                      const Connector *connector,
-                      const Segmenter *segmenter,
+                      const Connector *connector, const Segmenter *segmenter,
                       const dictionary::POSMatcher *pos_matcher,
                       const SuggestionFilter *suggestion_filter);
   ~DictionaryPredictor() override;
@@ -74,7 +74,9 @@ class DictionaryPredictor : public PredictorInterface {
 
   void Finish(const ConversionRequest &request, Segments *segments) override;
 
-  const string &GetPredictorName() const override { return predictor_name_; }
+  const std::string &GetPredictorName() const override {
+    return predictor_name_;
+  }
 
  protected:
   // Protected members for unittesting
@@ -90,7 +92,7 @@ class DictionaryPredictor : public PredictorInterface {
     // suggests from immutable_converter
     REALTIME = 4,
     // add suffixes like "さん", "が" which matches to the pevious context.
-    SUFFIX =  8,
+    SUFFIX = 8,
     // add English words.
     ENGLISH = 16,
     // add prediciton to type corrected keys
@@ -103,29 +105,34 @@ class DictionaryPredictor : public PredictorInterface {
     REALTIME_TOP = 65536,
   };
   // Bitfield to store a set of PredictionType.
-  typedef int32 PredictionTypes;
+  typedef int32_t PredictionTypes;
 
   struct Result {
-    Result() : types(NO_PREDICTION), wcost(0), cost(0), lid(0), rid(0),
-               candidate_attributes(0), source_info(0),
-               consumed_key_size(0) {}
+    Result()
+        : types(NO_PREDICTION),
+          wcost(0),
+          cost(0),
+          lid(0),
+          rid(0),
+          candidate_attributes(0),
+          source_info(0),
+          consumed_key_size(0),
+          removed(false) {}
 
     void InitializeByTokenAndTypes(const dictionary::Token &token,
                                    PredictionTypes types);
     void SetTypesAndTokenAttributes(
         PredictionTypes prediction_types,
         dictionary::Token::AttributesBitfield token_attr);
-    void SetSourceInfoForZeroQuery(
-        ZeroQueryType zero_query_type);
+    void SetSourceInfoForZeroQuery(ZeroQueryType zero_query_type);
     bool IsUserDictionaryResult() const;
+    bool IsEnglishEntryResult() const;
 
-    string key;
-    string value;
+    std::string key;
+    std::string value;
     // Indicating which PredictionType creates this instance.
     // UNIGRAM, BIGRAM, REALTIME, SUFFIX, ENGLISH or TYPING_CORRECTION
     // is set exclusively.
-    // TODO(matsuzakit): Using PredictionTypes both as input and output
-    //                   makes the code complex. Let's split them.
     PredictionTypes types;
     // Context "insensitive" candidate cost.
     int wcost;
@@ -139,82 +146,113 @@ class DictionaryPredictor : public PredictorInterface {
     // If the candidate key and value are
     // "わたしの|なまえは|なかのです", " 私の|名前は|中野です",
     // |inner_segment_boundary| have [(4,2), (4, 3), (5, 4)].
-    std::vector<uint32> inner_segment_boundary;
-    uint32 candidate_attributes;
+    std::vector<uint32_t> inner_segment_boundary;
+    uint32_t candidate_attributes;
     // Segment::Candidate::SourceInfo.
     // Will be used for usage stats.
-    uint32 source_info;
+    uint32_t source_info;
     size_t consumed_key_size;
+    // If removed is true, this result is not used for a candidate.
+    bool removed;
+#ifndef NDEBUG
+    std::string log;
+#endif  // NDEBUG
+  };
+
+  using AggregateUnigramFn = PredictionType (DictionaryPredictor::*)(
+      const ConversionRequest &request, const Segments &segments,
+      std::vector<Result> *results) const;
+
+  struct UnigramConfig {
+    AggregateUnigramFn unigram_fn;
+    size_t min_key_len;
   };
 
   // On MSVS2008/2010, Constructors of TestableDictionaryPredictor::Result
   // causes a compile error even if you change the access right of it to public.
   // You can use TestableDictionaryPredictor::MakeEmptyResult() instead.
-  static Result MakeEmptyResult() {
-    return Result();
-  }
+  static Result MakeEmptyResult() { return Result(); }
 
   class PredictiveLookupCallback;
   class PredictiveBigramLookupCallback;
   class ResultWCostLess;
   class ResultCostLess;
 
-  void AggregateRealtimeConversion(PredictionTypes types,
-                                   const ConversionRequest &request,
+  void AggregateRealtimeConversion(const ConversionRequest &request,
+                                   size_t realtime_candidates_size,
                                    Segments *segments,
                                    std::vector<Result> *results) const;
 
-  void AggregateUnigramPrediction(PredictionTypes types,
-                                  const ConversionRequest &request,
-                                  const Segments &segments,
-                                  std::vector<Result> *results) const;
+  void AggregateBigramPrediction(const ConversionRequest &request,
+                                 const Segments &segments,
+                                 Segment::Candidate::SourceInfo source_info,
+                                 std::vector<Result> *results) const;
 
-  void AggregateBigramPrediction(PredictionTypes types,
-                                 const ConversionRequest &request,
+  void AggregateSuffixPrediction(const ConversionRequest &request,
                                  const Segments &segments,
                                  std::vector<Result> *results) const;
 
-  void AggregateSuffixPrediction(PredictionTypes types,
-                                 const ConversionRequest &request,
-                                 const Segments &segments,
-                                 std::vector<Result> *results) const;
+  void AggregateZeroQuerySuffixPrediction(const ConversionRequest &request,
+                                          const Segments &segments,
+                                          std::vector<Result> *results) const;
 
-  void AggregateEnglishPrediction(PredictionTypes types,
-                                  const ConversionRequest &request,
+  void AggregateEnglishPrediction(const ConversionRequest &request,
                                   const Segments &segments,
                                   std::vector<Result> *results) const;
 
-  void AggregateTypeCorrectingPrediction(PredictionTypes types,
-                                         const ConversionRequest &request,
+  // Note that this look up is done with raw input string rather than query
+  // string from composer.  This is helpful to implement language aware input.
+  void AggregateEnglishPredictionUsingRawInput(
+      const ConversionRequest &request, const Segments &segments,
+      std::vector<Result> *results) const;
+
+  void AggregateTypeCorrectingPrediction(const ConversionRequest &request,
                                          const Segments &segments,
                                          std::vector<Result> *results) const;
+
+  PredictionType AggregateUnigramCandidate(const ConversionRequest &request,
+                                           const Segments &segments,
+                                           std::vector<Result> *results) const;
+
+  PredictionType AggregateUnigramCandidateForMixedConversion(
+      const ConversionRequest &request, const Segments &segments,
+      std::vector<Result> *results) const;
+
+  PredictionType AggregateUnigramCandidateForLatinInput(
+      const ConversionRequest &request, const Segments &segments,
+      std::vector<Result> *results) const;
+
+  static void AggregateUnigramCandidateForMixedConversion(
+      const dictionary::DictionaryInterface &dictionary,
+      const ConversionRequest &request, const Segments &segments,
+      int unknown_id, std::vector<Result> *results);
 
   void ApplyPenaltyForKeyExpansion(const Segments &segments,
                                    std::vector<Result> *results) const;
 
   bool AddPredictionToCandidates(const ConversionRequest &request,
-                                 Segments *segments,
+                                 bool include_exact_key, Segments *segments,
                                  std::vector<Result> *results) const;
 
  private:
-  FRIEND_TEST(DictionaryPredictorTest, GetPredictionTypes);
-  FRIEND_TEST(DictionaryPredictorTest,
-              GetPredictionTypesTestWithTypingCorrection);
-  FRIEND_TEST(DictionaryPredictorTest,
-              GetPredictionTypesTestWithZeroQuerySuggestion);
+  friend class DictionaryPredictorTest;
   FRIEND_TEST(DictionaryPredictorTest, IsZipCodeRequest);
   FRIEND_TEST(DictionaryPredictorTest, GetRealtimeCandidateMaxSize);
   FRIEND_TEST(DictionaryPredictorTest, GetRealtimeCandidateMaxSizeForMixed);
   FRIEND_TEST(DictionaryPredictorTest,
               GetRealtimeCandidateMaxSizeWithActualConverter);
   FRIEND_TEST(DictionaryPredictorTest, GetCandidateCutoffThreshold);
-  FRIEND_TEST(DictionaryPredictorTest, AggregateUnigramPrediction);
+  FRIEND_TEST(DictionaryPredictorTest, AggregateUnigramCandidate);
   FRIEND_TEST(DictionaryPredictorTest, AggregateBigramPrediction);
   FRIEND_TEST(DictionaryPredictorTest, AggregateZeroQueryBigramPrediction);
   FRIEND_TEST(DictionaryPredictorTest, AggregateSuffixPrediction);
   FRIEND_TEST(DictionaryPredictorTest, AggregateZeroQuerySuffixPrediction);
   FRIEND_TEST(DictionaryPredictorTest,
+              AggregateZeroQueryPrediction_LatinInputMode);
+  FRIEND_TEST(DictionaryPredictorTest,
               AggregateUnigramCandidateForMixedConversion);
+  FRIEND_TEST(DictionaryPredictorTest,
+              AggregateUnigramCandidateForMixedConversion_EnglishWords);
   FRIEND_TEST(DictionaryPredictorTest, ZeroQuerySuggestionAfterNumbers);
   FRIEND_TEST(DictionaryPredictorTest, TriggerNumberZeroQuerySuggestion);
   FRIEND_TEST(DictionaryPredictorTest, TriggerZeroQuerySuggestion);
@@ -231,26 +269,39 @@ class DictionaryPredictor : public PredictorInterface {
   FRIEND_TEST(DictionaryPredictorTest, SetDescription);
   FRIEND_TEST(DictionaryPredictorTest, SetDebugDescription);
   FRIEND_TEST(DictionaryPredictorTest, GetZeroQueryCandidates);
+  FRIEND_TEST(DictionaryPredictorTest, TriggerConditions);
+  FRIEND_TEST(DictionaryPredictorTest, TriggerConditions_Mobile);
+  FRIEND_TEST(DictionaryPredictorTest, TriggerConditions_LatinInputMode);
+  FRIEND_TEST(TriggerConditionsTest, TriggerConditions);
 
-  typedef std::pair<string, ZeroQueryType> ZeroQueryResult;
+  typedef std::pair<std::string, ZeroQueryType> ZeroQueryResult;
 
   // Looks up the given range and appends zero query candidate list for |key|
   // to |results|.
   // Returns false if there is no result for |key|.
   static bool GetZeroQueryCandidatesForKey(
-      const ConversionRequest &request,
-      const string &key,
-      const ZeroQueryDict &dict,
-      std::vector<ZeroQueryResult> *results);
+      const ConversionRequest &request, const std::string &key,
+      const ZeroQueryDict &dict, std::vector<ZeroQueryResult> *results);
 
   static void AppendZeroQueryToResults(
-      const std::vector<ZeroQueryResult> &candidates,
-      uint16 lid, uint16 rid, std::vector<Result> *results);
+      const std::vector<ZeroQueryResult> &candidates, uint16_t lid,
+      uint16_t rid, std::vector<Result> *results);
 
-  // Returns false if no results were aggregated.
-  bool AggregatePrediction(const ConversionRequest &request,
-                           Segments *segments,
-                           std::vector<Result> *results) const;
+  // Returns the bitfield that indicates what prediction subroutines
+  // were used.  NO_PREDICTION means that no prediction was made.
+  PredictionTypes AggregatePredictionForRequest(
+      const ConversionRequest &request, Segments *segments,
+      std::vector<Result> *results) const;
+
+  PredictionTypes AggregatePrediction(const ConversionRequest &request,
+                                      size_t realtime_max_size,
+                                      const UnigramConfig &unigram_config,
+                                      Segments *segments,
+                                      std::vector<Result> *results) const;
+
+  PredictionTypes AggregatePredictionForZeroQuery(
+      const ConversionRequest &request, Segments *segments,
+      std::vector<Result> *results) const;
 
   bool AggregateNumberZeroQueryPrediction(const ConversionRequest &request,
                                           const Segments &segments,
@@ -258,21 +309,14 @@ class DictionaryPredictor : public PredictorInterface {
 
   bool AggregateZeroQueryPrediction(const ConversionRequest &request,
                                     const Segments &segments,
-                                    std::vector<Result> *result) const;
-
-  void SetCost(const ConversionRequest &request,
-               const Segments &segments, std::vector<Result> *results) const;
-
-  // Removes prediciton by setting NO_PREDICTION to result type if necessary.
-  void RemovePrediction(const ConversionRequest &request,
-                        const Segments &segments,
-                        std::vector<Result> *results) const;
+                                    std::vector<Result> *results) const;
 
   // Adds prediction results from history key and value.
-  void AddBigramResultsFromHistory(const string &history_key,
-                                   const string &history_value,
+  void AddBigramResultsFromHistory(const std::string &history_key,
+                                   const std::string &history_value,
                                    const ConversionRequest &request,
                                    const Segments &segments,
+                                   Segment::Candidate::SourceInfo source_info,
                                    std::vector<Result> *results) const;
 
   // Changes the prediction type for irrelevant bigram candidate.
@@ -284,43 +328,33 @@ class DictionaryPredictor : public PredictorInterface {
 
   static void GetPredictiveResults(
       const dictionary::DictionaryInterface &dictionary,
-      const string &history_key,
-      const ConversionRequest &request,
-      const Segments &segments,
-      PredictionTypes types,
-      size_t lookup_limit,
+      const std::string &history_key, const ConversionRequest &request,
+      const Segments &segments, PredictionTypes types, size_t lookup_limit,
+      Segment::Candidate::SourceInfo source_info, int unknown_id,
       std::vector<Result> *results);
 
   void GetPredictiveResultsForBigram(
       const dictionary::DictionaryInterface &dictionary,
-      const string &history_key,
-      const string &history_value,
-      const ConversionRequest &request,
-      const Segments &segments,
-      PredictionTypes types,
-      size_t lookup_limit,
+      const std::string &history_key, const std::string &history_value,
+      const ConversionRequest &request, const Segments &segments,
+      PredictionTypes types, size_t lookup_limit,
+      Segment::Candidate::SourceInfo source_info, int unknown_id,
       std::vector<Result> *results) const;
 
   // Performs a custom look up for English words where case-conversion might be
   // applied to lookup key and/or output results.
-  void GetPredictiveResultsForEnglish(
+  void GetPredictiveResultsForEnglishKey(
       const dictionary::DictionaryInterface &dictionary,
-      const string &history_key,
-      const ConversionRequest &request,
-      const Segments &segments,
-      PredictionTypes types,
-      size_t lookup_limit,
+      const ConversionRequest &request, const std::string &input_key,
+      PredictionTypes types, size_t lookup_limit,
       std::vector<Result> *results) const;
 
   // Performs look-ups using type-corrected queries from composer. Usually
   // involves multiple look-ups from dictionary.
   void GetPredictiveResultsUsingTypingCorrection(
       const dictionary::DictionaryInterface &dictionary,
-      const string &history_key,
-      const ConversionRequest &request,
-      const Segments &segments,
-      PredictionTypes types,
-      size_t lookup_limit,
+      const std::string &history_key, const ConversionRequest &request,
+      const Segments &segments, PredictionTypes types, size_t lookup_limit,
       std::vector<Result> *results) const;
 
   // Returns the position of misspelled character position.
@@ -334,12 +368,12 @@ class DictionaryPredictor : public PredictorInterface {
   // key: "ろっぽんぎ"5
   // value: "六本木"
   // returns 5 (charslen("六本木"))
-  size_t GetMissSpelledPosition(const string &key,
-                                const string &value) const;
+  size_t GetMissSpelledPosition(const std::string &key,
+                                const std::string &value) const;
 
   // Returns language model cost of |token| given prediciton type |type|.
   // |rid| is the right id of previous word (token).
-  // If |rid| is uknown, set 0 as a default value.
+  // If |rid| is unknown, set 0 as a default value.
   int GetLMCost(const Result &result, int rid) const;
 
   // Given the results aggregated by aggregates, remove
@@ -393,57 +427,36 @@ class DictionaryPredictor : public PredictorInterface {
 
   // Language model-based scoring function.
   // This algorithm is mainly used for mobile.
-  void SetLMCost(const Segments &segments,
-                 std::vector<Result> *results) const;
+  void SetLMCost(const Segments &segments, std::vector<Result> *results) const;
 
   // Returns true if the suggestion is classified
   // as "aggressive".
-  bool IsAggressiveSuggestion(
-      size_t query_len, size_t key_len, int cost,
-      bool is_suggestion, size_t total_candidates_size) const;
+  bool IsAggressiveSuggestion(size_t query_len, size_t key_len, int cost,
+                              bool is_suggestion,
+                              size_t total_candidates_size) const;
 
   // Gets history key/value.
   // Returns false if history segments are
   // not found.
-  bool GetHistoryKeyAndValue(const Segments &segments,
-                             string *key, string *value) const;
-
-  // Returns a bitfield of PredictionType.
-  static PredictionTypes GetPredictionTypes(const ConversionRequest &request,
-                                            const Segments &segments);
+  bool GetHistoryKeyAndValue(const Segments &segments, std::string *key,
+                             std::string *value) const;
 
   // Returns true if the realtime conversion should be used.
   // TODO(hidehiko): add Config and Request instances into the arguments
   //   to represent the dependency explicitly.
-  static bool ShouldRealTimeConversionEnabled(const ConversionRequest &request,
-                                              const Segments &segments);
+  static bool ShouldAggregateRealTimeConversionResults(
+      const ConversionRequest &request, const Segments &segments);
 
   // Returns true if key consistes of '0'-'9' or '-'
-  static bool IsZipCodeRequest(const string &key);
+  static bool IsZipCodeRequest(const std::string &key);
 
   // Returns max size of realtime candidates.
   size_t GetRealtimeCandidateMaxSize(const Segments &segments,
-                                     bool mixed_conversion,
-                                     size_t max_size) const;
+                                     bool mixed_conversion) const;
 
-  // Aggregates unigram candidate for non mixed conversion.
-  void AggregateUnigramCandidate(const ConversionRequest &request,
-                                 const Segments &segments,
-                                 std::vector<Result> *results) const;
-
-  // Aggregates unigram candidate for mixed conversion.
-  // This reduces redundant candidates.
-  static void AggregateUnigramCandidateForMixedConversion(
-      const dictionary::DictionaryInterface &dictionary,
-      const ConversionRequest &request,
-      const Segments &segments,
-      std::vector<Result> *results);
-
-  // The same as the static version of this method above but uses |dictionary_|.
-  void AggregateUnigramCandidateForMixedConversion(
-      const ConversionRequest &request,
-      const Segments &segments,
-      std::vector<Result> *results) const;
+  // Returns config to gather unigram candidates.
+  UnigramConfig GetUnigramConfig(const ConversionRequest &request,
+                                 const Segments &segments) const;
 
   // Returns cutoff threshold of unigram candidates.
   // AggregateUnigramPrediction method does not return any candidates
@@ -461,12 +474,11 @@ class DictionaryPredictor : public PredictorInterface {
   void MaybeRecordUsageStats(const Segment::Candidate &candidate) const;
 
   // Sets candidate description.
-  static void SetDescription(PredictionTypes types,
-                             uint32 attributes,
-                             string *description);
+  static void SetDescription(PredictionTypes types, uint32_t attributes,
+                             std::string *description);
   // Description for DEBUG mode.
   static void SetDebugDescription(PredictionTypes types,
-                                  string *description);
+                                  std::string *description);
 
   const ConverterInterface *converter_;
   const ImmutableConverterInterface *immutable_converter_;
@@ -475,9 +487,10 @@ class DictionaryPredictor : public PredictorInterface {
   const Connector *connector_;
   const Segmenter *segmenter_;
   const SuggestionFilter *suggestion_filter_;
-  const uint16 counter_suffix_word_id_;
-  const uint16 general_symbol_id_;
-  const string predictor_name_;
+  const uint16_t counter_suffix_word_id_;
+  const uint16_t general_symbol_id_;
+  const uint16_t unknown_id_;
+  const std::string predictor_name_;
   ZeroQueryDict zero_query_dict_;
   ZeroQueryDict zero_query_number_dict_;
 

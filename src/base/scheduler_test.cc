@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #include "base/scheduler.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 
 #include "base/logging.h"
@@ -40,12 +41,12 @@
 namespace mozc {
 namespace {
 
-const int32 kTimeout = 30 * 1000;  // 30 sec.
-const int32 kNoRandomDelay = 0;
-const int32 kImmediately = 0;
-const int32 kShortPeriod = 10;      // 10 millisec.
-const int32 kMediumPeriod = 100;    // 100 millisec.
-const int32 kTooLongTime = 24 * 60 * 1000;  // 24 hours.
+const int32_t kTimeout = 30 * 1000;  // 30 sec.
+const int32_t kNoRandomDelay = 0;
+const int32_t kImmediately = 0;
+const int32_t kShortPeriod = 10;              // 10 millisec.
+const int32_t kMediumPeriod = 100;            // 100 millisec.
+const int32_t kTooLongTime = 24 * 60 * 1000;  // 24 hours.
 
 class SchedulerTest : public testing::Test {
  public:
@@ -55,18 +56,14 @@ class SchedulerTest : public testing::Test {
         : name_(setting.name()) {
       Scheduler::AddJob(setting);
     }
-    ~ScopedJob() {
-      Scheduler::RemoveJob(name_);
-    }
+    ~ScopedJob() { Scheduler::RemoveJob(name_); }
 
    private:
-    const string name_;
+    const std::string name_;
   };
 
  protected:
-  virtual void TearDown() {
-    Scheduler::RemoveAllJobs();
-  }
+  void TearDown() override { Scheduler::RemoveAllJobs(); }
 };
 
 TEST_F(SchedulerTest, SimpleJob) {
@@ -86,7 +83,7 @@ TEST_F(SchedulerTest, SimpleJob) {
         return true;  // continue
       }
       EXPECT_TRUE(info->second_event.Notify());
-      return false;   // stop
+      return false;  // stop
     }
   };
 
@@ -94,17 +91,16 @@ TEST_F(SchedulerTest, SimpleJob) {
   ASSERT_TRUE(info.first_event.IsAvailable());
   ASSERT_TRUE(info.second_event.IsAvailable());
 
-  ScopedJob job(Scheduler::JobSetting(
-      "Test", kShortPeriod, kShortPeriod, kImmediately, kNoRandomDelay,
-      &TestCallback::Do, &info));
+  ScopedJob job(Scheduler::JobSetting("Test", kShortPeriod, kShortPeriod,
+                                      kImmediately, kNoRandomDelay,
+                                      &TestCallback::Do, &info));
   ASSERT_TRUE(info.first_event.Wait(kTimeout));
   ASSERT_TRUE(info.second_event.Wait(kTimeout));
 }
 
 TEST_F(SchedulerTest, RemoveJob) {
   struct SharedInfo {
-    SharedInfo()
-        : running(false) {}
+    SharedInfo() : running(false) {}
     UnnamedEvent first_event;
     volatile bool running;
   };
@@ -126,9 +122,9 @@ TEST_F(SchedulerTest, RemoveJob) {
   SharedInfo info;
   ASSERT_TRUE(info.first_event.IsAvailable());
   {
-    ScopedJob job(Scheduler::JobSetting(
-        "Test", kShortPeriod, kShortPeriod, kImmediately, kNoRandomDelay,
-        &TestCallback::Do, &info));
+    ScopedJob job(Scheduler::JobSetting("Test", kShortPeriod, kShortPeriod,
+                                        kImmediately, kNoRandomDelay,
+                                        &TestCallback::Do, &info));
     // Make sure that the job is running.
     ASSERT_TRUE(info.first_event.Wait(kTimeout));
     ASSERT_TRUE(info.running);
@@ -159,9 +155,9 @@ TEST_F(SchedulerTest, Delay) {
     UnnamedEvent event;
     ASSERT_TRUE(event.IsAvailable());
     // This job will be delayed |kTooLongTime|.
-    ScopedJob job(Scheduler::JobSetting(
-        "Test", kShortPeriod, kShortPeriod, kTooLongTime, kNoRandomDelay,
-        &TestCallback::Do, &event));
+    ScopedJob job(Scheduler::JobSetting("Test", kShortPeriod, kShortPeriod,
+                                        kTooLongTime, kNoRandomDelay,
+                                        &TestCallback::Do, &event));
     // The timeout period is arbitrary, but longer timeout period makes the
     // assertion stronger. Feel free to shorten it.
     ASSERT_FALSE(event.Wait(kMediumPeriod));
@@ -171,9 +167,9 @@ TEST_F(SchedulerTest, Delay) {
     UnnamedEvent event;
     ASSERT_TRUE(event.IsAvailable());
     // This job will be delayed |kShortPeriod|.
-    ScopedJob job(Scheduler::JobSetting(
-        "Test", kShortPeriod, kShortPeriod, kShortPeriod, kNoRandomDelay,
-        &TestCallback::Do, &event));
+    ScopedJob job(Scheduler::JobSetting("Test", kShortPeriod, kShortPeriod,
+                                        kShortPeriod, kNoRandomDelay,
+                                        &TestCallback::Do, &event));
     ASSERT_TRUE(event.Wait(kTimeout));
   }
 }
@@ -195,7 +191,7 @@ TEST_F(SchedulerTest, RandomDelay) {
         return true;  // continue
       }
       EXPECT_TRUE(info->second_event.Notify());
-      return false;   // stop
+      return false;  // stop
     }
   };
 
@@ -203,9 +199,9 @@ TEST_F(SchedulerTest, RandomDelay) {
   ASSERT_TRUE(info.first_event.IsAvailable());
   ASSERT_TRUE(info.second_event.IsAvailable());
 
-  ScopedJob job(Scheduler::JobSetting(
-      "Test", kShortPeriod, kShortPeriod, kImmediately, kMediumPeriod,
-      &TestCallback::Do, &info));
+  ScopedJob job(Scheduler::JobSetting("Test", kShortPeriod, kShortPeriod,
+                                      kImmediately, kMediumPeriod,
+                                      &TestCallback::Do, &info));
   ASSERT_TRUE(info.first_event.Wait(kTimeout));
   ASSERT_TRUE(info.second_event.Wait(kTimeout));
 }
@@ -225,7 +221,7 @@ TEST_F(SchedulerTest, DontBlockOtherJobs) {
         return false;
       }
       EXPECT_TRUE(info->quit_event.Wait(kTimeout));
-      return false;   // stop
+      return false;  // stop
     }
   };
 
@@ -234,7 +230,7 @@ TEST_F(SchedulerTest, DontBlockOtherJobs) {
     static bool Do(void *ptr) {
       UnnamedEvent *event = static_cast<UnnamedEvent *>(ptr);
       EXPECT_TRUE(event->Notify());
-      return false;   // stop
+      return false;  // stop
     }
   };
 
@@ -258,18 +254,20 @@ TEST_F(SchedulerTest, DontBlockOtherJobs) {
 
 class NameCheckScheduler : public Scheduler::SchedulerInterface {
  public:
-  explicit NameCheckScheduler(const string &expected_name)
+  explicit NameCheckScheduler(const std::string &expected_name)
       : expected_name_(expected_name) {}
 
-  void RemoveAllJobs() {}
-  bool RemoveJob(const string &name) { return true; }
-  bool AddJob(const Scheduler::JobSetting &job_setting) {
+  void RemoveAllJobs() override {}
+  bool RemoveJob(const std::string &name) override { return true; }
+  bool AddJob(const Scheduler::JobSetting &job_setting) override {
     return (expected_name_ == job_setting.name());
   }
-  bool HasJob(const string &name) const { return expected_name_ == name; }
+  bool HasJob(const std::string &name) const override {
+    return expected_name_ == name;
+  }
 
  private:
-  const string expected_name_;
+  const std::string expected_name_;
 };
 
 TEST(SchedulerInterfaceTest, SchedulerHandler) {

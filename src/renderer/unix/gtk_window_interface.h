@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ class GtkWindowInterface {
   virtual void Resize(const Size &size) = 0;
   virtual void Initialize() = 0;
   virtual void Redraw() = 0;
-  virtual void ReloadFontConfig(const string &font_description) = 0;
+  virtual void ReloadFontConfig(const std::string &font_description) = 0;
 
   virtual Size Update(const commands::Candidates &candidates) = 0;
 

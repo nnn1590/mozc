@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 #ifndef MOZC_STORAGE_LOUDS_BIT_VECTOR_BASED_ARRAY_H_
 #define MOZC_STORAGE_LOUDS_BIT_VECTOR_BASED_ARRAY_H_
 
+#include <cstdint>
+
 #include "base/port.h"
 #include "storage/louds/simple_succinct_bit_vector_index.h"
 
@@ -41,10 +43,9 @@ namespace louds {
 // supporting Rank/Select operations.
 class BitVectorBasedArray {
  public:
-  BitVectorBasedArray() {
-  }
+  BitVectorBasedArray() {}
 
-  void Open(const uint8 *image);
+  void Open(const uint8_t *image);
   void Close();
 
   // Returns a pointer to the element and its length.

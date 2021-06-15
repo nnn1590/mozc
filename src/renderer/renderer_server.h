@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #ifndef MOZC_RENDERER_RENDERER_SERVER_H_
 #define MOZC_RENDERER_RENDERER_SERVER_H_
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -48,7 +49,7 @@ class ParentApplicationWatchDog;
 class RendererServer : public IPCServer {
  public:
   RendererServer();
-  virtual ~RendererServer();
+  ~RendererServer() override;
 
   void SetRendererInterface(RendererInterface *renderer_interface);
 
@@ -58,10 +59,8 @@ class RendererServer : public IPCServer {
   // The return value is suppose to be used for the arg of exit().
   int StartServer();
 
-  bool Process(const char *request,
-               size_t request_size,
-               char *response,
-               size_t *response_size);
+  bool Process(const char *request, size_t request_size, char *response,
+               size_t *response_size) override;
 
   // DEPRECATED: this functions is never called
   virtual void AsyncHide() {}
@@ -75,7 +74,7 @@ class RendererServer : public IPCServer {
   // IPC listener thread can reply to the client request as
   // early as possible.
   // This function takes the owership of proto_message
-  virtual bool AsyncExecCommand(string *proto_message)  = 0;
+  virtual bool AsyncExecCommand(std::string *proto_message) = 0;
 
  protected:
   // implement Message Loop function.
@@ -88,11 +87,12 @@ class RendererServer : public IPCServer {
   bool ExecCommandInternal(const commands::RendererCommand &command);
 
   // return timeout (msec) passed by FLAGS_timeout
-  uint32 timeout() const;
+  uint32_t timeout() const;
+
+  RendererInterface *renderer_interface_ = nullptr;
 
  private:
-  uint32 timeout_;
-  RendererInterface *renderer_interface_;
+  uint32_t timeout_;
   std::unique_ptr<ParentApplicationWatchDog> watch_dog_;
   std::unique_ptr<RendererServerSendCommand> send_command_;
 

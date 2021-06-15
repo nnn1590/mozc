@@ -1,4 +1,4 @@
-// Copyright 2010-2018, Google Inc.
+// Copyright 2010-2021, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -55,14 +55,14 @@ class FontSpecInterface {
   FontSpecInterface() {}
   virtual ~FontSpecInterface() {}
 
-  virtual void Reload(const string &font_description) = 0;
+  virtual void Reload(const std::string &font_description) = 0;
   virtual PangoAlignment GetFontAlignment(FONT_TYPE font_type) const = 0;
   // The FontSpec takes the ownership of returned PangoAttrList* instance even
   // this function returns non-const value. This is due to API restriction which
   // is pango_attr_list_copy.
   virtual PangoAttrList *GetFontAttributes(FONT_TYPE font_type) const = 0;
-  virtual const PangoFontDescription *GetFontDescription(FONT_TYPE font_type)
-      const = 0;
+  virtual const PangoFontDescription *GetFontDescription(
+      FONT_TYPE font_type) const = 0;
 };
 }  // namespace gtk
 }  // namespace renderer
