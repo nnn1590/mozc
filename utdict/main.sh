@@ -9,7 +9,7 @@ declare _BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")"; pwd)"
 cd "${_BASE_DIR}"
 
 function main() {
-	declare -r _MOZC_UT_VERSION="20210603"
+	declare -r _MOZC_UT_VERSION="20210627"
 	declare -r _MOZC_UT_DIR_NAME="mozcdic-ut-${_MOZC_UT_VERSION}"
 	declare -r _MOZC_UT_ARCHIVE_FILE_NAME="${_MOZC_UT_DIR_NAME}.tar.bz2"
 	declare -r _MOZC_UT_URL="https://osdn.net/users/utuhiro/pf/utuhiro/dl/${_MOZC_UT_ARCHIVE_FILE_NAME}"
