@@ -107,12 +107,15 @@ def _GetRevisionForPlatform(revision, target_platform):
 
 
 def _ParseVersionTemplateFile(template_path, target_platform,
+                              android_application_id, android_arch,
                               qt_version, build_override):
   """Parses a version definition file.
 
   Args:
     template_path: A filename which has the version definition.
     target_platform: The target platform on which the programs run.
+    android_application_id: Android application id.
+    android_arch: Android architecture (arm, x86, mips)
     qt_version: '4' for Qt4, '5' for Qt5, and '' or None for no-Qt.
     build_override: An optional string to override BUILD number.
   Returns:
@@ -188,6 +191,8 @@ def GenerateVersionFileFromTemplate(template_path,
                                     output_path,
                                     version_format,
                                     target_platform,
+                                    android_application_id='',
+                                    android_arch='arm',
                                     qt_version='',
                                     build_override=None):
   """Generates version file from template file and given parameters.
@@ -199,13 +204,16 @@ def GenerateVersionFileFromTemplate(template_path,
       (the timestamp is not updated).
     version_format: A string which contans version patterns.
     target_platform: The target platform on which the programs run.
+    android_application_id: Android application id.
+    android_arch: Android architecture (arm, x86, mips)
     qt_version: '4' for Qt4, '5' for Qt5, and '' or None for no-Qt.
     build_override: An optional string to override BUILD number
       in the template.
   """
 
   properties = _ParseVersionTemplateFile(template_path, target_platform,
-                                         qt_version, build_override)
+                                         android_application_id,
+                                         android_arch, qt_version, build_override)
   version_definition = _GetVersionInFormat(properties, version_format)
   old_content = ''
   if os.path.exists(output_path):
@@ -222,7 +230,7 @@ def GenerateVersionFileFromTemplate(template_path,
 
 
 def GenerateVersionFile(version_template_path, version_path, target_platform,
-                        qt_version, build_override=None):
+                        android_application_id, android_arch, qt_version, build_override=None):
   """Reads the version template file and stores it into version_path.
 
   This doesn't update the "version_path" if nothing will be changed to
@@ -232,7 +240,9 @@ def GenerateVersionFile(version_template_path, version_path, target_platform,
     version_template_path: a file name which contains the template of version.
     version_path: a file name to be stored the official version.
     target_platform: target platform name. c.f. --target_platform option
-    qt_version: '4' for Qt4, '5' for Qt5, and '' or None for no-Qt.
+    android_application_id: [Android Only] application id
+      (e.g. org.mozc.android).
+    android_arch: Android architecture (arm, x86, mips)    qt_version: '4' for Qt4, '5' for Qt5, and '' or None for no-Qt.
     build_override: an optional string to override BUILD number in the template.
   """
   version_format = '\n'.join([
@@ -240,8 +250,12 @@ def GenerateVersionFile(version_template_path, version_path, target_platform,
       'MINOR=@MINOR@',
       'BUILD=@BUILD@',
       'REVISION=@REVISION@',
+      'ANDROID_VERSION_CODE=@ANDROID_VERSION_CODE@',
       'TARGET_PLATFORM=@TARGET_PLATFORM@',
       'QT_VERSION=@QT_VERSION@',
+      'ANDROID_APPLICATION_ID=@ANDROID_APPLICATION_ID@',
+      'ANDROID_SERVICE_NAME=@ANDROID_SERVICE_NAME@',
+      'ANDROID_ARCH=@ANDROID_ARCH@',
       'ENGINE_VERSION=@ENGINE_VERSION@',
       'DATA_VERSION=@DATA_VERSION@',
   ]) + '\n'
@@ -250,6 +264,8 @@ def GenerateVersionFile(version_template_path, version_path, target_platform,
       version_path,
       version_format,
       target_platform=target_platform,
+      android_application_id=android_application_id,
+      android_arch=android_arch,
       qt_version=qt_version,
       build_override=build_override)
 
@@ -364,6 +380,8 @@ def main():
       version_template_path=options.template_path,
       version_path=options.output,
       target_platform=options.target_platform,
+      android_application_id=options.android_application_id,
+      android_arch=options.android_arch,
       qt_version=options.qtver,
       build_override=cl_number)
 
