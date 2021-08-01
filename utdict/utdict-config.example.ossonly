@@ -1,4 +1,5 @@
 ::complementwith=default
+::skiprebuild=false
 altcannadic="true"
 edict="true"
 jawikiarticles="true"

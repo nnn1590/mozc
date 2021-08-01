@@ -18,15 +18,16 @@ function main() {
 	rm -rf "${_MOZC_UT_DIR_NAME}"
 	wget -nc "${_MOZC_UT_URL}"
 	tar xf "${_MOZC_UT_ARCHIVE_FILE_NAME}"
-	cd "${_MOZC_UT_DIR_NAME}"
-	[ -f "${_MOZC_UT_PATCH_FILE}" ] && patch -Np1 < "${_MOZC_UT_PATCH_FILE}"
-	ln -s ../../.. mozc/mozc
-	cd src
-	setting_dictionary
-	chmod +x make-dictionaries.sh
-	./make-dictionaries.sh
-	cd ..
-	cat mozcdic-*-"${_MOZC_UT_VERSION}".txt > "${_BASE_DIR}/../src/data/dictionary_oss/dictionary11.txt"
+	cd "${_MOZC_UT_DIR_NAME}/src"
+	[ -f "${_MOZC_UT_PATCH_FILE}" ] && patch -d .. -Np1 < "${_MOZC_UT_PATCH_FILE}"
+	ln -s ../../.. ../mozc/mozc
+	if [ "x$(setting_dictionary)X" == "x_skip_rebuild: trueX" ]; then
+		echo ":: [INFO] Rebuilding dictionary has been skipped"
+	else
+		chmod +x make-dictionaries.sh
+		./make-dictionaries.sh
+	fi
+	cat "../${_MOZC_UT_DIR_NAME}.txt" > "${_BASE_DIR}/../src/data/dictionary_oss/dictionary11.txt"
 }
 
 function index_of() {
