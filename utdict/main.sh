@@ -9,7 +9,7 @@ declare _BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")"; pwd)"
 cd "${_BASE_DIR}"
 
 function main() {
-	declare -r _MOZC_UT_VERSION="20210627"
+	declare -r _MOZC_UT_VERSION="20210725"
 	declare -r _MOZC_UT_DIR_NAME="mozcdic-ut-${_MOZC_UT_VERSION}"
 	declare -r _MOZC_UT_ARCHIVE_FILE_NAME="${_MOZC_UT_DIR_NAME}.tar.bz2"
 	declare -r _MOZC_UT_URL="https://osdn.net/users/utuhiro/pf/utuhiro/dl/${_MOZC_UT_ARCHIVE_FILE_NAME}"
@@ -30,8 +30,8 @@ function main() {
 }
 
 function index_of() {
-	[ "0${#}" -gt 2 ] && { echo ":: [ERROR] index_of: Too many arguments (${#}). This function must have 2 arguments" >&2; return 1; }
-	[ "0${#}" -lt 2 ] && { echo ":: [ERROR] index_of: Too few arguments (${#}). This function must have 2 arguments" >&2; return 1; }
+	[ "0${#}" -gt 2 ] && { echo ":: [ERROR] ${FUNCNAME[0]}: Too many arguments (${#}). This function must have 2 arguments" >&2; return 1; }
+	[ "0${#}" -lt 2 ] && { echo ":: [ERROR] ${FUNCNAME[0]}: Too few arguments (${#}). This function must have 2 arguments" >&2; return 1; }
 	local IFS=' '
 	local -n array="${2}"
 	for i in ${!array[*]}; do
