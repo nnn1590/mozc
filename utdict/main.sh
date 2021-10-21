@@ -56,7 +56,7 @@ function setting_dictionary() {
 
 	IFS=$'\n'
 	for i in $(grep -E '^#?.+="true"$' make-dictionaries.sh); do
-		_default_name+=("$(echo "${i}" | grep -Po '^(.+?=)' | sed -ze 's/^#//g; s/\n//g; s/=$//g')")
+		_default_name+=("$(echo "${i}" | grep -Po '^(.*=)' | sed -ze 's/^#//g; s/\n//g; s/=$//g')")
 		if [[ "${i}" == "#"* ]]; then
 			_default_value+=('false')
 		else
@@ -64,12 +64,12 @@ function setting_dictionary() {
 		fi
 	done
 	for i in $(grep -P '^(?!::)#?.+=.*$' "${_BASE_DIR}/${_CONFIG_FILE_NAME}"); do
-		_tmp_name="$(echo "${i}" | grep -Po '^(.+?=)' | sed -ze 's/^#//g; s/\n//g; s/=$//g')"
+		_tmp_name="$(echo "${i}" | grep -Po '^(.*=)' | sed -ze 's/^#//g; s/\n//g; s/=$//g')"
 		_tmp_index="$(index_of "${_tmp_name}" _config_name)"
 		_tmp_value=""
-		if ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='.?(t(rue)?|1|y(es)?|enable).?$ ]]; then
+		if ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='($'\t'| )*(t(rue)?|1|y(es)?|enable)($'\t'| |"#")*$ ]]; then
 			_tmp_value='true'
-		elif ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='.?(k(eep)?|2|same|c(opy)?|default).?$ ]]; then
+		elif ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='($'\t'| )*(k(eep)?|2|same|c(opy)?|default)($'\t'| |"#")*$ ]]; then
 			if [[ "$(index_of "${_tmp_name}" _default_name)" == "-1" ]]; then
 				echo ":: [ERROR] There is no default value for '${_tmp_name}'" >&2
 				return 1
@@ -91,13 +91,25 @@ function setting_dictionary() {
 	declare _build_name=("${_default_name[@]}")
 	declare _build_value=("${_default_value[@]}")
 	declare _build_default_value="keep"
+	declare _skip_rebuild="false"
 	for i in $(grep -P '^::complementwith=.*$' "${_BASE_DIR}/${_CONFIG_FILE_NAME}"); do
-		if ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='.?(t(rue)?|1|y(es)?|enable).?$ ]]; then
+		if ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='($'\t'| )*(t(rue)?|1|y(es)?|enable)($'\t'| |"#")*$ ]]; then
 			_build_default_value='true'
-		elif ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='.?(f(alse)?|0|n(o)?|disable).?$ ]]; then
+		elif ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='($'\t'| )*(f(alse)?|0|n(o)?|disable)($'\t'| |"#")*$ ]]; then
 			_build_default_value='false'
 		fi
 	done
+	for i in $(grep -P '^::skiprebuild=.*$' "${_BASE_DIR}/${_CONFIG_FILE_NAME}"); do
+		if ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='($'\t'| )*(t(rue)?|1|y(es)?|enable)($'\t'| |"#")*$ ]]; then
+			_skip_rebuild='true'
+		elif ! [[ "${i}" == "#"* ]] && [[ "${i,,}" =~ .+'='($'\t'| )*(f(alse)?|0|n(o)?|disable)($'\t'| |"#")*$ ]]; then
+			_skip_rebuild='false'
+		fi
+	done
+	if [[ "x${_skip_rebuild}X" == "xtrueX" ]]; then
+		echo -n "_skip_rebuild: ${_skip_rebuild}"
+		return 0
+	fi
 	[[ "${_build_default_value}" =~ (true|false) ]] && for i in ${!_build_value[*]}; do
 		_build_value[${i}]="${_build_default_value}"
 	done
