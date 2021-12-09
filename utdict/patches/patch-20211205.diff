@@ -1,6 +1,6 @@
 diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
 --- origin/src/make-dictionaries.sh	2021-12-05 12:35:05.000000000 +0900
-+++ mod/src/make-dictionaries.sh	2021-12-09 15:48:27.926435045 +0900
++++ mod/src/make-dictionaries.sh	2021-12-09 22:09:26.143421139 +0900
 @@ -16,12 +16,11 @@
  # Make each dictionary
  # ==============================================================================
@@ -17,10 +17,12 @@ diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
  
  echo "Get jawiki-titles and add search results to each title..."
  cd ../jawiki-titles/
-@@ -121,25 +120,3 @@
+@@ -119,27 +118,5 @@
  
- echo "Update documents..."
- ruby update_documents.rb
+ mv mozcdic-ut-$UTDICDATE.txt.need.costs ../mozcdic-ut-$UTDICDATE.txt
+ 
+-echo "Update documents..."
+-ruby update_documents.rb
 -
 -echo "Copy mozc-*.tar.bz2 and PKGBUILD..."
 -cp -f ../mozc/mozc-*.tar.bz2 ../../
@@ -43,3 +45,5 @@ diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
 -tar -cjf mozcdic-ut-$UTDICDATE.tar.bz2 mozcdic-ut-$UTDICDATE
 -
 -echo "Done."
++#echo "Update documents..."
++#ruby update_documents.rb
