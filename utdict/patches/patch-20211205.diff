@@ -1,7 +1,7 @@
 diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
 --- origin/src/make-dictionaries.sh	2021-12-05 12:35:05.000000000 +0900
-+++ mod/src/make-dictionaries.sh	2021-12-09 22:09:26.143421139 +0900
-@@ -16,12 +16,11 @@
++++ mod/src/make-dictionaries.sh	2021-12-09 22:26:25.545093428 +0900
+@@ -16,53 +16,68 @@
  # Make each dictionary
  # ==============================================================================
  
@@ -17,7 +17,64 @@ diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
  
  echo "Get jawiki-titles and add search results to each title..."
  cd ../jawiki-titles/
-@@ -119,27 +118,5 @@
+ ruby add_search_results_to_each_title.rb
+ 
++if [[ $altcannadic = "true" ]]; then
+ echo "Generate alt-cannadic entries..."
+ cd ../alt-cannadic/
+ ruby convert_alt_cannadic_to_mozcdic.rb
++fi
+ 
++if [[ $chimei = "true" ]]; then
+ echo "Generate chimei entries..."
+ cd ../chimei/
+ ruby fix_ken_all.rb
+ ruby generate_chimei_for_mozcdic.rb
++fi
+ 
++if [[ $edict2 = "true" ]]; then
+ echo "Generate edict2 entries..."
+ cd ../edict2/
+ ruby convert_edict2_to_mozcdic.rb
++fi
+ 
++if [[ $jawikiarticles = "true" ]]; then
+ echo "Generate jawiki-articles entries..."
+ cd ../jawiki-articles/
+ ruby generate_jawiki_ut.rb
+ ruby convert_jawiki_ut_to_mozcdic.rb
+ ruby ../src/filter_unsuitable_entries.rb mozcdic-ut-jawiki.txt
++fi
+ 
++if [[ $jinmeiut = "true" ]]; then
+ echo "Generate jinmei-ut entries..."
+ cd ../jinmei-ut/
+ ruby convert_jinmei_ut_to_mozcdic.rb
++fi
+ 
++if [[ $neologd = "true" ]]; then
+ echo "Generate neologd entries..."
+ cd ../neologd/
+ ruby convert_neologd_to_mozcdic.rb
+ ruby ../src/filter_unsuitable_entries.rb mozcdic-ut-neologd.txt
++fi
+ 
++if [[ $skkdic = "true" ]]; then
+ echo "Generate skkdic entries..."
+ cd ../skkdic/
+ ruby convert_skkdic_to_mozcdic.rb
++fi
+ 
++if [[ $sudachidict = "true" ]]; then
+ echo "Generate sudachidict entries..."
+ cd ../sudachidict/
+ ruby convert_sudachidict_to_mozcdic.rb
+ ruby ../src/filter_unsuitable_entries.rb mozcdic-ut-sudachidict-*.txt
++fi
+ 
+ cd ../src/
+ 
+@@ -119,27 +134,5 @@
  
  mv mozcdic-ut-$UTDICDATE.txt.need.costs ../mozcdic-ut-$UTDICDATE.txt
  
