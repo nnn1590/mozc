@@ -1,0 +1,60 @@
+diff -r -Np1 -u origin/mozc/get_mozc_git.rb mod/mozc/get_mozc_git.rb
+--- origin/mozc/get_mozc_git.rb	2021-10-09 04:56:58.000000000 +0900
++++ mod/mozc/get_mozc_git.rb	2021-12-08 12:59:22.000000000 +0900
+@@ -5,55 +5,3 @@ require "open3"
+ 
+-
+-# ==============================================================================
+-# Check the latest mozc version
+-# ==============================================================================
+-
+-Open3.capture3("wget -N https://raw.githubusercontent.com/fcitx/mozc/fcitx/src/data/version/mozc_version_template.bzl")
+-
+-file = File.new("mozc_version_template.bzl", "r")
+-	lines = file.read.split("\n")
+-file.close
+-
+-version = ""
+-
+-lines.length.times do |i|
+-	if lines[i].index("MAJOR = ") == 0
+-			version = lines[i].split("MAJOR = ")[1] + "."
+-			next
+-	end
+-
+-	if lines[i].index("MINOR = ") == 0
+-			version = version + lines[i].split("MINOR = ")[1] + "."
+-			next
+-	end
+-
+-	if lines[i].index("BUILD = ") == 0
+-			version = version + lines[i].split("BUILD = ")[1]
+-			break
+-	end
+-end
+-
+-mozcdir = "mozc-" + version + ".102"
+-
+-
+-# ==============================================================================
+-# get_mozc_git
+-# ==============================================================================
+-
+-if FileTest.exist?(mozcdir + ".tar.bz2") == true
+-	puts mozcdir + ".tar.bz2 already exists."
+-	exit
+-end
+-
+-Open3.capture3("rm -f {mozc-*.tar.bz2,mozc-*.zip}")
+-Open3.capture3("rm -rf {mozc," + mozcdir + "}")
+-Open3.capture3("git clone --depth=1 --recurse-submodules --shallow-submodules https://github.com/fcitx/mozc.git")
+-Open3.capture3("rm -rf mozc/.git/")
+-
+ Open3.capture3("cp mozc/src/data/dictionary_oss/id.def .")
+-Open3.capture3("cat mozc/src/data/dictionary_oss/dictionary*.txt > mozcdic.txt")
+-
+-puts "Compress " + mozcdir + "..."
+-Open3.capture3("mv mozc " + mozcdir)
+-Open3.capture3("tar -cjf " + mozcdir + ".tar.bz2 " + mozcdir)
+-Open3.capture3("rm -rf " + mozcdir)
++Open3.capture3("printf '%s\n%s\n' 'shopt -s extglob' 'cat mozc/src/data/dictionary_oss/dictionary!(11).txt' | bash - > mozcdic.txt")
