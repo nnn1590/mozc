@@ -1,14 +1,16 @@
 diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
 --- origin/src/make-dictionaries.sh	2021-12-05 12:35:05.000000000 +0900
-+++ mod/src/make-dictionaries.sh	2021-12-09 22:26:25.545093428 +0900
-@@ -16,53 +16,68 @@
++++ mod/src/make-dictionaries.sh	2021-12-10 12:46:06.695924036 +0900
+@@ -16,53 +16,71 @@
  # Make each dictionary
  # ==============================================================================
  
 -rm -f ../mozcdic-ut-*.txt
--rm -f ../*/mozcdic-*.txt*
--
- echo "Get Mozc and make mozc-*.tar.bz2..."
++rm -f ./mozcdic-ut-*.txt{,.need} ../mozcdic-ut-*.txt
+ rm -f ../*/mozcdic-*.txt*
+ 
+-echo "Get Mozc and make mozc-*.tar.bz2..."
++echo "Get Mozc dictionary and id.def..."
  cd ../mozc/
 -ruby get_mozc_git.rb
 +cp mozc/src/data/dictionary_oss/id.def .
@@ -74,7 +76,7 @@ diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
  
  cd ../src/
  
-@@ -119,27 +134,5 @@
+@@ -119,27 +137,5 @@
  
  mv mozcdic-ut-$UTDICDATE.txt.need.costs ../mozcdic-ut-$UTDICDATE.txt
  
