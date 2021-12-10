@@ -133,7 +133,7 @@ function setting_dictionary() {
 	mv make-dictionaries.sh{.tmp,}
 }
 
-main ${@}
+main "${@}"
 declare _EXIT_CODE="${?}"
 [ ! "x${_EXIT_CODE}X" = "x0X" ] && exit "${_EXIT_CODE}"
 unset _BASE_DIR _EXIT_CODE
