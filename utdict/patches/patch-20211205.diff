@@ -1,0 +1,108 @@
+diff -ur origin/src/make-dictionaries.sh mod/src/make-dictionaries.sh
+--- origin/src/make-dictionaries.sh	2021-12-05 12:35:05.000000000 +0900
++++ mod/src/make-dictionaries.sh	2021-12-10 12:46:06.695924036 +0900
+@@ -16,53 +16,71 @@
+ # Make each dictionary
+ # ==============================================================================
+ 
+-rm -f ../mozcdic-ut-*.txt
++rm -f ./mozcdic-ut-*.txt{,.need} ../mozcdic-ut-*.txt
+ rm -f ../*/mozcdic-*.txt*
+ 
+-echo "Get Mozc and make mozc-*.tar.bz2..."
++echo "Get Mozc dictionary and id.def..."
+ cd ../mozc/
+-ruby get_mozc_git.rb
++cp mozc/src/data/dictionary_oss/id.def .
++shopt -s extglob
++cat mozc/src/data/dictionary_oss/dictionary!(11).txt > mozcdic.txt
+ 
+ echo "Get jawiki-titles and add search results to each title..."
+ cd ../jawiki-titles/
+ ruby add_search_results_to_each_title.rb
+ 
++if [[ $altcannadic = "true" ]]; then
+ echo "Generate alt-cannadic entries..."
+ cd ../alt-cannadic/
+ ruby convert_alt_cannadic_to_mozcdic.rb
++fi
+ 
++if [[ $chimei = "true" ]]; then
+ echo "Generate chimei entries..."
+ cd ../chimei/
+ ruby fix_ken_all.rb
+ ruby generate_chimei_for_mozcdic.rb
++fi
+ 
++if [[ $edict2 = "true" ]]; then
+ echo "Generate edict2 entries..."
+ cd ../edict2/
+ ruby convert_edict2_to_mozcdic.rb
++fi
+ 
++if [[ $jawikiarticles = "true" ]]; then
+ echo "Generate jawiki-articles entries..."
+ cd ../jawiki-articles/
+ ruby generate_jawiki_ut.rb
+ ruby convert_jawiki_ut_to_mozcdic.rb
+ ruby ../src/filter_unsuitable_entries.rb mozcdic-ut-jawiki.txt
++fi
+ 
++if [[ $jinmeiut = "true" ]]; then
+ echo "Generate jinmei-ut entries..."
+ cd ../jinmei-ut/
+ ruby convert_jinmei_ut_to_mozcdic.rb
++fi
+ 
++if [[ $neologd = "true" ]]; then
+ echo "Generate neologd entries..."
+ cd ../neologd/
+ ruby convert_neologd_to_mozcdic.rb
+ ruby ../src/filter_unsuitable_entries.rb mozcdic-ut-neologd.txt
++fi
+ 
++if [[ $skkdic = "true" ]]; then
+ echo "Generate skkdic entries..."
+ cd ../skkdic/
+ ruby convert_skkdic_to_mozcdic.rb
++fi
+ 
++if [[ $sudachidict = "true" ]]; then
+ echo "Generate sudachidict entries..."
+ cd ../sudachidict/
+ ruby convert_sudachidict_to_mozcdic.rb
+ ruby ../src/filter_unsuitable_entries.rb mozcdic-ut-sudachidict-*.txt
++fi
+ 
+ cd ../src/
+ 
+@@ -119,27 +137,5 @@
+ 
+ mv mozcdic-ut-$UTDICDATE.txt.need.costs ../mozcdic-ut-$UTDICDATE.txt
+ 
+-echo "Update documents..."
+-ruby update_documents.rb
+-
+-echo "Copy mozc-*.tar.bz2 and PKGBUILD..."
+-cp -f ../mozc/mozc-*.tar.bz2 ../../
+-cp -f ../pkgbuild/*.PKGBUILD ../../
+-
+-
+-# ==============================================================================
+-# Make mozcdic-ut-*.tar.bz2
+-# ==============================================================================
+-
+-echo "Copy files to mozcdic-ut-$UTDICDATE..."
+-cd ../../
+-rm -rf mozcdic-ut-$UTDICDATE
+-rsync -a mozcdic-ut-dev/* mozcdic-ut-$UTDICDATE --exclude=id.def --exclude=*.bzl \
+---exclude=jawiki-latest* --exclude=jawiki-ut*.txt --exclude=KEN_ALL.* --exclude=*.csv \
+---exclude=*.xml --exclude=*.gz --exclude=*.bz2 --exclude=*.xz --exclude=*.zip \
+---exclude=*.html --exclude=_*.rb --exclude=*/mozcdic*.txt*
+-
+-echo "Compress mozcdic-ut-$UTDICDATE..."
+-tar -cjf mozcdic-ut-$UTDICDATE.tar.bz2 mozcdic-ut-$UTDICDATE
+-
+-echo "Done."
++#echo "Update documents..."
++#ruby update_documents.rb

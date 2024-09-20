@@ -1,9 +1,10 @@
 ::complementwith=default
+::skiprebuild=false
 altcannadic="true"
-edict="true"
+chimei="true"
+edict2="true"
 jawikiarticles="true"
 jinmeiut="true"
 neologd="true"
-nicoime="false"
-skk="true"
+skkdic="true"
 sudachidict="true"

@@ -9,7 +9,7 @@ declare _BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")"; pwd)"
 cd "${_BASE_DIR}"
 
 function main() {
-	declare -r _MOZC_UT_VERSION="20210603"
+	declare -r _MOZC_UT_VERSION="20211205"
 	declare -r _MOZC_UT_DIR_NAME="mozcdic-ut-${_MOZC_UT_VERSION}"
 	declare -r _MOZC_UT_ARCHIVE_FILE_NAME="${_MOZC_UT_DIR_NAME}.tar.bz2"
 	declare -r _MOZC_UT_URL="https://osdn.net/users/utuhiro/pf/utuhiro/dl/${_MOZC_UT_ARCHIVE_FILE_NAME}"
@@ -18,20 +18,21 @@ function main() {
 	rm -rf "${_MOZC_UT_DIR_NAME}"
 	wget -nc "${_MOZC_UT_URL}"
 	tar xf "${_MOZC_UT_ARCHIVE_FILE_NAME}"
-	cd "${_MOZC_UT_DIR_NAME}"
-	[ -f "${_MOZC_UT_PATCH_FILE}" ] && patch -Np1 < "${_MOZC_UT_PATCH_FILE}"
-	ln -s ../../.. mozc/mozc
-	cd src
-	setting_dictionary
-	chmod +x make-dictionaries.sh
-	./make-dictionaries.sh
-	cd ..
-	cat mozcdic-*-"${_MOZC_UT_VERSION}".txt > "${_BASE_DIR}/../src/data/dictionary_oss/dictionary11.txt"
+	cd "${_MOZC_UT_DIR_NAME}/src"
+	[ -f "${_MOZC_UT_PATCH_FILE}" ] && patch -d .. -Np1 < "${_MOZC_UT_PATCH_FILE}"
+	ln -s ../../.. ../mozc/mozc
+	if [ "x$(setting_dictionary)X" == "x_skip_rebuild: trueX" ]; then
+		echo ":: [INFO] Rebuilding dictionary has been skipped"
+	else
+		chmod +x make-dictionaries.sh
+		./make-dictionaries.sh
+	fi
+	cat "../${_MOZC_UT_DIR_NAME}.txt" > "${_BASE_DIR}/../src/data/dictionary_oss/dictionary11.txt"
 }
 
 function index_of() {
-	[ "0${#}" -gt 2 ] && { echo ":: [ERROR] index_of: Too many arguments (${#}). This function must have 2 arguments" >&2; return 1; }
-	[ "0${#}" -lt 2 ] && { echo ":: [ERROR] index_of: Too few arguments (${#}). This function must have 2 arguments" >&2; return 1; }
+	[ "0${#}" -gt 2 ] && { echo ":: [ERROR] ${FUNCNAME[0]}: Too many arguments (${#}). This function must have 2 arguments" >&2; return 1; }
+	[ "0${#}" -lt 2 ] && { echo ":: [ERROR] ${FUNCNAME[0]}: Too few arguments (${#}). This function must have 2 arguments" >&2; return 1; }
 	local IFS=' '
 	local -n array="${2}"
 	for i in ${!array[*]}; do
@@ -120,7 +121,7 @@ function setting_dictionary() {
 	mv make-dictionaries.sh{.tmp,}
 }
 
-main ${@}
+main "${@}"
 declare _EXIT_CODE="${?}"
 [ ! "x${_EXIT_CODE}X" = "x0X" ] && exit "${_EXIT_CODE}"
 unset _BASE_DIR _EXIT_CODE
